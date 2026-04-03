@@ -3,8 +3,10 @@ package com.ims_web.inventory.service;
 import com.ims_web.inventory.entity.Producto;
 import com.ims_web.inventory.repository.ProductoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -30,20 +32,25 @@ public class ProductoService {
                 .orElseThrow(() -> new RuntimeException("Producto not found"));
     }
 
-    public Producto createProducto(Producto producto) {
-        if (producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
-            throw new RuntimeException("Precio cannot be negative");
-        }
-        if (producto.getProductoStock() < 0) {
-            throw new RuntimeException("Stock cannot be negative");
-        }
+    @Transactional
+    public Producto createProducto(Producto producto, String currentUser) {
+        validateProducto(producto);
+
+        LocalDateTime now = LocalDateTime.now();
+        producto.setProductosUsuarioCreacion(currentUser);
+        producto.setProductosFechaCreacion(now);
+
         return repo.save(producto);
     }
 
-    public Producto updateProducto(Producto producto) {
+    @Transactional
+    public Producto updateProducto(Producto producto, String currentUser) {
         Producto existing = repo.findById(producto.getProductoId())
                 .orElseThrow(() -> new RuntimeException("Producto not found"));
 
+        validateProducto(producto);
+
+        // Update fields
         existing.setProductoNombre(producto.getProductoNombre());
         existing.setProductoDesc(producto.getProductoDesc());
         existing.setProductoActivo(producto.getProductoActivo());
@@ -54,9 +61,21 @@ public class ProductoService {
         existing.setProductoCodigo(producto.getProductoCodigo());
         existing.setCategoria(producto.getCategoria());
         existing.setDescuento(producto.getDescuento());
-        existing.setProductosUsuarioModif(producto.getProductosUsuarioModif());
-        existing.setProductosFechaModif(producto.getProductosFechaModif());
+
+        // Audit
+        LocalDateTime now = LocalDateTime.now();
+        existing.setProductosUsuarioModif(currentUser);
+        existing.setProductosFechaModif(now);
 
         return repo.save(existing);
+    }
+
+    private void validateProducto(Producto producto) {
+        if (producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
+            throw new RuntimeException("Precio cannot be negative");
+        }
+        if (producto.getProductoStock() < 0) {
+            throw new RuntimeException("Stock cannot be negative");
+        }
     }
 }

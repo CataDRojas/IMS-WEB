@@ -26,6 +26,9 @@ public class Usuario {
     @Column(name = "UsuarioFechaCreacion", nullable = false)
     private LocalDateTime usuarioFechaCreacion;
 
+    @Column(name = "UsuarioFechaModif")
+    private LocalDateTime usuarioFechaModif; // <-- new field
+
     @ManyToOne
     @JoinColumn(name = "RolId", nullable = false)
     private Rol rol;
@@ -83,6 +86,14 @@ public class Usuario {
 
     public void setUsuarioFechaCreacion(LocalDateTime usuarioFechaCreacion) {
         this.usuarioFechaCreacion = usuarioFechaCreacion;
+    }
+
+    public LocalDateTime getUsuarioFechaModif() {
+        return usuarioFechaModif;
+    }
+
+    public void setUsuarioFechaModif(LocalDateTime usuarioFechaModif) {
+        this.usuarioFechaModif = usuarioFechaModif;
     }
 
     public Rol getRol() {

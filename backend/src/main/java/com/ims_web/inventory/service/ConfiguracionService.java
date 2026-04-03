@@ -5,6 +5,7 @@ import com.ims_web.inventory.repository.ConfiguracionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,7 +28,10 @@ public class ConfiguracionService {
         return repo.save(config);
     }
 
+    /**
+     * Optional convenience method to return singleton as a list
+     */
     public List<Configuracion> getAll() {
-        return repo.findAll();
+        return Collections.singletonList(getConfiguracion());
     }
 }
