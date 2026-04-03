@@ -4,11 +4,17 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "usuarios")
+@Table(name = "usuarios", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "UsuarioEmail")
+})
 public class Usuario {
 
     @Id
-    @Column(name = "UsuarioEmail", length = 150)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "UsuarioId")
+    private Long usuarioId;
+
+    @Column(name = "UsuarioEmail", length = 150, nullable = false)
     private String usuarioEmail;
 
     @Column(name = "UsuarioNombre", nullable = false)
@@ -27,7 +33,7 @@ public class Usuario {
     private LocalDateTime usuarioFechaCreacion;
 
     @Column(name = "UsuarioFechaModif")
-    private LocalDateTime usuarioFechaModif; // <-- new field
+    private LocalDateTime usuarioFechaModif;
 
     @ManyToOne
     @JoinColumn(name = "RolId", nullable = false)
@@ -39,6 +45,14 @@ public class Usuario {
     // ========================
     // Getters & Setters
     // ========================
+
+    public Long getUsuarioId() {
+        return usuarioId;
+    }
+
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
+    }
 
     public String getUsuarioEmail() {
         return usuarioEmail;

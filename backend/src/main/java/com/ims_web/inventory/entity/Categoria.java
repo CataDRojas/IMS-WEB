@@ -1,11 +1,12 @@
 package com.ims_web.inventory.entity;
 
+import com.ims_web.inventory.util.Auditable;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Categoria")
-public class Categoria {
+public class Categoria implements Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,7 +17,7 @@ public class Categoria {
     private String categoriaNombre;
 
     @ManyToOne
-    @JoinColumn(name = "DescuentoId")
+    @JoinColumn(name = "DescuentoId", referencedColumnName = "DescuentoId")
     private Descuento descuento;
 
     @Column(name = "CategoriaUsuarioCreacion", nullable = false)
@@ -35,59 +36,29 @@ public class Categoria {
     // GETTERS & SETTERS
     // =========================
 
-    public Long getCategoriaId() {
-        return categoriaId;
-    }
+    public Long getCategoriaId() { return categoriaId; }
+    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
 
-    public void setCategoriaId(Long categoriaId) {
-        this.categoriaId = categoriaId;
-    }
+    public String getCategoriaNombre() { return categoriaNombre; }
+    public void setCategoriaNombre(String categoriaNombre) { this.categoriaNombre = categoriaNombre; }
 
-    public String getCategoriaNombre() {
-        return categoriaNombre;
-    }
+    public Descuento getDescuento() { return descuento; }
+    public void setDescuento(Descuento descuento) { this.descuento = descuento; }
 
-    public void setCategoriaNombre(String categoriaNombre) {
-        this.categoriaNombre = categoriaNombre;
-    }
+    // =========================
+    // Auditable interface
+    // =========================
+    @Override
+    public void setUsuarioCreacion(String usuario) { this.categoriaUsuarioCreacion = usuario; }
+    @Override
+    public void setFechaCreacion(LocalDateTime fecha) { this.categoriaFechaCreacion = fecha; }
+    @Override
+    public void setUsuarioModif(String usuario) { this.categoriaUsuarioModif = usuario; }
+    @Override
+    public void setFechaModif(LocalDateTime fecha) { this.categoriaFechaModif = fecha; }
 
-    public Descuento getDescuento() {
-        return descuento;
-    }
-
-    public void setDescuento(Descuento descuento) {
-        this.descuento = descuento;
-    }
-
-    public String getCategoriaUsuarioCreacion() {
-        return categoriaUsuarioCreacion;
-    }
-
-    public void setCategoriaUsuarioCreacion(String categoriaUsuarioCreacion) {
-        this.categoriaUsuarioCreacion = categoriaUsuarioCreacion;
-    }
-
-    public LocalDateTime getCategoriaFechaCreacion() {
-        return categoriaFechaCreacion;
-    }
-
-    public void setCategoriaFechaCreacion(LocalDateTime categoriaFechaCreacion) {
-        this.categoriaFechaCreacion = categoriaFechaCreacion;
-    }
-
-    public String getCategoriaUsuarioModif() {
-        return categoriaUsuarioModif;
-    }
-
-    public void setCategoriaUsuarioModif(String categoriaUsuarioModif) {
-        this.categoriaUsuarioModif = categoriaUsuarioModif;
-    }
-
-    public LocalDateTime getCategoriaFechaModif() {
-        return categoriaFechaModif;
-    }
-
-    public void setCategoriaFechaModif(LocalDateTime categoriaFechaModif) {
-        this.categoriaFechaModif = categoriaFechaModif;
-    }
+    public String getCategoriaUsuarioCreacion() { return categoriaUsuarioCreacion; }
+    public LocalDateTime getCategoriaFechaCreacion() { return categoriaFechaCreacion; }
+    public String getCategoriaUsuarioModif() { return categoriaUsuarioModif; }
+    public LocalDateTime getCategoriaFechaModif() { return categoriaFechaModif; }
 }

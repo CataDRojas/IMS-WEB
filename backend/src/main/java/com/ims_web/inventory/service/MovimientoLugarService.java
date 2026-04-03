@@ -2,10 +2,11 @@ package com.ims_web.inventory.service;
 
 import com.ims_web.inventory.entity.MovimientoLugar;
 import com.ims_web.inventory.repository.MovimientoLugarRepository;
+import com.ims_web.inventory.util.AuditHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List; // ✅ needed for List
+import java.util.List;
 
 @Service
 public class MovimientoLugarService {
@@ -29,7 +30,13 @@ public class MovimientoLugarService {
                 .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
     }
 
-    public MovimientoLugar createOrUpdate(MovimientoLugar lugar) {
+    @Transactional
+    public MovimientoLugar createOrUpdate(MovimientoLugar lugar, String currentUser) {
+        if (lugar.getMovimientoLugarId() == null) {
+            AuditHelper.setCreationAudit(lugar, currentUser); // static call
+        } else {
+            AuditHelper.setModificationAudit(lugar, currentUser); // static call
+        }
         return repo.save(lugar);
     }
 
@@ -49,11 +56,12 @@ public class MovimientoLugarService {
 
     /** SOFT DELETE – just mark as inactive */
     @Transactional
-    public MovimientoLugar softDelete(Long id) {
+    public MovimientoLugar softDelete(Long id, String currentUser) {
         MovimientoLugar lugar = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
 
         lugar.setMovimientoLugarActivo(false);
+        AuditHelper.setModificationAudit(lugar, currentUser); // static call
         return repo.save(lugar);
     }
 }

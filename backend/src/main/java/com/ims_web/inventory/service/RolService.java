@@ -1,9 +1,9 @@
 package com.ims_web.inventory.service;
 
 import com.ims_web.inventory.entity.Rol;
-import com.ims_web.inventory.entity.Usuario;
 import com.ims_web.inventory.repository.RolRepository;
 import com.ims_web.inventory.repository.UsuarioRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,22 +26,20 @@ public class RolService {
 
     public Rol getById(Long id) {
         return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rol not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Rol with ID " + id + " not found"));
     }
 
     @Transactional
     public Rol save(Rol rol) {
         validateRol(rol);
 
-        // Normalize name
         String cleanName = rol.getRolNombre().trim();
         rol.setRolNombre(cleanName);
 
-        // Check uniqueness for new or updated roles
-        boolean nameExists = repo.existsByRolNombre(cleanName)
-                && (rol.getRolId() == null || !repo.findByRolNombre(cleanName).getRolId().equals(rol.getRolId()));
+        Long idToExclude = rol.getRolId() == null ? -1L : rol.getRolId();
+        boolean nameExists = repo.existsByRolNombreIgnoreCaseAndRolIdNot(cleanName, idToExclude);
         if (nameExists) {
-            throw new RuntimeException("RolNombre must be unique");
+            throw new IllegalArgumentException("RolNombre must be unique");
         }
 
         return repo.save(rol);
@@ -50,12 +48,11 @@ public class RolService {
     @Transactional
     public void delete(Long id) {
         Rol rol = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rol not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Rol with ID " + id + " not found"));
 
-        // prevent deleting a role assigned to users
         boolean inUse = usuarioRepo.existsByRol(rol);
         if (inUse) {
-            throw new RuntimeException("Cannot delete Rol: assigned to one or more Usuarios");
+            throw new IllegalArgumentException("Cannot delete Rol: assigned to one or more Usuarios");
         }
 
         repo.delete(rol);
@@ -63,7 +60,7 @@ public class RolService {
 
     private void validateRol(Rol rol) {
         if (rol.getRolNombre() == null || rol.getRolNombre().isBlank()) {
-            throw new RuntimeException("RolNombre is required");
+            throw new IllegalArgumentException("RolNombre is required");
         }
     }
 }

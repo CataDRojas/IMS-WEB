@@ -1,12 +1,13 @@
 package com.ims_web.inventory.entity;
 
+import com.ims_web.inventory.util.Auditable;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Descuento")
-public class Descuento {
+public class Descuento implements Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,9 +42,8 @@ public class Descuento {
     private LocalDateTime descuentoFechaModif;
 
     // =========================
-    // GETTERS & SETTERS
+    // Getters & Setters
     // =========================
-
     public Long getDescuentoId() { return descuentoId; }
     public void setDescuentoId(Long descuentoId) { this.descuentoId = descuentoId; }
 
@@ -60,14 +60,20 @@ public class Descuento {
     public void setDescuentoActivo(Boolean descuentoActivo) { this.descuentoActivo = descuentoActivo; }
 
     public String getDescuentoUsuarioCreacion() { return descuentoUsuarioCreacion; }
-    public void setDescuentoUsuarioCreacion(String descuentoUsuarioCreacion) { this.descuentoUsuarioCreacion = descuentoUsuarioCreacion; }
-
     public LocalDateTime getDescuentoFechaCreacion() { return descuentoFechaCreacion; }
-    public void setDescuentoFechaCreacion(LocalDateTime descuentoFechaCreacion) { this.descuentoFechaCreacion = descuentoFechaCreacion; }
 
     public String getDescuentoUsuarioModif() { return descuentoUsuarioModif; }
-    public void setDescuentoUsuarioModif(String descuentoUsuarioModif) { this.descuentoUsuarioModif = descuentoUsuarioModif; }
-
     public LocalDateTime getDescuentoFechaModif() { return descuentoFechaModif; }
-    public void setDescuentoFechaModif(LocalDateTime descuentoFechaModif) { this.descuentoFechaModif = descuentoFechaModif; }
+
+    // =========================
+    // Auditable implementation
+    // =========================
+    @Override
+    public void setUsuarioCreacion(String usuario) { this.descuentoUsuarioCreacion = usuario; }
+    @Override
+    public void setFechaCreacion(LocalDateTime fecha) { this.descuentoFechaCreacion = fecha; }
+    @Override
+    public void setUsuarioModif(String usuario) { this.descuentoUsuarioModif = usuario; }
+    @Override
+    public void setFechaModif(LocalDateTime fecha) { this.descuentoFechaModif = fecha; }
 }

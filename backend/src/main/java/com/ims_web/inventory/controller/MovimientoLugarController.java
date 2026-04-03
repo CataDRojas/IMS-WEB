@@ -32,12 +32,23 @@ public class MovimientoLugarController {
     }
 
     @PostMapping
-    public MovimientoLugar createOrUpdate(@RequestBody MovimientoLugar lugar) {
-        return service.createOrUpdate(lugar);
+    public MovimientoLugar createOrUpdate(
+            @RequestBody MovimientoLugar lugar,
+            @RequestHeader("X-User") String currentUser
+    ) {
+        return service.createOrUpdate(lugar, currentUser);
     }
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @PatchMapping("/{id}/soft-delete")
+    public MovimientoLugar softDelete(
+            @PathVariable Long id,
+            @RequestHeader("X-User") String currentUser
+    ) {
+        return service.softDelete(id, currentUser);
     }
 }

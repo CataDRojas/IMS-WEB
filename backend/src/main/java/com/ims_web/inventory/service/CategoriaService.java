@@ -2,10 +2,10 @@ package com.ims_web.inventory.service;
 
 import com.ims_web.inventory.entity.Categoria;
 import com.ims_web.inventory.repository.CategoriaRepository;
+import com.ims_web.inventory.util.AuditHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -28,19 +28,13 @@ public class CategoriaService {
 
     @Transactional
     public Categoria createOrUpdate(Categoria categoria, String currentUser) {
-
-        LocalDateTime now = LocalDateTime.now();
-
         if (categoria.getCategoriaId() == null) {
-            // New Categoria → set creation audit
-            categoria.setCategoriaUsuarioCreacion(currentUser);
-            categoria.setCategoriaFechaCreacion(now);
+            // New Categoria → use helper
+            AuditHelper.setCreationAudit(categoria, currentUser);
         } else {
-            // Existing Categoria → set modification audit
-            categoria.setCategoriaUsuarioModif(currentUser);
-            categoria.setCategoriaFechaModif(now);
+            // Existing Categoria → use helper
+            AuditHelper.setModificationAudit(categoria, currentUser);
         }
-
         return repo.save(categoria);
     }
 

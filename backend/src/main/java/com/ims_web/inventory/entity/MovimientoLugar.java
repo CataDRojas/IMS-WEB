@@ -1,11 +1,12 @@
 package com.ims_web.inventory.entity;
 
+import com.ims_web.inventory.util.Auditable;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "MovimientoLugar")
-public class MovimientoLugar {
+public class MovimientoLugar implements Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,35 +59,39 @@ public class MovimientoLugar {
         this.movimientoLugarActivo = movimientoLugarActivo;
     }
 
-    public String getMovimientoLugarUsuarioCreacion() {
-        return movimientoLugarUsuarioCreacion;
+    @Override
+    public void setUsuarioCreacion(String usuarioCreacion) {
+        this.movimientoLugarUsuarioCreacion = usuarioCreacion;
     }
 
-    public void setMovimientoLugarUsuarioCreacion(String movimientoLugarUsuarioCreacion) {
-        this.movimientoLugarUsuarioCreacion = movimientoLugarUsuarioCreacion;
+    @Override
+    public void setFechaCreacion(LocalDateTime fechaCreacion) {
+        this.movimientoLugarFechaCreacion = fechaCreacion;
+    }
+
+    @Override
+    public void setUsuarioModif(String usuarioModif) {
+        this.movimientoLugarUsuarioModif = usuarioModif;
+    }
+
+    @Override
+    public void setFechaModif(LocalDateTime fechaModif) {
+        this.movimientoLugarFechaModif = fechaModif;
+    }
+
+    public String getMovimientoLugarUsuarioCreacion() {
+        return movimientoLugarUsuarioCreacion;
     }
 
     public LocalDateTime getMovimientoLugarFechaCreacion() {
         return movimientoLugarFechaCreacion;
     }
 
-    public void setMovimientoLugarFechaCreacion(LocalDateTime movimientoLugarFechaCreacion) {
-        this.movimientoLugarFechaCreacion = movimientoLugarFechaCreacion;
-    }
-
     public String getMovimientoLugarUsuarioModif() {
         return movimientoLugarUsuarioModif;
     }
 
-    public void setMovimientoLugarUsuarioModif(String movimientoLugarUsuarioModif) {
-        this.movimientoLugarUsuarioModif = movimientoLugarUsuarioModif;
-    }
-
     public LocalDateTime getMovimientoLugarFechaModif() {
         return movimientoLugarFechaModif;
-    }
-
-    public void setMovimientoLugarFechaModif(LocalDateTime movimientoLugarFechaModif) {
-        this.movimientoLugarFechaModif = movimientoLugarFechaModif;
     }
 }

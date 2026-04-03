@@ -2,10 +2,11 @@ package com.ims_web.inventory.service;
 
 import com.ims_web.inventory.entity.Descuento;
 import com.ims_web.inventory.repository.DescuentoRepository;
+import com.ims_web.inventory.util.AuditHelper;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,7 +28,7 @@ public class DescuentoService {
 
     public Descuento getById(Long id) {
         return repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Descuento not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Descuento with ID " + id + " not found"));
     }
 
     @Transactional
@@ -35,9 +36,7 @@ public class DescuentoService {
         validateDescuento(descuento);
         checkUniqueNombre(descuento.getDescuentoNombre(), null);
 
-        LocalDateTime now = LocalDateTime.now();
-        descuento.setDescuentoUsuarioCreacion(currentUser);
-        descuento.setDescuentoFechaCreacion(now);
+        AuditHelper.setCreationAudit(descuento, currentUser);
 
         return repo.save(descuento);
     }
@@ -45,7 +44,7 @@ public class DescuentoService {
     @Transactional
     public Descuento updateDescuento(Descuento descuento, String currentUser) {
         Descuento existing = repo.findById(descuento.getDescuentoId())
-                .orElseThrow(() -> new RuntimeException("Descuento not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Descuento with ID " + descuento.getDescuentoId() + " not found"));
 
         validateDescuento(descuento);
         checkUniqueNombre(descuento.getDescuentoNombre(), descuento.getDescuentoId());
@@ -55,32 +54,46 @@ public class DescuentoService {
         existing.setDescuentoTipo(descuento.getDescuentoTipo());
         existing.setDescuentoValor(descuento.getDescuentoValor());
 
-        // Audit
-        LocalDateTime now = LocalDateTime.now();
-        existing.setDescuentoUsuarioModif(currentUser);
-        existing.setDescuentoFechaModif(now);
+        AuditHelper.setModificationAudit(existing, currentUser);
 
         return repo.save(existing);
     }
 
     public void delete(Long id) {
+        if (!repo.existsById(id)) {
+            throw new EntityNotFoundException("Descuento with ID " + id + " not found");
+        }
         repo.deleteById(id);
     }
 
     private void validateDescuento(Descuento descuento) {
-        if (!List.of("FLAT", "PORCENTAJE", "MULTIPLICATIVO").contains(descuento.getDescuentoTipo())) {
-            throw new RuntimeException("Invalid DescuentoTipo");
+        String tipo = descuento.getDescuentoTipo();
+        if (!List.of("FLAT", "PORCENTAJE", "MULTIPLICATIVO").contains(tipo)) {
+            throw new IllegalArgumentException("Invalid DescuentoTipo: " + tipo);
         }
-        if (descuento.getDescuentoValor() == null || descuento.getDescuentoValor().doubleValue() < 0) {
-            throw new RuntimeException("DescuentoValor must be >= 0");
+        if (descuento.getDescuentoValor() == null) {
+            throw new IllegalArgumentException("DescuentoValor cannot be null");
+        }
+
+        double valor = descuento.getDescuentoValor().doubleValue();
+
+        switch (tipo) {
+            case "MULTIPLICATIVO":
+                if (valor <= 0) throw new IllegalArgumentException("MULTIPLICATIVO DescuentoValor must be > 0");
+                break;
+            case "FLAT":
+                if (valor < 0) throw new IllegalArgumentException("FLAT DescuentoValor must be >= 0");
+                break;
+            case "PORCENTAJE":
+                if (valor < 0 || valor > 100) throw new IllegalArgumentException("PORCENTAJE DescuentoValor must be between 0 and 100");
+                break;
         }
     }
 
     private void checkUniqueNombre(String nombre, Long idToExclude) {
-        repo.findAll().stream()
-                .filter(d -> d.getDescuentoNombre().equalsIgnoreCase(nombre))
-                .filter(d -> idToExclude == null || !d.getDescuentoId().equals(idToExclude))
-                .findAny()
-                .ifPresent(d -> { throw new RuntimeException("DescuentoNombre must be unique"); });
+        boolean exists = repo.existsByDescuentoNombreIgnoreCaseAndDescuentoIdNot(nombre, idToExclude == null ? -1L : idToExclude);
+        if (exists) {
+            throw new IllegalArgumentException("DescuentoNombre must be unique");
+        }
     }
 }

@@ -27,8 +27,17 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public Categoria createOrUpdate(@RequestBody Categoria categoria) {
-        return service.createOrUpdate(categoria);
+    public Categoria create(@RequestBody Categoria categoria,
+                            @RequestHeader("X-User") String currentUser) {
+        return service.createOrUpdate(categoria, currentUser);
+    }
+
+    @PutMapping("/{id}")
+    public Categoria update(@PathVariable Long id,
+                            @RequestBody Categoria categoria,
+                            @RequestHeader("X-User") String currentUser) {
+        categoria.setCategoriaId(id);
+        return service.createOrUpdate(categoria, currentUser);
     }
 
     @DeleteMapping("/{id}")
