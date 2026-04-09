@@ -35,7 +35,7 @@
 
 -- SECTION 2 — TABLES
 
-CREATE TABLE Configuracion (
+CREATE TABLE IF NOT EXISTS Configuracion (
     ConfiguracionId TINYINT PRIMARY KEY CHECK (ConfiguracionId = 1),
     EmpresaNombre VARCHAR(150) NOT NULL,
     EmpresaDireccion VARCHAR(255) NOT NULL,
@@ -45,17 +45,17 @@ CREATE TABLE Configuracion (
     CONSTRAINT chk_iva CHECK (IVA >= 0 AND IVA <= 100)
 );
 
-CREATE TABLE permisos (
+CREATE TABLE IF NOT EXISTS permisos (
     PermisosId BIGINT AUTO_INCREMENT PRIMARY KEY,
     PermisosNombre VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE Rol (
+CREATE TABLE IF NOT EXISTS Rol (
     RolId BIGINT AUTO_INCREMENT PRIMARY KEY,
     RolNombre VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE TABLE RolPermisos (
+CREATE TABLE IF NOT EXISTS RolPermisos (
     RolId BIGINT NOT NULL,
     PermisosId BIGINT NOT NULL,
     PRIMARY KEY (RolId, PermisosId),
@@ -63,7 +63,7 @@ CREATE TABLE RolPermisos (
     CONSTRAINT fk_rolpermisos_permiso FOREIGN KEY (PermisosId) REFERENCES permisos(PermisosId)
 );
 
-CREATE TABLE Descuento (
+CREATE TABLE IF NOT EXISTS Descuento (
     DescuentoId BIGINT AUTO_INCREMENT PRIMARY KEY,
     DescuentoNombre VARCHAR(100) NOT NULL,
     DescuentoTipo VARCHAR(20) NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE Descuento (
     CONSTRAINT chk_descuento_tipo CHECK (DescuentoTipo IN ('FLAT', 'PORCENTAJE', 'MULTIPLICATIVO'))
 );
 
-CREATE TABLE Categoria (
+CREATE TABLE IF NOT EXISTS Categoria (
     CategoriaId BIGINT AUTO_INCREMENT PRIMARY KEY,
     CategoriaNombre VARCHAR(100) NOT NULL,
     DescuentoId BIGINT,
@@ -99,7 +99,7 @@ CREATE TABLE Categoria (
 
 CREATE INDEX idx_categoria_descuento ON Categoria(DescuentoId);
 
-CREATE TABLE productos (
+CREATE TABLE IF NOT EXISTS productos (
     ProductoId BIGINT AUTO_INCREMENT PRIMARY KEY,
     ProductoNombre VARCHAR(100) NOT NULL,
     ProductoDesc VARCHAR(255),
@@ -126,7 +126,7 @@ CREATE INDEX idx_producto_categoria ON productos(ProductoCategoria);
 CREATE INDEX idx_producto_descuento ON productos(DescuentoId);
 
 -- 👤 USUARIOS
-CREATE TABLE usuarios (
+CREATE TABLE IF NOT EXISTS usuarios (
     UsuarioId BIGINT AUTO_INCREMENT PRIMARY KEY,
     UsuarioEmail VARCHAR(150) NOT NULL UNIQUE,
     UsuarioNombre VARCHAR(100) NOT NULL,
@@ -144,7 +144,7 @@ CREATE INDEX idx_usuario_rol ON usuarios(RolId);
 CREATE UNIQUE INDEX idx_usuario_email ON usuarios(UsuarioEmail);
 
 -- 🧾 MOVIMIENTO
-CREATE TABLE Movimiento (
+CREATE TABLE IF NOT EXISTS Movimiento (
     MovimientoId BIGINT AUTO_INCREMENT PRIMARY KEY,
     MovimientoDescripcion VARCHAR(255),
     MovimientoEstado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
@@ -165,7 +165,7 @@ CREATE TABLE Movimiento (
 );
 
 -- 📍 MOVIMIENTO LUGAR
-CREATE TABLE MovimientoLugar (
+CREATE TABLE IF NOT EXISTS MovimientoLugar (
     MovimientoLugarId BIGINT AUTO_INCREMENT PRIMARY KEY,
     MovimientoLugarDescripcion VARCHAR(100) NOT NULL,
     MovimientoLugarActivo BOOLEAN NOT NULL DEFAULT TRUE,
@@ -176,7 +176,7 @@ CREATE TABLE MovimientoLugar (
 );
 
 -- 📄 MOVIMIENTO DETALLE
-CREATE TABLE MovimientoDetalle (
+CREATE TABLE IF NOT EXISTS MovimientoDetalle (
     MovimientoDetalleId BIGINT AUTO_INCREMENT PRIMARY KEY,
     MovimientoId BIGINT NOT NULL,
     ProductoId BIGINT NOT NULL,
@@ -204,6 +204,7 @@ CREATE INDEX idx_det_lugar ON MovimientoDetalle(MovimientoLugarId);
 DELIMITER $$
 
 -- 🚫 PREVENT NEGATIVE STOCK
+DROP TRIGGER IF EXISTS trg_no_negative_stock
 CREATE TRIGGER trg_no_negative_stock
 BEFORE UPDATE ON productos
 FOR EACH ROW
@@ -215,6 +216,7 @@ BEGIN
 END$$
 
 -- ⚠️ AUTO-UPDATE STOCK CRITICO FLAG
+DROP TRIGGER IF EXISTS trg_producto_stockcritico_update
 CREATE TRIGGER trg_producto_stockcritico_update
 BEFORE UPDATE ON productos
 FOR EACH ROW
@@ -223,6 +225,7 @@ BEGIN
 END$$
 
 -- 🔒 PREVENT MODIFICATION/DELETION OF CONFIRMED DETALLE
+DROP TRIGGER IF EXISTS trg_detalle_block_after_confirm
 CREATE TRIGGER trg_detalle_block_after_confirm
 BEFORE UPDATE ON MovimientoDetalle
 FOR EACH ROW
@@ -237,6 +240,7 @@ BEGIN
     END IF;
 END$$
 
+DROP TRIGGER IF EXISTS trg_detalle_delete_block_after_confirm
 CREATE TRIGGER trg_detalle_delete_block_after_confirm
 BEFORE DELETE ON MovimientoDetalle
 FOR EACH ROW
@@ -252,6 +256,7 @@ BEGIN
 END$$
 
 -- 🛡️ BEFORE INSERT SAFEGUARD ON MOVIMIENTODETALLE
+DROP TRIGGER IF EXISTS trg_detalle_before_insert
 CREATE TRIGGER trg_detalle_before_insert
 BEFORE INSERT ON MovimientoDetalle
 FOR EACH ROW
@@ -263,6 +268,7 @@ BEGIN
 END$$
 
 --🔒 CONFIGURACION SINGLETON
+DROP TRIGGER IF EXISTS trg_configuracion_singleton
 CREATE TRIGGER trg_configuracion_singleton
 BEFORE INSERT ON Configuracion
 FOR EACH ROW
@@ -275,6 +281,7 @@ BEGIN
 END$$
 
 --🛡️ PREVENT CATEGORY DELETE WITH PRODUCTS
+DROP TRIGGER IF EXISTS trg_categoria_delete_block
 CREATE TRIGGER trg_categoria_delete_block
 BEFORE DELETE ON Categoria
 FOR EACH ROW
