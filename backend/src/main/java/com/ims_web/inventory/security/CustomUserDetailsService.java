@@ -23,6 +23,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         Usuario usuario = usuarioRepository.findByEmailWithRoleAndPermissions(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
+        // 🔥 flatten permissions from ROLE in a defensive way
+        var authorities = usuario.getRol()
+                .getPermisos()
+                .stream()
+                .map(p -> new SimpleGrantedAuthority(
+                        p.getPermisosNombre().trim()
+                ))
+                .collect(Collectors.toSet());
+
         return new User(
                 usuario.getUsuarioEmail(),
                 usuario.getUsuarioPassword(),
@@ -30,9 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 true,
                 true,
                 true,
-                usuario.getRol().getPermisos().stream()
-                        .map(p -> new SimpleGrantedAuthority(p.getPermisosNombre()))
-                        .collect(Collectors.toSet())
+                authorities
         );
     }
 }

@@ -12,42 +12,62 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private final String SECRET = "super-secret-key-super-secret-key-123456"; // change later
-    private final long EXPIRATION = 1000 * 60 * 60; // 1 hour
+    // ⚠️ should eventually move to application.properties
+    private static final String SECRET =
+            "super-secret-key-super-secret-key-123456";
+
+    private static final long EXPIRATION = 1000 * 60 * 60; // 1 hour
+
+    private final MacAlgorithm alg = Jwts.SIG.HS256;
 
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 
-    private final MacAlgorithm alg = Jwts.SIG.HS256;
-
+    // =========================
+    // TOKEN GENERATION
+    // =========================
     public String generateToken(String email) {
+
         return Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
+
+                // 🔥 future-proofing: room for roles/permissions if needed later
+                .claim("type", "access")
+
                 .signWith(getKey(), alg)
                 .compact();
     }
 
-    public String extractEmail(String token) {
-        Claims claims = Jwts.parser()
+    // =========================
+    // CORE PARSING (single source)
+    // =========================
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
                 .verifyWith(getKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return claims.getSubject();
     }
 
+    // =========================
+    // EMAIL EXTRACTION
+    // =========================
+    public String extractEmail(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    // =========================
+    // VALIDATION
+    // =========================
     public boolean isValid(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getKey())
-                    .build()
-                    .parseSignedClaims(token);
+            Claims claims = extractAllClaims(token);
 
-            return true;
+            return claims.getExpiration().after(new Date());
+
         } catch (Exception e) {
             return false;
         }

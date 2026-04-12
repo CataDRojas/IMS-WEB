@@ -40,13 +40,15 @@ public class AuthController {
 
         String token = jwtUtil.generateToken(email);
 
-        Usuario usuario = usuarioRepository.findByUsuarioEmail(email)
-                .orElseThrow();
+        // 🔥 IMPORTANT FIX:
+        // Use SAME fetch strategy as CustomUserDetailsService
+        Usuario usuario = usuarioRepository.findByEmailWithRoleAndPermissions(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         List<String> permisos = usuario.getRol()
                 .getPermisos()
                 .stream()
-                .map(p -> p.getPermisosNombre())
+                .map(p -> p.getPermisosNombre().trim())
                 .collect(Collectors.toList());
 
         return Map.of(
