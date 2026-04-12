@@ -77,7 +77,7 @@ public class DataInitializer {
             // ========================
 
             createUsuario(usuarioService,
-                    "admin@ismweb.cl",
+                    "admin@ims.cl",
                     "1234",
                     "Administrador Sistema",
                     admin,
@@ -86,7 +86,7 @@ public class DataInitializer {
             );
 
             createUsuario(usuarioService,
-                    "carlos.lechuga@ismweb.cl",
+                    "carlitos.lechuga@ims.cl",
                     "1234",
                     "Carlitos Lechuga",
                     vendedor,
@@ -95,9 +95,9 @@ public class DataInitializer {
             );
 
             createUsuario(usuarioService,
-                    "maria.perez@ismweb.cl",
+                    "cosme.fulanito@ims.cl",
                     "1234",
-                    "María Pérez",
+                    "Cosme Fulanito",
                     bodeguero,
                     "18.903.112",
                     "2"
