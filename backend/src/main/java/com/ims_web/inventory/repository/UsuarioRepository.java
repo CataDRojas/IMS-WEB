@@ -17,4 +17,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     // Check email uniqueness
     boolean existsByUsuarioEmail(String email);
+
+    Optional<Usuario> findByUsuarioEmailIgnoreCase(String usuarioEmail);
 }

@@ -26,7 +26,6 @@ public class DataInitializer {
             // ========================
             // PERMISOS
             // ========================
-
             List<String> permisosNombres = List.of(
                     "CONFIGURACION_MANAGE",
                     "CATEGORIA_READ", "CATEGORIA_MANAGE",
@@ -40,6 +39,7 @@ public class DataInitializer {
             );
 
             Set<Permisos> allPermisos = new HashSet<>();
+
             for (String name : permisosNombres) {
                 allPermisos.add(getOrCreatePermiso(permisosService, name));
             }
@@ -47,7 +47,6 @@ public class DataInitializer {
             // ========================
             // ROLES
             // ========================
-
             Rol admin = getOrCreateRol(rolService, "ADMIN");
             admin.setPermisos(allPermisos);
             admin = rolService.save(admin);
@@ -75,8 +74,8 @@ public class DataInitializer {
             // ========================
             // USUARIOS
             // ========================
-
-            createUsuario(usuarioService,
+            createUsuario(
+                    usuarioService,
                     "admin@ims.cl",
                     "1234",
                     "Administrador Sistema",
@@ -85,21 +84,23 @@ public class DataInitializer {
                     null
             );
 
-            createUsuario(usuarioService,
+            createUsuario(
+                    usuarioService,
                     "carlitos.lechuga@ims.cl",
                     "1234",
                     "Carlitos Lechuga",
                     vendedor,
-                    "15.482.901",
+                    "15482901",
                     "K"
             );
 
-            createUsuario(usuarioService,
+            createUsuario(
+                    usuarioService,
                     "cosme.fulanito@ims.cl",
                     "1234",
                     "Cosme Fulanito",
                     bodeguero,
-                    "18.903.112",
+                    "18903112",
                     "2"
             );
         };
@@ -110,9 +111,7 @@ public class DataInitializer {
     // ========================
 
     private Permisos getOrCreatePermiso(PermisosService service, String name) {
-        return service.getAll().stream()
-                .filter(p -> p.getPermisosNombre().equalsIgnoreCase(name))
-                .findFirst()
+        return service.findByPermisosNombreIgnoreCase(name)
                 .orElseGet(() -> {
                     Permisos p = new Permisos();
                     p.setPermisosNombre(name);
@@ -121,16 +120,12 @@ public class DataInitializer {
     }
 
     private Permisos getPermiso(PermisosService service, String name) {
-        return service.getAll().stream()
-                .filter(p -> p.getPermisosNombre().equalsIgnoreCase(name))
-                .findFirst()
+        return service.findByPermisosNombreIgnoreCase(name)
                 .orElseThrow(() -> new RuntimeException("Missing permiso: " + name));
     }
 
     private Rol getOrCreateRol(RolService service, String name) {
-        return service.getAll().stream()
-                .filter(r -> r.getRolNombre().equalsIgnoreCase(name))
-                .findFirst()
+        return service.findByRolNombreIgnoreCase(name)
                 .orElseGet(() -> {
                     Rol r = new Rol();
                     r.setRolNombre(name);
@@ -148,23 +143,21 @@ public class DataInitializer {
             String run,
             String dv
     ) {
-        boolean exists = service.getAll().stream()
-                .anyMatch(u -> u.getUsuarioEmail().equalsIgnoreCase(email));
-
-        if (!exists) {
-            Usuario u = new Usuario();
-
-            u.setUsuarioEmail(email);
-            u.setUsuarioPassword(password);
-            u.setUsuarioNombre(nombre);
-            u.setUsuarioActivo(true);
-            u.setRol(rol);
-
-            // only non-admins have RUN/DV
-            u.setUsuarioRun(run);
-            u.setUsuarioDV(dv);
-
-            service.create(u);
+        if (service.findByUsuarioEmailIgnoreCase(email).isPresent()) {
+            return;
         }
+
+        Usuario u = new Usuario();
+
+        u.setUsuarioEmail(email);
+        u.setUsuarioPassword(password);
+        u.setUsuarioNombre(nombre);
+        u.setUsuarioActivo(true);
+        u.setRol(rol);
+
+        u.setUsuarioRun(run);
+        u.setUsuarioDV(dv);
+
+        service.create(u);
     }
 }
