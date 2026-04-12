@@ -10,9 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Configuration
 public class DataInitializer {
@@ -26,7 +24,7 @@ public class DataInitializer {
         return args -> {
 
             // ========================
-            // PERMISOS (FULL SET)
+            // PERMISOS
             // ========================
 
             List<String> permisosNombres = List.of(
@@ -78,9 +76,32 @@ public class DataInitializer {
             // USUARIOS
             // ========================
 
-            createUsuario(usuarioService, "vendedor@test.com", "1234", "Vendedor", vendedor);
-            createUsuario(usuarioService, "bodeguero@test.com", "1234", "Bodeguero", bodeguero);
-            createUsuario(usuarioService, "admin@test.com", "1234", "Admin", admin);
+            createUsuario(usuarioService,
+                    "admin@ismweb.cl",
+                    "1234",
+                    "Administrador Sistema",
+                    admin,
+                    null,
+                    null
+            );
+
+            createUsuario(usuarioService,
+                    "carlos.lechuga@ismweb.cl",
+                    "1234",
+                    "Carlitos Lechuga",
+                    vendedor,
+                    "15.482.901",
+                    "K"
+            );
+
+            createUsuario(usuarioService,
+                    "maria.perez@ismweb.cl",
+                    "1234",
+                    "María Pérez",
+                    bodeguero,
+                    "18.903.112",
+                    "2"
+            );
         };
     }
 
@@ -123,7 +144,9 @@ public class DataInitializer {
             String email,
             String password,
             String nombre,
-            Rol rol
+            Rol rol,
+            String run,
+            String dv
     ) {
         boolean exists = service.getAll().stream()
                 .anyMatch(u -> u.getUsuarioEmail().equalsIgnoreCase(email));
@@ -136,6 +159,10 @@ public class DataInitializer {
             u.setUsuarioNombre(nombre);
             u.setUsuarioActivo(true);
             u.setRol(rol);
+
+            // only non-admins have RUN/DV
+            u.setUsuarioRun(run);
+            u.setUsuarioDV(dv);
 
             service.create(u);
         }
