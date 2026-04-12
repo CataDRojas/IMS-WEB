@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,12 +18,13 @@ public class UsuarioService {
 
     private final UsuarioRepository repo;
     private final RolRepository rolRepo;
-    private final BCryptPasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository repo, RolRepository rolRepo) {
+    private final PasswordEncoder passwordEncoder;
+
+    public UsuarioService(UsuarioRepository repo, RolRepository rolRepo, PasswordEncoder passwordEncoder) {
         this.repo = repo;
         this.rolRepo = rolRepo;
-        this.passwordEncoder = new BCryptPasswordEncoder();
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> getAll() {

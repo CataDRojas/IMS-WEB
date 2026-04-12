@@ -2,6 +2,7 @@ package com.ims_web.inventory.controller;
 
 import com.ims_web.inventory.entity.Configuracion;
 import com.ims_web.inventory.service.ConfiguracionService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -17,11 +18,13 @@ public class ConfiguracionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('CONFIGURACION_MANAGE')")
     public Configuracion getConfiguracion() {
         return service.getConfiguracion();
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('CONFIGURACION_MANAGE')")
     public Configuracion createOrUpdate(@RequestBody Configuracion config) {
         validateConfig(config);
         return service.createOrUpdate(config);

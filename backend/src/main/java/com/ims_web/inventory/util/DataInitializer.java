@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Configuration
@@ -25,30 +26,58 @@ public class DataInitializer {
         return args -> {
 
             // ========================
-            // PERMISOS
+            // PERMISOS (FULL SET)
             // ========================
-            Permisos pCreateProducto = getOrCreatePermiso(permisosService, "CREATE_PRODUCTO");
-            Permisos pViewProducto = getOrCreatePermiso(permisosService, "VIEW_PRODUCTO");
-            Permisos pCreateMovimiento = getOrCreatePermiso(permisosService, "CREATE_MOVIMIENTO");
+
+            List<String> permisosNombres = List.of(
+                    "CONFIGURACION_MANAGE",
+                    "CATEGORIA_READ", "CATEGORIA_MANAGE",
+                    "DESCUENTO_READ", "DESCUENTO_MANAGE",
+                    "PERMISOS_MANAGE",
+                    "ROLES_MANAGE",
+                    "MOVIMIENTO_LUGAR_MANAGE",
+                    "USUARIOS_MANAGE",
+                    "PRODUCTO_READ", "PRODUCTO_MANAGE",
+                    "MOVIMIENTO_READ", "MOVIMIENTO_MANAGE"
+            );
+
+            Set<Permisos> allPermisos = new HashSet<>();
+            for (String name : permisosNombres) {
+                allPermisos.add(getOrCreatePermiso(permisosService, name));
+            }
 
             // ========================
             // ROLES
             // ========================
+
+            Rol admin = getOrCreateRol(rolService, "ADMIN");
+            admin.setPermisos(allPermisos);
+            admin = rolService.save(admin);
+
             Rol vendedor = getOrCreateRol(rolService, "VENDEDOR");
-            vendedor.setPermisos(Set.of(pViewProducto, pCreateMovimiento));
+            vendedor.setPermisos(Set.of(
+                    getPermiso(permisosService, "MOVIMIENTO_READ"),
+                    getPermiso(permisosService, "MOVIMIENTO_MANAGE"),
+                    getPermiso(permisosService, "PRODUCTO_READ"),
+                    getPermiso(permisosService, "CATEGORIA_READ"),
+                    getPermiso(permisosService, "DESCUENTO_READ")
+            ));
             vendedor = rolService.save(vendedor);
 
             Rol bodeguero = getOrCreateRol(rolService, "BODEGUERO");
-            bodeguero.setPermisos(Set.of(pViewProducto));
+            bodeguero.setPermisos(Set.of(
+                    getPermiso(permisosService, "MOVIMIENTO_READ"),
+                    getPermiso(permisosService, "MOVIMIENTO_MANAGE"),
+                    getPermiso(permisosService, "PRODUCTO_READ"),
+                    getPermiso(permisosService, "CATEGORIA_READ"),
+                    getPermiso(permisosService, "DESCUENTO_READ")
+            ));
             bodeguero = rolService.save(bodeguero);
-
-            Rol admin = getOrCreateRol(rolService, "ADMIN");
-            admin.setPermisos(Set.of(pCreateProducto, pViewProducto, pCreateMovimiento));
-            admin = rolService.save(admin);
 
             // ========================
             // USUARIOS
             // ========================
+
             createUsuario(usuarioService, "vendedor@test.com", "1234", "Vendedor", vendedor);
             createUsuario(usuarioService, "bodeguero@test.com", "1234", "Bodeguero", bodeguero);
             createUsuario(usuarioService, "admin@test.com", "1234", "Admin", admin);
@@ -68,6 +97,13 @@ public class DataInitializer {
                     p.setPermisosNombre(name);
                     return service.create(p);
                 });
+    }
+
+    private Permisos getPermiso(PermisosService service, String name) {
+        return service.getAll().stream()
+                .filter(p -> p.getPermisosNombre().equalsIgnoreCase(name))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Missing permiso: " + name));
     }
 
     private Rol getOrCreateRol(RolService service, String name) {
