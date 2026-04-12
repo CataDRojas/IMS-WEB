@@ -5,6 +5,7 @@ import com.ims_web.inventory.repository.ConfiguracionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -24,10 +25,14 @@ public class ConfiguracionService {
     @Transactional
     public Configuracion createOrUpdate(Configuracion config) {
         config.setConfiguracionId((byte)1); // enforce singleton
+        if (config.getIva() == null || config.getIva().doubleValue() < 0 || config.getIva().doubleValue() > 100) {
+            throw new RuntimeException("IVA must be between 0 and 100");
+        }
         return repo.save(config);
     }
 
+    /** convenience method to return singleton as list */
     public List<Configuracion> getAll() {
-        return repo.findAll();
+        return Collections.singletonList(getConfiguracion());
     }
 }

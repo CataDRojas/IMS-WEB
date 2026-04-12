@@ -27,14 +27,17 @@ public class MovimientoController {
     }
 
     @PostMapping
-    public Movimiento create(@RequestBody Movimiento movimiento) {
-        return service.create(movimiento);
+    public Movimiento create(@RequestBody Movimiento movimiento,
+                             @RequestHeader("X-User") String currentUser) {
+        return service.create(movimiento, currentUser);
     }
 
     @PutMapping("/{id}")
-    public Movimiento update(@PathVariable Long id, @RequestBody Movimiento movimiento) {
+    public Movimiento update(@PathVariable Long id,
+                             @RequestBody Movimiento movimiento,
+                             @RequestHeader("X-User") String currentUser) {
         movimiento.setMovimientoId(id);
-        return service.update(movimiento);
+        return service.update(movimiento, currentUser);
     }
 
     @DeleteMapping("/{id}")

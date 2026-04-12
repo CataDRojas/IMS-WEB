@@ -21,7 +21,17 @@ public class UsuarioController {
         return service.getAll();
     }
 
-    @GetMapping("/{email}")
+    @GetMapping("/active")
+    public List<Usuario> getActive() {
+        return service.getActive();
+    }
+
+    @GetMapping("/{id}")
+    public Usuario getById(@PathVariable Long id) {
+        return service.getById(id);
+    }
+
+    @GetMapping("/by-email/{email}")
     public Usuario getByEmail(@PathVariable String email) {
         return service.getByEmail(email);
     }
@@ -31,13 +41,13 @@ public class UsuarioController {
         return service.create(usuario);
     }
 
-    @PutMapping("/{email}")
-    public Usuario update(@PathVariable String email, @RequestBody Usuario usuario) {
-        return service.update(email, usuario);
+    @PutMapping("/{id}")
+    public Usuario update(@PathVariable Long id, @RequestBody Usuario usuario) {
+        return service.update(id, usuario);
     }
 
-    @DeleteMapping("/{email}")
-    public void delete(@PathVariable String email) {
-        service.delete(email);
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
     }
 }

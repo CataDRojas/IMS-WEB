@@ -1,11 +1,13 @@
 package com.ims_web.inventory.entity;
 
+import com.ims_web.inventory.util.Auditable;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Descuento")
-public class Descuento {
+public class Descuento implements Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,46 +27,53 @@ public class Descuento {
     private Boolean descuentoActivo = true;
 
     // =========================
-    // GETTERS & SETTERS
+    // Audit fields
     // =========================
+    @Column(name = "DescuentoUsuarioCreacion", nullable = false)
+    private String descuentoUsuarioCreacion;
 
-    public Long getDescuentoId() {
-        return descuentoId;
-    }
+    @Column(name = "DescuentoFechaCreacion", nullable = false)
+    private LocalDateTime descuentoFechaCreacion;
 
-    public void setDescuentoId(Long descuentoId) {
-        this.descuentoId = descuentoId;
-    }
+    @Column(name = "DescuentoUsuarioModif")
+    private String descuentoUsuarioModif;
 
-    public String getDescuentoNombre() {
-        return descuentoNombre;
-    }
+    @Column(name = "DescuentoFechaModif")
+    private LocalDateTime descuentoFechaModif;
 
-    public void setDescuentoNombre(String descuentoNombre) {
-        this.descuentoNombre = descuentoNombre;
-    }
+    // =========================
+    // Getters & Setters
+    // =========================
+    public Long getDescuentoId() { return descuentoId; }
+    public void setDescuentoId(Long descuentoId) { this.descuentoId = descuentoId; }
 
-    public String getDescuentoTipo() {
-        return descuentoTipo;
-    }
+    public String getDescuentoNombre() { return descuentoNombre; }
+    public void setDescuentoNombre(String descuentoNombre) { this.descuentoNombre = descuentoNombre; }
 
-    public void setDescuentoTipo(String descuentoTipo) {
-        this.descuentoTipo = descuentoTipo;
-    }
+    public String getDescuentoTipo() { return descuentoTipo; }
+    public void setDescuentoTipo(String descuentoTipo) { this.descuentoTipo = descuentoTipo; }
 
-    public BigDecimal getDescuentoValor() {
-        return descuentoValor;
-    }
+    public BigDecimal getDescuentoValor() { return descuentoValor; }
+    public void setDescuentoValor(BigDecimal descuentoValor) { this.descuentoValor = descuentoValor; }
 
-    public void setDescuentoValor(BigDecimal descuentoValor) {
-        this.descuentoValor = descuentoValor;
-    }
+    public Boolean getDescuentoActivo() { return descuentoActivo; }
+    public void setDescuentoActivo(Boolean descuentoActivo) { this.descuentoActivo = descuentoActivo; }
 
-    public Boolean getDescuentoActivo() {
-        return descuentoActivo;
-    }
+    public String getDescuentoUsuarioCreacion() { return descuentoUsuarioCreacion; }
+    public LocalDateTime getDescuentoFechaCreacion() { return descuentoFechaCreacion; }
 
-    public void setDescuentoActivo(Boolean descuentoActivo) {
-        this.descuentoActivo = descuentoActivo;
-    }
+    public String getDescuentoUsuarioModif() { return descuentoUsuarioModif; }
+    public LocalDateTime getDescuentoFechaModif() { return descuentoFechaModif; }
+
+    // =========================
+    // Auditable implementation
+    // =========================
+    @Override
+    public void setUsuarioCreacion(String usuario) { this.descuentoUsuarioCreacion = usuario; }
+    @Override
+    public void setFechaCreacion(LocalDateTime fecha) { this.descuentoFechaCreacion = fecha; }
+    @Override
+    public void setUsuarioModif(String usuario) { this.descuentoUsuarioModif = usuario; }
+    @Override
+    public void setFechaModif(LocalDateTime fecha) { this.descuentoFechaModif = fecha; }
 }

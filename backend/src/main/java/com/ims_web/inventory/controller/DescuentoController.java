@@ -32,8 +32,17 @@ public class DescuentoController {
     }
 
     @PostMapping
-    public Descuento createOrUpdate(@RequestBody Descuento descuento) {
-        return service.createOrUpdate(descuento);
+    public Descuento create(@RequestBody Descuento descuento,
+                            @RequestHeader("X-User") String currentUser) {
+        return service.createDescuento(descuento, currentUser);
+    }
+
+    @PutMapping("/{id}")
+    public Descuento update(@PathVariable Long id,
+                            @RequestBody Descuento descuento,
+                            @RequestHeader("X-User") String currentUser) {
+        descuento.setDescuentoId(id);
+        return service.updateDescuento(descuento, currentUser);
     }
 
     @DeleteMapping("/{id}")

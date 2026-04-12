@@ -44,22 +44,19 @@ public class ProductoController {
     // CREATE
     // -----------------------
     @PostMapping
-    public Producto create(@RequestBody Producto producto) {
-        // Automatically set creation timestamp if not set
-        if (producto.getProductosFechaCreacion() == null) {
-            producto.setProductosFechaCreacion(java.time.LocalDateTime.now());
-        }
-        return service.createProducto(producto);
+    public Producto create(@RequestBody Producto producto,
+                           @RequestHeader("X-User") String currentUser) {
+        return service.createProducto(producto, currentUser);
     }
 
     // -----------------------
     // UPDATE
     // -----------------------
     @PutMapping("/{id}")
-    public Producto update(@PathVariable Long id, @RequestBody Producto producto) {
+    public Producto update(@PathVariable Long id,
+                           @RequestBody Producto producto,
+                           @RequestHeader("X-User") String currentUser) {
         producto.setProductoId(id);
-        // Automatically set modification timestamp
-        producto.setProductosFechaModif(java.time.LocalDateTime.now());
-        return service.updateProducto(producto);
+        return service.updateProducto(producto, currentUser);
     }
 }

@@ -2,7 +2,9 @@ package com.ims_web.inventory.service;
 
 import com.ims_web.inventory.entity.Categoria;
 import com.ims_web.inventory.repository.CategoriaRepository;
+import com.ims_web.inventory.util.AuditHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,10 +26,19 @@ public class CategoriaService {
                 .orElseThrow(() -> new RuntimeException("Categoria not found"));
     }
 
-    public Categoria createOrUpdate(Categoria categoria) {
+    @Transactional
+    public Categoria createOrUpdate(Categoria categoria, String currentUser) {
+        if (categoria.getCategoriaId() == null) {
+            // New Categoria → use helper
+            AuditHelper.setCreationAudit(categoria, currentUser);
+        } else {
+            // Existing Categoria → use helper
+            AuditHelper.setModificationAudit(categoria, currentUser);
+        }
         return repo.save(categoria);
     }
 
+    @Transactional
     public void delete(Long id) {
         repo.deleteById(id);
     }
