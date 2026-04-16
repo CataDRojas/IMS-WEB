@@ -2,6 +2,7 @@ package com.ims_web.inventory.repository;
 
 import com.ims_web.inventory.entity.Rol;
 import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
 
 public interface RolRepository extends JpaRepository<Rol, Long> {
 
@@ -11,4 +12,5 @@ public interface RolRepository extends JpaRepository<Rol, Long> {
 
     // SQL-level uniqueness check for create/update
     boolean existsByRolNombreIgnoreCaseAndRolIdNot(String rolNombre, Long idToExclude);
+    Optional<Rol> findByRolNombreIgnoreCase(String rolNombre);
 }

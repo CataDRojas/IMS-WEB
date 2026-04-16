@@ -464,3 +464,143 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_usuario_rut_insert;
+DELIMITER $$
+
+CREATE TRIGGER trg_usuario_rut_insert
+BEFORE INSERT ON usuarios
+FOR EACH ROW
+BEGIN
+    DECLARE rut_clean VARCHAR(20);
+    DECLARE rut_body VARCHAR(20);
+    DECLARE dv_input CHAR(1);
+
+    DECLARE sum INT DEFAULT 0;
+    DECLARE multiplier INT DEFAULT 2;
+    DECLARE len INT;
+    DECLARE i INT;
+    DECLARE current INT;
+    DECLARE remainder INT;
+    DECLARE dv_expected CHAR(1);
+
+    -- normalize input (basic cleanup)
+    SET rut_clean = REPLACE(REPLACE(NEW.UsuarioRun, '.', ''), '-', '');
+    SET len = LENGTH(rut_clean);
+
+    IF len < 2 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERR_RUT_INVALID|Invalid RUT format';
+    END IF;
+
+    SET rut_body = SUBSTRING(rut_clean, 1, len - 1);
+    SET dv_input = UPPER(SUBSTRING(rut_clean, len, 1));
+
+    -- numeric validation
+    IF rut_body REGEXP '[^0-9]' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERR_RUT_INVALID|RUN must be numeric';
+    END IF;
+
+    -- MOD 11 calculation
+    SET i = LENGTH(rut_body);
+
+    WHILE i > 0 DO
+        SET current = CAST(SUBSTRING(rut_body, i, 1) AS UNSIGNED);
+        SET sum = sum + current * multiplier;
+
+        SET multiplier = multiplier + 1;
+        IF multiplier > 7 THEN
+            SET multiplier = 2;
+        END IF;
+
+        SET i = i - 1;
+    END WHILE;
+
+    SET remainder = 11 - (sum % 11);
+
+    IF remainder = 11 THEN
+        SET dv_expected = '0';
+    ELSEIF remainder = 10 THEN
+        SET dv_expected = 'K';
+    ELSE
+        SET dv_expected = CAST(remainder AS CHAR);
+    END IF;
+
+    IF dv_expected <> dv_input THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERR_RUT_INVALID_DV|RUT verification failed';
+    END IF;
+
+END$$
+
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_usuario_rut_update;
+DELIMITER $$
+
+CREATE TRIGGER trg_usuario_rut_update
+BEFORE UPDATE ON usuarios
+FOR EACH ROW
+BEGIN
+    -- identical logic, replace NEW.UsuarioRun
+    DECLARE rut_clean VARCHAR(20);
+    DECLARE rut_body VARCHAR(20);
+    DECLARE dv_input CHAR(1);
+
+    DECLARE sum INT DEFAULT 0;
+    DECLARE multiplier INT DEFAULT 2;
+    DECLARE len INT;
+    DECLARE i INT;
+    DECLARE current INT;
+    DECLARE remainder INT;
+    DECLARE dv_expected CHAR(1);
+
+    SET rut_clean = REPLACE(REPLACE(NEW.UsuarioRun, '.', ''), '-', '');
+    SET len = LENGTH(rut_clean);
+
+    IF len < 2 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERR_RUT_INVALID|Invalid RUT format';
+    END IF;
+
+    SET rut_body = SUBSTRING(rut_clean, 1, len - 1);
+    SET dv_input = UPPER(SUBSTRING(rut_clean, len, 1));
+
+    IF rut_body REGEXP '[^0-9]' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERR_RUT_INVALID|RUN must be numeric';
+    END IF;
+
+    SET i = LENGTH(rut_body);
+
+    WHILE i > 0 DO
+        SET current = CAST(SUBSTRING(rut_body, i, 1) AS UNSIGNED);
+        SET sum = sum + current * multiplier;
+
+        SET multiplier = multiplier + 1;
+        IF multiplier > 7 THEN
+            SET multiplier = 2;
+        END IF;
+
+        SET i = i - 1;
+    END WHILE;
+
+    SET remainder = 11 - (sum % 11);
+
+    IF remainder = 11 THEN
+        SET dv_expected = '0';
+    ELSEIF remainder = 10 THEN
+        SET dv_expected = 'K';
+    ELSE
+        SET dv_expected = CAST(remainder AS CHAR);
+    END IF;
+
+    IF dv_expected <> dv_input THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'ERR_RUT_INVALID_DV|RUT verification failed';
+    END IF;
+
+END$$
+
+DELIMITER ;

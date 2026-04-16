@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RolService {
@@ -27,6 +28,13 @@ public class RolService {
     public Rol getById(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Rol with ID " + id + " not found"));
+    }
+
+    // =========================
+    // NEW: SAFE LOOKUP FOR DATA INITIALIZER
+    // =========================
+    public Optional<Rol> findByRolNombreIgnoreCase(String name) {
+        return repo.findByRolNombreIgnoreCase(name);
     }
 
     @Transactional
