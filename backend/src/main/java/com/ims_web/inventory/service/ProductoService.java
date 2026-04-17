@@ -95,7 +95,7 @@ public class ProductoService {
         existing.setProductoDesc(producto.getProductoDesc());
         existing.setProductoActivo(producto.getProductoActivo());
 
-        // ❌ STOCK REMOVED — DB OWNED
+        // STOCK STILL EXCLUDED (movement system owns it)
 
         existing.setProductoCriticoNumero(producto.getProductoCriticoNumero());
         existing.setProductoPrecio(producto.getProductoPrecio());
@@ -120,11 +120,11 @@ public class ProductoService {
             throw new IllegalArgumentException("Precio cannot be negative");
         }
 
-        // ❌ STOCK VALIDATION REMOVED — DB enforces this now
+        // Stock intentionally NOT validated here (DB + movements own it)
     }
 
     // =========================
-    // EXCEL IMPORT
+    // EXCEL IMPORT (NOW CAN SET STOCK)
     // =========================
 
     @Transactional
@@ -147,8 +147,10 @@ public class ProductoService {
                     existing.setProductoPrecio(dto.getPrecio());
                     existing.setProductoCodigo(dto.getCodigo());
 
-                    // ❌ STOCK NOT CONTROLLED HERE (DB owns lifecycle)
-                    // existing.setProductoStock(dto.getStock()); <- removed
+                    // ✅ ALLOWED: controlled override for ingestion/migration
+                    if (dto.getStock() != null) {
+                        existing.setProductoStock(dto.getStock());
+                    }
 
                     repo.save(existing);
 
@@ -160,6 +162,10 @@ public class ProductoService {
                     producto.setProductoNombre(dto.getNombre());
                     producto.setProductoPrecio(dto.getPrecio());
 
+                    // ✅ ALLOWED: initial stock seeding
+                    producto.setProductoStock(
+                            dto.getStock() != null ? dto.getStock() : 0
+                    );
 
                     AuditHelper.setCreationAudit(producto, "EXCEL_IMPORT");
 
@@ -185,7 +191,7 @@ public class ProductoService {
             dto.setCodigo(p.getProductoCodigo());
             dto.setNombre(p.getProductoNombre());
             dto.setPrecio(p.getProductoPrecio());
-            dto.setStock(p.getProductoStock());
+            dto.setStock(p.getProductoStock()); // read-only projection
             dto.setCategoria(
                     p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
             );

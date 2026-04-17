@@ -31,8 +31,9 @@ public class Producto implements Auditable {
     @Column(name = "ProductoActivo", nullable = false)
     private Boolean productoActivo = true;
 
-    // ❌ NO SETTER — DB is the source of truth
-    @Column(name = "ProductoStock", nullable = false, insertable = false, updatable = false)
+    // ⚠️ Setter restored ONLY for controlled ingestion (e.g. Excel import)
+    @Setter
+    @Column(name = "ProductoStock", nullable = false)
     private Integer productoStock;
 
     // 🔒 DB-CONTROLLED (trigger: trg_producto_stockcritico_update)
