@@ -1,18 +1,72 @@
 <div class="dashboard-container">
+
   <header class="dashboard-header">
     <h1>Bienvenido a IMS-Web 👋</h1>
-    <p>Hola, {{nombreUsuario}} ({{rolUsuario}})</p>
+    <p>Hola, {{ nombreUsuario }}</p>
   </header>
 
   <div class="quick-actions">
     <h2>Acciones Rápidas</h2>
-    <div class="action-buttons">
-      <button *ngIf="rolUsuario === 'ADMIN'" routerLink="/usuarios" class="btn-action">Configuracion</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'VENDEDOR'" routerLink="/ventas" class="btn-action">💸 Nueva Venta</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'" routerLink="/inicio-inventario" class="btn-action">📋 Hacer Inventario</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'" routerLink="/productos" class="btn-action">🛒 Gestionar Productos</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'" routerLink="/busqueda-inventario" class="btn-action">📋 Buscar Inventario</button>
 
-      <img  width="270px">
+    <div class="action-buttons">
+
+      <button
+        *ngIf="tienePermiso('USUARIOS_MANAGE')"
+        routerLink="/usuarios"
+        class="btn-action">
+        Configuración de Usuarios
+      </button>
+
+      <button
+        *ngIf="tienePermiso('ROLES_MANAGE')"
+        routerLink="/roles"
+        class="btn-action">
+        Gestión de Roles
+      </button>
+
+      <button
+        *ngIf="tienePermiso('PRODUCTO_MANAGE') || tienePermiso('PRODUCTO_READ')"
+        routerLink="/productos"
+        class="btn-action">
+        🛒 Productos
+      </button>
+
+      <button
+        *ngIf="tienePermiso('MOVIMIENTO_READ') || tienePermiso('MOVIMIENTO_MANAGE')"
+        routerLink="/ventas"
+        class="btn-action">
+        💸 Ventas / Movimientos
+      </button>
+
+      <button
+        *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')"
+        routerLink="/inicio-inventario"
+        class="btn-action">
+        📋 Inventario
+      </button>
+
+      <button
+        *ngIf="tienePermiso('CATEGORIA_MANAGE') || tienePermiso('CATEGORIA_READ')"
+        routerLink="/categorias"
+        class="btn-action">
+        📂 Categorías
+      </button>
+
+      <button
+        *ngIf="tienePermiso('DESCUENTO_MANAGE') || tienePermiso('DESCUENTO_READ')"
+        routerLink="/descuentos"
+        class="btn-action">
+        💰 Descuentos
+      </button>
+
+      <button
+        *ngIf="tienePermiso('CONFIGURACION_MANAGE')"
+        routerLink="/configuracion"
+        class="btn-action">
+        ⚙️ Configuración Sistema
+      </button>
+
     </div>
   </div>
+
+</div>

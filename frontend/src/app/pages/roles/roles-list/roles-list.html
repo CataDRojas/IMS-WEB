@@ -1,0 +1,34 @@
+<h2>Roles</h2>
+
+<button (click)="crear()">Nuevo rol</button>
+
+<hr />
+
+<table border="1" width="100%">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Permisos</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let rol of roles">
+      <td>{{ rol.rolId }}</td>
+      <td>{{ rol.rolNombre }}</td>
+
+      <td>
+        <span *ngFor="let p of rol.permisos">
+          {{ p.permisosNombre }}<br />
+        </span>
+      </td>
+
+      <td>
+        <button (click)="editar(rol.rolId!)">Editar</button>
+        <button (click)="eliminar(rol.rolId!)">Eliminar</button>
+      </td>
+    </tr>
+  </tbody>
+</table>

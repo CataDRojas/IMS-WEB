@@ -1,0 +1,27 @@
+<p>roles-form works!</p>
+<h2>{{ rolId ? 'Editar Rol' : 'Nuevo Rol' }}</h2>
+
+<div>
+  <label>Nombre del rol:</label>
+  <input [(ngModel)]="rol.rolNombre" />
+</div>
+
+<hr />
+
+<h3>Permisos</h3>
+
+<div *ngFor="let permiso of permisosDisponibles">
+  <label>
+    <input
+      type="checkbox"
+      [checked]="tienePermiso(permiso)"
+      (change)="togglePermiso(permiso)"
+    />
+    {{ permiso.permisosNombre }}
+  </label>
+</div>
+
+<hr />
+
+<button (click)="guardar()">Guardar</button>
+<button (click)="cancelar()">Cancelar</button>

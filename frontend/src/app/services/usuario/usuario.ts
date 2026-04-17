@@ -1,8 +1,36 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
-import { Usuario } from '../../pages/usuarios/usuarios';
+export interface Rol {
+  rolId: number;
+  rolNombre: string;
+}
+
+export interface UsuarioRaw {
+  usuarioId?: number;
+  usuarioEmail: string;
+  usuarioNombre: string;
+  usuarioRun: string;
+  usuarioDV: string;
+  usuarioPassword?: string;
+  usuarioActivo: boolean;
+
+  // backend may send either:
+  rolId?: number;
+  rol?: Rol;
+}
+
+export interface Usuario {
+  usuarioId?: number;
+  usuarioEmail: string;
+  usuarioNombre: string;
+  usuarioRun: string;
+  usuarioDV: string;
+  usuarioPassword?: string;
+  usuarioActivo: boolean;
+  rolId: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,27 +38,42 @@ import { Usuario } from '../../pages/usuarios/usuarios';
 export class UsuarioService {
 
   private apiUrl = 'http://localhost:8080/api/usuarios';
+  private rolesUrl = 'http://localhost:8080/api/roles';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
-  // 1. LEER (Ya lo teníamos)
   obtenerUsuarios(): Observable<Usuario[]> {
-    return this.http.get<Usuario[]>(this.apiUrl);
+    return this.http.get<UsuarioRaw[]>(this.apiUrl).pipe(
+      map(users =>
+        users.map(u => ({
+          usuarioId: u.usuarioId,
+          usuarioEmail: u.usuarioEmail,
+          usuarioNombre: u.usuarioNombre,
+          usuarioRun: u.usuarioRun,
+          usuarioDV: u.usuarioDV,
+          usuarioPassword: u.usuarioPassword,
+          usuarioActivo: u.usuarioActivo,
+
+          // 🔥 CRITICAL FIX: normalize BOTH possible shapes
+          rolId: u.rolId ?? u.rol?.rolId ?? 0
+        }))
+      )
+    );
   }
 
-  // 2. CREAR
   crearUsuario(usuario: Usuario): Observable<Usuario> {
     return this.http.post<Usuario>(this.apiUrl, usuario);
   }
 
-  // 3. ACTUALIZAR
   actualizarUsuario(id: number, usuario: Usuario): Observable<Usuario> {
     return this.http.put<Usuario>(`${this.apiUrl}/${id}`, usuario);
   }
 
-  // 4. ELIMINAR
   eliminarUsuario(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  obtenerRoles(): Observable<Rol[]> {
+    return this.http.get<Rol[]>(this.rolesUrl);
+  }
 }
