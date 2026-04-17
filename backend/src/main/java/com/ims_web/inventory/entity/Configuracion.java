@@ -1,8 +1,13 @@
 package com.ims_web.inventory.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "Configuracion")
 public class Configuracion {
@@ -30,51 +35,4 @@ public class Configuracion {
     // GETTERS & SETTERS
     // =========================
 
-    public Byte getConfiguracionId() {
-        return configuracionId;
-    }
-
-    public void setConfiguracionId(Byte configuracionId) {
-        this.configuracionId = configuracionId;
-    }
-
-    public String getEmpresaNombre() {
-        return empresaNombre;
-    }
-
-    public void setEmpresaNombre(String empresaNombre) {
-        this.empresaNombre = empresaNombre;
-    }
-
-    public String getEmpresaDireccion() {
-        return empresaDireccion;
-    }
-
-    public void setEmpresaDireccion(String empresaDireccion) {
-        this.empresaDireccion = empresaDireccion;
-    }
-
-    public String getEmpresaRun() {
-        return empresaRun;
-    }
-
-    public void setEmpresaRun(String empresaRun) {
-        this.empresaRun = empresaRun;
-    }
-
-    public String getEmpresaDV() {
-        return empresaDV;
-    }
-
-    public void setEmpresaDV(String empresaDV) {
-        this.empresaDV = empresaDV;
-    }
-
-    public BigDecimal getIva() {
-        return iva;
-    }
-
-    public void setIva(BigDecimal iva) {
-        this.iva = iva;
-    }
 }

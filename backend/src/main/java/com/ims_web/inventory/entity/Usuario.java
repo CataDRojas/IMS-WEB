@@ -1,8 +1,13 @@
 package com.ims_web.inventory.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "usuarios", uniqueConstraints = {
         @UniqueConstraint(columnNames = "UsuarioEmail")
@@ -46,83 +51,4 @@ public class Usuario {
     // Getters & Setters
     // ========================
 
-    public Long getUsuarioId() {
-        return usuarioId;
-    }
-
-    public void setUsuarioId(Long usuarioId) {
-        this.usuarioId = usuarioId;
-    }
-
-    public String getUsuarioEmail() {
-        return usuarioEmail;
-    }
-
-    public void setUsuarioEmail(String usuarioEmail) {
-        this.usuarioEmail = usuarioEmail;
-    }
-
-    public String getUsuarioNombre() {
-        return usuarioNombre;
-    }
-
-    public void setUsuarioNombre(String usuarioNombre) {
-        this.usuarioNombre = usuarioNombre;
-    }
-
-    public String getUsuarioRun() {
-        return usuarioRun;
-    }
-
-    public void setUsuarioRun(String usuarioRun) {
-        this.usuarioRun = usuarioRun;
-    }
-
-    public String getUsuarioDV() {
-        return usuarioDV;
-    }
-
-    public void setUsuarioDV(String usuarioDV) {
-        this.usuarioDV = usuarioDV;
-    }
-
-    public String getUsuarioPassword() {
-        return usuarioPassword;
-    }
-
-    public void setUsuarioPassword(String usuarioPassword) {
-        this.usuarioPassword = usuarioPassword;
-    }
-
-    public LocalDateTime getUsuarioFechaCreacion() {
-        return usuarioFechaCreacion;
-    }
-
-    public void setUsuarioFechaCreacion(LocalDateTime usuarioFechaCreacion) {
-        this.usuarioFechaCreacion = usuarioFechaCreacion;
-    }
-
-    public LocalDateTime getUsuarioFechaModif() {
-        return usuarioFechaModif;
-    }
-
-    public void setUsuarioFechaModif(LocalDateTime usuarioFechaModif) {
-        this.usuarioFechaModif = usuarioFechaModif;
-    }
-
-    public Rol getRol() {
-        return rol;
-    }
-
-    public void setRol(Rol rol) {
-        this.rol = rol;
-    }
-
-    public Boolean getUsuarioActivo() {
-        return usuarioActivo;
-    }
-
-    public void setUsuarioActivo(Boolean usuarioActivo) {
-        this.usuarioActivo = usuarioActivo;
-    }
 }

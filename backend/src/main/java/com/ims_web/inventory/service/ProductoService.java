@@ -48,50 +48,55 @@ public class ProductoService {
     }
 
     // =========================
-    // EXISTING METHODS (UNCHANGED)
+    // CREATE
     // =========================
 
     @Transactional
     public Producto createProducto(Producto producto, String currentUser) {
+
         validateProducto(producto);
 
-        boolean codigoExists = repo.existsByProductoCodigoIgnoreCase(producto.getProductoCodigo());
-        if (codigoExists) {
+        if (repo.existsByProductoCodigoIgnoreCase(producto.getProductoCodigo())) {
             throw new IllegalArgumentException("ProductoCodigo must be unique");
         }
 
-        boolean nombreExists = repo.existsByProductoNombreIgnoreCase(producto.getProductoNombre());
-        if (nombreExists) {
+        if (repo.existsByProductoNombreIgnoreCase(producto.getProductoNombre())) {
             throw new IllegalArgumentException("ProductoNombre must be unique");
         }
 
         AuditHelper.setCreationAudit(producto, currentUser);
+
         return repo.save(producto);
     }
 
+    // =========================
+    // UPDATE
+    // =========================
+
     @Transactional
     public Producto updateProducto(Producto producto, String currentUser) {
+
         Producto existing = repo.findById(producto.getProductoId())
                 .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
         validateProducto(producto);
 
-        boolean codigoExists = repo.existsByProductoCodigoIgnoreCaseAndProductoIdNot(
-                producto.getProductoCodigo(), producto.getProductoId());
-        if (codigoExists) {
+        if (repo.existsByProductoCodigoIgnoreCaseAndProductoIdNot(
+                producto.getProductoCodigo(), producto.getProductoId())) {
             throw new IllegalArgumentException("ProductoCodigo must be unique");
         }
 
-        boolean nombreExists = repo.existsByProductoNombreIgnoreCaseAndProductoIdNot(
-                producto.getProductoNombre(), producto.getProductoId());
-        if (nombreExists) {
+        if (repo.existsByProductoNombreIgnoreCaseAndProductoIdNot(
+                producto.getProductoNombre(), producto.getProductoId())) {
             throw new IllegalArgumentException("ProductoNombre must be unique");
         }
 
         existing.setProductoNombre(producto.getProductoNombre());
         existing.setProductoDesc(producto.getProductoDesc());
         existing.setProductoActivo(producto.getProductoActivo());
-        existing.setProductoStock(producto.getProductoStock());
+
+        // ❌ STOCK REMOVED — DB OWNED
+
         existing.setProductoCriticoNumero(producto.getProductoCriticoNumero());
         existing.setProductoPrecio(producto.getProductoPrecio());
         existing.setProductoCantidadLote(producto.getProductoCantidadLote());
@@ -104,47 +109,60 @@ public class ProductoService {
         return repo.save(existing);
     }
 
+    // =========================
+    // VALIDATION
+    // =========================
+
     private void validateProducto(Producto producto) {
-        if (producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
+
+        if (producto.getProductoPrecio() == null ||
+                producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Precio cannot be negative");
         }
-        if (producto.getProductoStock() < 0) {
-            throw new IllegalArgumentException("Stock cannot be negative");
-        }
+
+        // ❌ STOCK VALIDATION REMOVED — DB enforces this now
     }
 
     // =========================
     // EXCEL IMPORT
     // =========================
+
     @Transactional
     public void importFromExcel(MultipartFile file) {
+
         try (InputStream inputStream = file.getInputStream()) {
 
             List<ProductoExcelDTO> productos = excelImporter.importProductos(inputStream);
 
             for (ProductoExcelDTO dto : productos) {
-                Producto producto = new Producto();
-
-                producto.setProductoCodigo(dto.getCodigo());
-                producto.setProductoNombre(dto.getNombre());
-                producto.setProductoPrecio(dto.getPrecio());
-                producto.setProductoStock(dto.getStock());
-
-                // TODO: category mapping later (important but not now)
 
                 boolean exists = repo.existsByProductoCodigoIgnoreCase(dto.getCodigo());
 
                 if (exists) {
+
                     Producto existing = repo.findByProductoCodigo(dto.getCodigo())
                             .orElseThrow();
 
                     existing.setProductoNombre(dto.getNombre());
                     existing.setProductoPrecio(dto.getPrecio());
-                    existing.setProductoStock(dto.getStock());
+                    existing.setProductoCodigo(dto.getCodigo());
+
+                    // ❌ STOCK NOT CONTROLLED HERE (DB owns lifecycle)
+                    // existing.setProductoStock(dto.getStock()); <- removed
 
                     repo.save(existing);
+
                 } else {
+
+                    Producto producto = new Producto();
+
+                    producto.setProductoCodigo(dto.getCodigo());
+                    producto.setProductoNombre(dto.getNombre());
+                    producto.setProductoPrecio(dto.getPrecio());
+
+
                     AuditHelper.setCreationAudit(producto, "EXCEL_IMPORT");
+
                     repo.save(producto);
                 }
             }
@@ -157,6 +175,7 @@ public class ProductoService {
     // =========================
     // EXCEL EXPORT
     // =========================
+
     public Workbook exportToExcel() {
 
         List<Producto> productos = repo.findAll();
