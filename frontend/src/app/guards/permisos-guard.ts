@@ -36,21 +36,26 @@ export const permisosGuard: CanActivateFn = (route, state) => {
   // =========================
   // CASE 2: refresh needed
   // =========================
-  return refresh$.pipe(
-    map((user: any) => {
+return refresh$.pipe(
+  map((user: any) => {
 
-      // 🧠 update cache first
-      auth.setPermisos(user.permisos);
+    // 🧠 update cache first (ONLY perms, as your guard expects)
+    auth.setPermisos(user.permisos);
 
-      const allowed = requiredPermisos.some(p =>
-        user.permisos.includes(p)
-      );
+    // 🧠 ALSO sync role data (without introducing new patterns)
+    localStorage.setItem('rol_ims', user.rol);
+    localStorage.setItem('rol_id_ims', String(user.rolId));
+    localStorage.setItem('nombre_ims', user.nombre);
 
-      if (!allowed) {
-        router.navigate(['/access-denied']);
-      }
+    const allowed = requiredPermisos.some(p =>
+      user.permisos.includes(p)
+    );
 
-      return allowed;
-    })
-  );
+    if (!allowed) {
+      router.navigate(['/access-denied']);
+    }
+
+    return allowed;
+  })
+);
 };
