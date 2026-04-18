@@ -1,29 +1,56 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { Auth } from '../services/auth';
+import { map } from 'rxjs';
 
 export const permisosGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
+  const auth = inject(Auth);
 
-  const permisosRaw = localStorage.getItem('permisos_ims');
-  const userPermisos: string[] = permisosRaw ? JSON.parse(permisosRaw) : [];
+  const requiredPermisos =
+    (route.data?.['requiredPermisos'] as string[] | undefined) ?? [];
 
-  const requiredPermisos = (route.data?.['requiredPermisos'] as string[] | undefined) ?? [];
-
-  console.log('Permisos guard check');
-  console.log('User:', userPermisos);
-  console.log('Required:', requiredPermisos);
-
-  // no restriction → allow access
+  // 🧠 if no restrictions → allow immediately
   if (requiredPermisos.length === 0) return true;
 
-  // OR-based access (more realistic for ERP systems)
-  const hasAccess = requiredPermisos.some(p => userPermisos.includes(p));
+  // 🧠 try lazy refresh (ONLY if stale)
+  const refresh$ = auth.refreshPermisosIfNeeded();
 
-  if (hasAccess) {
-    return true;
+  // =========================
+  // CASE 1: no refresh needed
+  // =========================
+  if (!refresh$) {
+    const userPermisos = auth.getPermisos();
+
+    const allowed = requiredPermisos.some(p =>
+      userPermisos.includes(p)
+    );
+
+    if (!allowed) {
+      router.navigate(['/access-denied']);
+    }
+
+    return allowed;
   }
 
-  console.log('Access denied');
-  router.navigate(['/home']);
-  return false;
+  // =========================
+  // CASE 2: refresh needed
+  // =========================
+  return refresh$.pipe(
+    map((user: any) => {
+
+      // 🧠 update cache first
+      auth.setPermisos(user.permisos);
+
+      const allowed = requiredPermisos.some(p =>
+        user.permisos.includes(p)
+      );
+
+      if (!allowed) {
+        router.navigate(['/access-denied']);
+      }
+
+      return allowed;
+    })
+  );
 };

@@ -59,4 +59,27 @@ public class AuthController {
                 "permisos", permisos
         );
     }
+
+    // 🔄 NEW: refresh permissions / current session state
+    @GetMapping("/me")
+    public Map<String, Object> me(Authentication authentication) {
+
+        String email = authentication.getName();
+
+        Usuario usuario = usuarioRepository.findByEmailWithRoleAndPermissions(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<String> permisos = usuario.getRol()
+                .getPermisos()
+                .stream()
+                .map(p -> p.getPermisosNombre().trim())
+                .collect(Collectors.toList());
+
+        return Map.of(
+                "rol", usuario.getRol().getRolNombre(),
+                "rolId", usuario.getRol().getRolId(),
+                "nombre", usuario.getUsuarioNombre(),
+                "permisos", permisos
+        );
+    }
 }

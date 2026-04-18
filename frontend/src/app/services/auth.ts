@@ -8,11 +8,23 @@ import { Router } from '@angular/router';
 export class Auth {
 
   private apiUrl = 'http://localhost:8080/api/auth/login';
+  private meUrl = 'http://localhost:8080/api/auth/me';
+
+  private permisosTsKey = 'permisos_ts';
+  private ttlMs = 1 * 30 * 1000; // 2 min freshness window (adjust later if needed)
 
   constructor(private http: HttpClient, private router: Router) {}
 
+  // =========================
+  // AUTH
+  // =========================
+
   iniciarSesion(credenciales: any) {
     return this.http.post(this.apiUrl, credenciales);
+  }
+
+  refreshMe() {
+    return this.http.get<any>(this.meUrl);
   }
 
   // =========================
@@ -32,6 +44,15 @@ export class Auth {
     return raw ? JSON.parse(raw) : [];
   }
 
+  setPermisos(permisos: string[]) {
+    localStorage.setItem('permisos_ims', JSON.stringify(permisos));
+    localStorage.setItem(this.permisosTsKey, Date.now().toString());
+  }
+
+  getPermisosTimestamp(): number {
+    return Number(localStorage.getItem(this.permisosTsKey) || 0);
+  }
+
   // =========================
   // AUTH STATE
   // =========================
@@ -41,7 +62,7 @@ export class Auth {
   }
 
   // =========================
-  // AUTHORIZATION CORE (PERMISSIONS ONLY)
+  // PERMISSION LOGIC
   // =========================
 
   hasPermission(permission: string): boolean {
@@ -57,6 +78,22 @@ export class Auth {
   }
 
   // =========================
+  // LAZY REFRESH (KEY PIECE)
+  // =========================
+
+  refreshPermisosIfNeeded() {
+    const last = this.getPermisosTimestamp();
+
+    const isStale = Date.now() - last > this.ttlMs;
+
+    if (!isStale) {
+      return null;
+    }
+
+    return this.refreshMe();
+  }
+
+  // =========================
   // SESSION CONTROL
   // =========================
 
@@ -65,6 +102,7 @@ export class Auth {
     localStorage.removeItem('rol_ims');
     localStorage.removeItem('nombre_ims');
     localStorage.removeItem('permisos_ims');
+    localStorage.removeItem(this.permisosTsKey);
     this.router.navigate(['/login']);
   }
 }

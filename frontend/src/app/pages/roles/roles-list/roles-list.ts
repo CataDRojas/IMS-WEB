@@ -11,7 +11,6 @@ export const PERMISSION_LABELS: Record<string, string> = {
   CATEGORIA_MANAGE: 'Gestionar categorías',
   DESCUENTO_READ: 'Ver descuentos',
   DESCUENTO_MANAGE: 'Gestionar descuentos',
-  PERMISOS_MANAGE: 'Gestionar permisos',
   ROLES_MANAGE: 'Gestionar roles',
   MOVIMIENTO_LUGAR_MANAGE: 'Gestionar ubicaciones de movimiento',
   USUARIOS_MANAGE: 'Gestionar usuarios',

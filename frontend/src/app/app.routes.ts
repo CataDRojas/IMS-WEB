@@ -11,6 +11,9 @@ import { permisosGuard } from './guards/permisos-guard';
 import { Ventas } from './pages/ventas/ventas';
 import { InicioInventario } from './pages/inicio-inventario/inicio-inventario';
 import { BusquedaInventario } from './pages/busqueda-inventario/busqueda-inventario';
+import { NOT_FOUND } from '@angular/core/primitives/di';
+import { NotFound } from './pages/not-found/not-found';
+import { AccessDenied } from './pages/access-denied/access-denied';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -70,5 +73,7 @@ export const routes: Routes = [
     component: RolesForm,
     canActivate: [authGuard, permisosGuard],
     data: { requiredPermisos: ['ROLES_MANAGE'] }
-  }
+  },
+  { path: 'access-denied', component: AccessDenied },
+  { path: '**', component: NotFound }
 ];
