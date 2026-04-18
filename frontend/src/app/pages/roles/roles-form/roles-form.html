@@ -1,4 +1,3 @@
-<p>roles-form works!</p>
 <h2>{{ rolId ? 'Editar Rol' : 'Nuevo Rol' }}</h2>
 
 <div>
@@ -10,15 +9,23 @@
 
 <h3>Permisos</h3>
 
-<div *ngFor="let permiso of permisosDisponibles">
-  <label>
-    <input
-      type="checkbox"
-      [checked]="tienePermiso(permiso)"
-      (change)="togglePermiso(permiso)"
-    />
-    {{ permiso.permisosNombre }}
-  </label>
+<div class="permissions-grid">
+
+  <div *ngFor="let permiso of permisosDisponibles">
+
+    <label>
+      <input
+        type="checkbox"
+        [checked]="tienePermiso(permiso)"
+        (change)="togglePermiso(permiso)"
+      />
+
+      {{ permissionLabels[permiso.permisosNombre] || permiso.permisosNombre }}
+
+    </label>
+
+  </div>
+
 </div>
 
 <hr />

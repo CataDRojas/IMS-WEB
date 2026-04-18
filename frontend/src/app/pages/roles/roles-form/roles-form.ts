@@ -6,6 +6,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RolesService, Rol } from '../../../services/roles/roles';
 import { PermisosService, Permisos } from '../../../services/permisos/permisos';
 
+// 🧠 reuse from list (single source inside UI layer)
+import {
+  PERMISSION_LABELS,
+  ALL_PERMISSIONS
+} from '../roles-list/roles-list';
+
 @Component({
   selector: 'app-roles-form',
   standalone: true,
@@ -23,6 +29,10 @@ export class RolesForm implements OnInit {
   permisosDisponibles: Permisos[] = [];
 
   rolId?: number;
+
+  // 🧠 UI shared mapping (no duplication)
+  permissionLabels = PERMISSION_LABELS;
+  allPermissions = ALL_PERMISSIONS;
 
   constructor(
     private rolesService: RolesService,
@@ -88,13 +98,11 @@ export class RolesForm implements OnInit {
     this.rolesService.save(this.rol).subscribe({
       next: () => {
 
-        // 🔒 SAFE TYPE NORMALIZATION
         const storedRolIdRaw = localStorage.getItem('rol_id_ims');
         const storedRolId = storedRolIdRaw !== null ? Number(storedRolIdRaw) : null;
 
         const currentRolId = this.rolId !== undefined ? Number(this.rolId) : null;
 
-        // 🔥 ONLY SYNC IF SAME ROLE ID
         if (storedRolId !== null && currentRolId !== null && currentRolId === storedRolId) {
 
           const permisosList: string[] = this.rol.permisos
@@ -117,5 +125,14 @@ export class RolesForm implements OnInit {
 
   cancelar(): void {
     this.router.navigate(['/roles']);
+  }
+
+  // (kept for now, even if redundant with shared labels)
+  getPermisoLabel(nombre?: string): string {
+    if (!nombre) return '';
+    return nombre
+      .toLowerCase()
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, l => l.toUpperCase());
   }
 }

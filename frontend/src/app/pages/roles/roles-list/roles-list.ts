@@ -4,6 +4,25 @@ import { Router } from '@angular/router';
 
 import { RolesService, Rol } from '../../../services/roles/roles';
 
+// 🧠 shared runtime constant (exported for reuse)
+export const PERMISSION_LABELS: Record<string, string> = {
+  CONFIGURACION_MANAGE: 'Gestionar configuración',
+  CATEGORIA_READ: 'Ver categorías',
+  CATEGORIA_MANAGE: 'Gestionar categorías',
+  DESCUENTO_READ: 'Ver descuentos',
+  DESCUENTO_MANAGE: 'Gestionar descuentos',
+  PERMISOS_MANAGE: 'Gestionar permisos',
+  ROLES_MANAGE: 'Gestionar roles',
+  MOVIMIENTO_LUGAR_MANAGE: 'Gestionar ubicaciones de movimiento',
+  USUARIOS_MANAGE: 'Gestionar usuarios',
+  PRODUCTO_READ: 'Ver productos',
+  PRODUCTO_MANAGE: 'Gestionar productos',
+  MOVIMIENTO_READ: 'Ver movimientos',
+  MOVIMIENTO_MANAGE: 'Gestionar movimientos'
+};
+
+export const ALL_PERMISSIONS: string[] = Object.keys(PERMISSION_LABELS);
+
 @Component({
   selector: 'app-roles-list',
   standalone: true,
@@ -14,11 +33,15 @@ import { RolesService, Rol } from '../../../services/roles/roles';
 export class RolesList implements OnInit {
 
   roles: Rol[] = [];
+  expandedRoleId: number | null = null;
 
   constructor(
     private rolesService: RolesService,
     private router: Router
   ) {}
+
+  permissionLabels = PERMISSION_LABELS;
+  allPermissions = ALL_PERMISSIONS;
 
   ngOnInit(): void {
     this.cargarRoles();
@@ -52,5 +75,13 @@ export class RolesList implements OnInit {
         console.error('Error eliminando rol:', err);
       }
     });
+  }
+
+  toggleExpand(id: number): void {
+    this.expandedRoleId = this.expandedRoleId === id ? null : id;
+  }
+
+  hasPermission(rol: Rol, perm: string): boolean {
+    return rol.permisos?.some(p => p.permisosNombre === perm);
   }
 }

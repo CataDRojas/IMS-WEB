@@ -7,28 +7,61 @@
 <table border="1" width="100%">
   <thead>
     <tr>
+      <th></th>
       <th>ID</th>
       <th>Nombre</th>
-      <th>Permisos</th>
       <th>Acciones</th>
     </tr>
   </thead>
 
   <tbody>
-    <tr *ngFor="let rol of roles">
-      <td>{{ rol.rolId }}</td>
-      <td>{{ rol.rolNombre }}</td>
 
-      <td>
-        <span *ngFor="let p of rol.permisos">
-          {{ p.permisosNombre }}<br />
-        </span>
-      </td>
+    <ng-container *ngFor="let rol of roles">
 
-      <td>
-        <button (click)="editar(rol.rolId!)">Editar</button>
-        <button (click)="eliminar(rol.rolId!)">Eliminar</button>
-      </td>
-    </tr>
+      <!-- MAIN ROW -->
+      <tr>
+        <td>
+          <button (click)="toggleExpand(rol.rolId!)">
+            {{ expandedRoleId === rol.rolId ? '▼' : '▶' }}
+          </button>
+        </td>
+
+        <td>{{ rol.rolId }}</td>
+        <td>{{ rol.rolNombre }}</td>
+
+        <td>
+          <button (click)="editar(rol.rolId!)">Editar</button>
+          <button (click)="eliminar(rol.rolId!)">Eliminar</button>
+        </td>
+      </tr>
+
+      <!-- EXPANDED PERMISSIONS ROW -->
+      <tr *ngIf="expandedRoleId === rol.rolId">
+        <td colspan="4">
+
+          <div class="permissions-grid">
+
+            <div *ngFor="let perm of allPermissions">
+
+              <label>
+                <input
+                  type="checkbox"
+                  [checked]="hasPermission(rol, perm)"
+                  disabled
+                />
+
+                {{ permissionLabels[perm] }}
+
+              </label>
+
+            </div>
+
+          </div>
+
+        </td>
+      </tr>
+
+    </ng-container>
+
   </tbody>
 </table>
