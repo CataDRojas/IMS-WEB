@@ -7,12 +7,30 @@
   <div class="quick-actions">
     <h2>Acciones Rápidas</h2>
     <div class="action-buttons">
-      <button *ngIf="rolUsuario === 'ADMIN'" routerLink="/usuarios" class="btn-action">Configuracion</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'VENDEDOR'" routerLink="/ventas" class="btn-action">💸 Nueva Venta</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'" routerLink="/inicio-inventario" class="btn-action">📋 Hacer Inventario</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'" routerLink="/productos" class="btn-action">🛒 Gestionar Productos</button>
-      <button *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'" routerLink="/busqueda-inventario" class="btn-action">📋 Buscar Inventario</button>
-
-      <img  width="270px">
+      <button *ngIf="rolUsuario === 'ADMIN'" routerLink="/usuarios" class="btn-action">
+        Configuracion
+      </button>
+      <button
+        *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'VENDEDOR'"
+        routerLink="/ventas"
+        class="btn-action"
+      >
+        💸 Nueva Venta
+      </button>
+      <button
+        *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'"
+        routerLink="/inventario"
+        class="btn-action"
+      >
+        📦 Inventario
+      </button>
+      <button
+        *ngIf="rolUsuario === 'ADMIN' || rolUsuario === 'BODEGUERO'"
+        routerLink="/productos"
+        class="btn-action"
+      >
+        🛒 Gestionar Productos
+      </button>
     </div>
   </div>
+</div>
