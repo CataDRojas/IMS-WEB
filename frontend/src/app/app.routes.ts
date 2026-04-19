@@ -14,6 +14,8 @@ import { BusquedaInventario } from './pages/busqueda-inventario/busqueda-inventa
 import { NOT_FOUND } from '@angular/core/primitives/di';
 import { NotFound } from './pages/not-found/not-found';
 import { AccessDenied } from './pages/access-denied/access-denied';
+import { CategoriasComponent } from './pages/categorias/categorias';
+import { ProductosComponent } from './pages/productos/productos';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
