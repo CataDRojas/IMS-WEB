@@ -31,6 +31,7 @@ public class ProductoExcelExporter {
         header.createCell(2).setCellValue("Precio");
         header.createCell(3).setCellValue("Stock");
         header.createCell(4).setCellValue("Categoria");
+        header.createCell(5).setCellValue("Cantidad Lote");
 
         // =========================
         // DATA ROWS
@@ -40,7 +41,7 @@ public class ProductoExcelExporter {
         // =========================
         // AUTO SIZE (optional but nice)
         // =========================
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             sheet.autoSizeColumn(i);
         }
 

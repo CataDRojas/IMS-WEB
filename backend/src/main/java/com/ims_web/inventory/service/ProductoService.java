@@ -1,7 +1,9 @@
 package com.ims_web.inventory.service;
 
 import com.ims_web.inventory.dto.ProductoExcelDTO;
+import com.ims_web.inventory.entity.Categoria;
 import com.ims_web.inventory.entity.Producto;
+import com.ims_web.inventory.repository.CategoriaRepository;
 import com.ims_web.inventory.repository.ProductoRepository;
 import com.ims_web.inventory.util.AuditHelper;
 import com.ims_web.inventory.util.excel.ProductoExcelExporter;
@@ -22,15 +24,18 @@ public class ProductoService {
     private final ProductoRepository repo;
     private final ProductoExcelImporter excelImporter;
     private final ProductoExcelExporter excelExporter;
+    private final CategoriaRepository categoriaRepo;
 
     public ProductoService(
             ProductoRepository repo,
             ProductoExcelImporter excelImporter,
-            ProductoExcelExporter excelExporter
+            ProductoExcelExporter excelExporter,
+            CategoriaRepository categoriaRepo
     ) {
         this.repo = repo;
         this.excelImporter = excelImporter;
         this.excelExporter = excelExporter;
+        this.categoriaRepo = categoriaRepo;
     }
 
     public List<Producto> getAllProductos() {
@@ -130,7 +135,23 @@ public class ProductoService {
                 producto.setProductoPrecio(dto.getPrecio());
                 producto.setProductoStock(dto.getStock());
 
-                // TODO: category mapping later (important but not now)
+                // 🔥 EL TORPEDO (Cantidad por Lote)
+                // Si viene nulo desde el Excel, por defecto es 1 unidad.
+                Integer cantidadLote = dto.getCantidadLote() != null ? dto.getCantidadLote() : 1;
+                producto.setProductoCantidadLote(cantidadLote);
+
+                // Lógica de Categorías
+                if (dto.getCategoria() != null && !dto.getCategoria().trim().isEmpty()) {
+                    String catNombre = dto.getCategoria().trim();
+                    Categoria categoria = categoriaRepo.findByCategoriaNombreIgnoreCase(catNombre)
+                            .orElseGet(() -> {
+                                Categoria nuevaCat = new Categoria();
+                                nuevaCat.setCategoriaNombre(catNombre);
+                                AuditHelper.setCreationAudit(nuevaCat, "EXCEL_IMPORT");
+                                return categoriaRepo.save(nuevaCat);
+                            });
+                    producto.setCategoria(categoria);
+                }
 
                 boolean exists = repo.existsByProductoCodigoIgnoreCase(dto.getCodigo());
 
@@ -141,6 +162,10 @@ public class ProductoService {
                     existing.setProductoNombre(dto.getNombre());
                     existing.setProductoPrecio(dto.getPrecio());
                     existing.setProductoStock(dto.getStock());
+                    existing.setCategoria(producto.getCategoria());
+
+                    // 🔥 Actualizamos también el torpedo si el producto ya existía
+                    existing.setProductoCantidadLote(cantidadLote);
 
                     repo.save(existing);
                 } else {
@@ -167,9 +192,11 @@ public class ProductoService {
             dto.setNombre(p.getProductoNombre());
             dto.setPrecio(p.getProductoPrecio());
             dto.setStock(p.getProductoStock());
-            dto.setCategoria(
-                    p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
-            );
+            dto.setCategoria(p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null);
+
+            // 🔥 Exportamos el torpedo al Excel
+            dto.setCantidadLote(p.getProductoCantidadLote());
+
             return dto;
         }).toList();
 
