@@ -17,10 +17,8 @@ public class ProductoImportExcelMapper {
     public List<ProductoExcelDTO> mapProductos(Sheet sheet) {
         List<ProductoExcelDTO> productos = new ArrayList<>();
 
-        // start at row 1 (row 0 = headers)
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
-
             if (row == null) continue;
 
             ProductoExcelDTO dto = new ProductoExcelDTO();
@@ -28,10 +26,12 @@ public class ProductoImportExcelMapper {
             dto.setCodigo(getString(row.getCell(0)));
             dto.setNombre(getString(row.getCell(1)));
             dto.setPrecio(getBigDecimal(row.getCell(2)));
+
+            // ✅ STOCK IS NOW INTENTIONALLY PART OF IMPORT
             dto.setStock(getInteger(row.getCell(3)));
+
             dto.setCategoria(getString(row.getCell(4)));
 
-            // skip empty rows
             if (dto.getCodigo() == null && dto.getNombre() == null) {
                 continue;
             }
@@ -59,6 +59,7 @@ public class ProductoImportExcelMapper {
                 row.createCell(2).setCellValue(dto.getPrecio().doubleValue());
             }
 
+            // ✅ STOCK INCLUDED IN EXPORT
             if (dto.getStock() != null) {
                 row.createCell(3).setCellValue(dto.getStock());
             }
@@ -68,7 +69,7 @@ public class ProductoImportExcelMapper {
     }
 
     // =========================
-    // HELPERS (dirty Excel survival kit)
+    // HELPERS
     // =========================
 
     private String getString(Cell cell) {

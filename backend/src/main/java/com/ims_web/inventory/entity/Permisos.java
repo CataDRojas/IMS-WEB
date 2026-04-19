@@ -1,7 +1,11 @@
 package com.ims_web.inventory.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "permisos")
 public class Permisos {
@@ -14,23 +18,5 @@ public class Permisos {
     @Column(name = "PermisosNombre", nullable = false, unique = true)
     private String permisosNombre;
 
-    // ================
-    // GETTERS & SETTERS
-    // ================
 
-    public Long getPermisosId() {
-        return permisosId;
-    }
-
-    public void setPermisosId(Long permisosId) {
-        this.permisosId = permisosId;
-    }
-
-    public String getPermisosNombre() {
-        return permisosNombre;
-    }
-
-    public void setPermisosNombre(String permisosNombre) {
-        this.permisosNombre = permisosNombre;
-    }
 }

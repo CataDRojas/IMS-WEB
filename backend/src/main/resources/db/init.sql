@@ -174,23 +174,28 @@ CREATE TABLE IF NOT EXISTS MovimientoLugar (
     MovimientoLugarUsuarioModif VARCHAR(100),
     MovimientoLugarFechaModif DATETIME
 );
-
 -- 📄 MOVIMIENTO DETALLE
 CREATE TABLE IF NOT EXISTS MovimientoDetalle (
     MovimientoDetalleId BIGINT AUTO_INCREMENT PRIMARY KEY,
     MovimientoId BIGINT NOT NULL,
     ProductoId BIGINT NOT NULL,
     MovimientoLugarId BIGINT,
+
     MovimientoDetalleCantidad INT NOT NULL,
+    MovimientoDetalleUnidadesPorPaquete INT NOT NULL DEFAULT 1,
+
     MovimientoDetallePrecioBase DECIMAL(12,2) NOT NULL,
     MovimientoDetalleDescuentoAplicado DECIMAL(12,2),
     MovimientoDetallePrecioUnitario DECIMAL(12,2) NOT NULL,
     MovimientoDetallePrecioTotal DECIMAL(12,2) NOT NULL,
-    MovimientoDetalleDescripcion VARCHAR(255), -- added
+    MovimientoDetalleDescripcion VARCHAR(255),
+
     CONSTRAINT fk_detalle_movimiento FOREIGN KEY (MovimientoId) REFERENCES Movimiento(MovimientoId),
     CONSTRAINT fk_detalle_producto FOREIGN KEY (ProductoId) REFERENCES productos(ProductoId),
     CONSTRAINT fk_detalle_lugar FOREIGN KEY (MovimientoLugarId) REFERENCES MovimientoLugar(MovimientoLugarId),
+
     CONSTRAINT chk_det_cantidad CHECK (MovimientoDetalleCantidad <> 0),
+    CONSTRAINT chk_det_unidades_paquete CHECK (MovimientoDetalleUnidadesPorPaquete >= 1),
     CONSTRAINT chk_det_precio_unit CHECK (MovimientoDetallePrecioUnitario >= 0),
     CONSTRAINT chk_det_precio_total CHECK (MovimientoDetallePrecioTotal >= 0)
 );
@@ -357,26 +362,47 @@ BEGIN
     DECLARE v_iva_pct DECIMAL(5,2);
     DECLARE v_descuento_unit DECIMAL(12,2);
 
-    SELECT ProductoPrecio INTO v_precio_base FROM productos WHERE ProductoId = NEW.ProductoId;
+    -- 🔹 NEW: real units
+    DECLARE v_cantidad_real INT;
 
+    SET v_cantidad_real = NEW.MovimientoDetalleCantidad * NEW.MovimientoDetalleUnidadesPorPaquete;
+
+    SELECT ProductoPrecio
+    INTO v_precio_base
+    FROM productos
+    WHERE ProductoId = NEW.ProductoId;
+
+    -- 🔹 USE REAL UNITS
     CALL sp_calcular_descuento_producto(
         NEW.ProductoId,
         v_precio_base,
-        NEW.MovimientoDetalleCantidad,
+        v_cantidad_real,
         v_descuento_total
     );
 
-    SELECT IVA INTO v_iva_pct FROM Configuracion WHERE ConfiguracionId = 1 LIMIT 1;
+    SELECT IVA
+    INTO v_iva_pct
+    FROM Configuracion
+    WHERE ConfiguracionId = 1
+    LIMIT 1;
 
+    -- 🔹 discount per real unit
     SET v_descuento_unit = CASE
-        WHEN NEW.MovimientoDetalleCantidad = 0 THEN 0
-        ELSE v_descuento_total / NEW.MovimientoDetalleCantidad
+        WHEN v_cantidad_real = 0 THEN 0
+        ELSE v_descuento_total / v_cantidad_real
     END;
 
     SET NEW.MovimientoDetallePrecioBase = v_precio_base;
+
     SET NEW.MovimientoDetalleDescuentoAplicado = v_descuento_unit;
-    SET NEW.MovimientoDetallePrecioUnitario = GREATEST(0, (v_precio_base - v_descuento_unit) * (1 + (v_iva_pct / 100)));
-    SET NEW.MovimientoDetallePrecioTotal = NEW.MovimientoDetallePrecioUnitario * NEW.MovimientoDetalleCantidad;
+
+    SET NEW.MovimientoDetallePrecioUnitario =
+        GREATEST(0, (v_precio_base - v_descuento_unit) * (1 + (v_iva_pct / 100)));
+
+    -- 🔹 TOTAL NOW USES REAL UNITS
+    SET NEW.MovimientoDetallePrecioTotal =
+        NEW.MovimientoDetallePrecioUnitario * v_cantidad_real;
+
 END$$
 
 DROP TRIGGER IF EXISTS trg_detalle_calculo_update$$
@@ -389,26 +415,45 @@ BEGIN
     DECLARE v_iva_pct DECIMAL(5,2);
     DECLARE v_descuento_unit DECIMAL(12,2);
 
-    SELECT ProductoPrecio INTO v_precio_base FROM productos WHERE ProductoId = NEW.ProductoId;
+    DECLARE v_cantidad_real INT;
+
+    -- 👇 real units (fallback to 1 if null or invalid)
+    SET v_cantidad_real = NEW.MovimientoDetalleCantidad *
+                          IFNULL(NULLIF(NEW.MovimientoDetalleUnidadesPorPaquete, 0), 1);
+
+    SELECT ProductoPrecio
+    INTO v_precio_base
+    FROM productos
+    WHERE ProductoId = NEW.ProductoId;
 
     CALL sp_calcular_descuento_producto(
         NEW.ProductoId,
         v_precio_base,
-        NEW.MovimientoDetalleCantidad,
+        v_cantidad_real,
         v_descuento_total
     );
 
-    SELECT IVA INTO v_iva_pct FROM Configuracion WHERE ConfiguracionId = 1 LIMIT 1;
+    SELECT IVA
+    INTO v_iva_pct
+    FROM Configuracion
+    WHERE ConfiguracionId = 1
+    LIMIT 1;
 
     SET v_descuento_unit = CASE
-        WHEN NEW.MovimientoDetalleCantidad = 0 THEN 0
-        ELSE v_descuento_total / NEW.MovimientoDetalleCantidad
+        WHEN v_cantidad_real = 0 THEN 0
+        ELSE v_descuento_total / v_cantidad_real
     END;
 
     SET NEW.MovimientoDetallePrecioBase = v_precio_base;
     SET NEW.MovimientoDetalleDescuentoAplicado = v_descuento_unit;
-    SET NEW.MovimientoDetallePrecioUnitario = GREATEST(0, (v_precio_base - v_descuento_unit) * (1 + (v_iva_pct / 100)));
-    SET NEW.MovimientoDetallePrecioTotal = NEW.MovimientoDetallePrecioUnitario * NEW.MovimientoDetalleCantidad;
+
+    SET NEW.MovimientoDetallePrecioUnitario =
+        GREATEST(0, (v_precio_base - v_descuento_unit) * (1 + (v_iva_pct / 100)));
+
+    -- 👇 total now based on real units
+    SET NEW.MovimientoDetallePrecioTotal =
+        NEW.MovimientoDetallePrecioUnitario * v_cantidad_real;
+
 END$$
 
 -- 🔄 RECALCULAR MOVIMIENTO PROCEDURE
@@ -419,23 +464,47 @@ BEGIN
     DECLARE v_iva_pct DECIMAL(5,2);
     DECLARE v_neto DECIMAL(12,2);
 
-    SELECT IFNULL(SUM(MovimientoDetallePrecioTotal), 0) INTO v_total
+    SELECT IFNULL(SUM(MovimientoDetallePrecioTotal), 0)
+    INTO v_total
     FROM MovimientoDetalle
     WHERE MovimientoId = p_movimiento_id;
 
-    SELECT IVA INTO v_iva_pct FROM Configuracion WHERE ConfiguracionId = 1 LIMIT 1;
+    SELECT IVA
+    INTO v_iva_pct
+    FROM Configuracion
+    WHERE ConfiguracionId = 1
+    LIMIT 1;
 
     SET v_neto = v_total / (1 + (v_iva_pct / 100));
 
     UPDATE Movimiento
     SET
-        MovimientoPrecioBase = (SELECT IFNULL(SUM(MovimientoDetallePrecioBase * MovimientoDetalleCantidad), 0)
-                               FROM MovimientoDetalle WHERE MovimientoId = p_movimiento_id),
-        MovimientoStock = (SELECT IFNULL(SUM(MovimientoDetalleCantidad), 0)
-                           FROM MovimientoDetalle WHERE MovimientoId = p_movimiento_id),
+        -- ✅ REAL STOCK (units, not packages)
+        MovimientoStock = (
+            SELECT IFNULL(SUM(
+                MovimientoDetalleCantidad *
+                IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)
+            ), 0)
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+        ),
+
+        -- ✅ BASE aligned with real units (important consistency fix)
+        MovimientoPrecioBase = (
+            SELECT IFNULL(SUM(
+                MovimientoDetallePrecioBase *
+                (MovimientoDetalleCantidad *
+                 IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1))
+            ), 0)
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+        ),
+
         MovimientoPrecioTotal = v_total,
         MovimientoPrecioNeto = v_neto
+
     WHERE MovimientoId = p_movimiento_id;
+
 END$$
 
 -- 🔄 AUTO RECALCULATION TRIGGERS
@@ -604,3 +673,84 @@ BEGIN
 END$$
 
 DELIMITER ;
+
+CREATE PROCEDURE sp_aplicar_stock(p_movimiento_id BIGINT)
+BEGIN
+    DECLARE v_tipo VARCHAR(20);
+
+    SELECT MovimientoTipo INTO v_tipo
+    FROM Movimiento
+    WHERE MovimientoId = p_movimiento_id;
+
+    IF v_tipo = 'ENTRADA' THEN
+
+        UPDATE productos p
+        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
+        SET p.ProductoStock = p.ProductoStock +
+            (d.MovimientoDetalleCantidad *
+             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
+        WHERE d.MovimientoId = p_movimiento_id;
+
+    ELSE
+
+        UPDATE productos p
+        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
+        SET p.ProductoStock = p.ProductoStock -
+            (d.MovimientoDetalleCantidad *
+             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
+        WHERE d.MovimientoId = p_movimiento_id;
+
+    END IF;
+END;
+
+CREATE PROCEDURE sp_revertir_stock(p_movimiento_id BIGINT)
+BEGIN
+    DECLARE v_tipo VARCHAR(20);
+
+    SELECT MovimientoTipo INTO v_tipo
+    FROM Movimiento
+    WHERE MovimientoId = p_movimiento_id;
+
+    IF v_tipo = 'ENTRADA' THEN
+
+        UPDATE productos p
+        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
+        SET p.ProductoStock = p.ProductoStock -
+            (d.MovimientoDetalleCantidad *
+             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
+        WHERE d.MovimientoId = p_movimiento_id;
+
+    ELSE
+
+        UPDATE productos p
+        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
+        SET p.ProductoStock = p.ProductoStock +
+            (d.MovimientoDetalleCantidad *
+             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
+        WHERE d.MovimientoId = p_movimiento_id;
+
+    END IF;
+END;
+
+CREATE TRIGGER trg_movimiento_estado_stock
+AFTER UPDATE ON Movimiento
+FOR EACH ROW
+BEGIN
+
+    -- confirm
+    IF NEW.MovimientoEstado = 'CONFIRMADO'
+       AND OLD.MovimientoEstado <> 'CONFIRMADO' THEN
+
+        CALL sp_aplicar_stock(NEW.MovimientoId);
+
+    END IF;
+
+    -- rollback
+    IF OLD.MovimientoEstado = 'CONFIRMADO'
+       AND NEW.MovimientoEstado <> 'CONFIRMADO' THEN
+
+        CALL sp_revertir_stock(NEW.MovimientoId);
+
+    END IF;
+
+END;
