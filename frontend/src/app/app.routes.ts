@@ -39,14 +39,28 @@ export const routes: Routes = [
     path: 'ventas',
     component: Ventas,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['VENTAS_READ', 'VENTAS_MANAGE'] }
+    data: { requiredPermisos: ['MOVIMIENTO_READ', 'MOVIMIENTO_MANAGE'] }
+  },
+
+  {
+    path: 'productos',
+    component: ProductosComponent,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['PRODUCTO_MANAGE', 'PRODUCTO_READ'] }
+  },
+
+  {
+    path: 'categorias',
+    component: CategoriasComponent,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['CATEGORIA_MANAGE', 'CATEGORIA_READ'] }
   },
 
   {
     path: 'inicio-inventario',
     component: InicioInventario,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['INVENTARIO_READ'] }
+    data: { requiredPermisos: ['MOVIMIENTO_READ'] }
   },
 
   {

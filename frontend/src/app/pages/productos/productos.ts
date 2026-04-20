@@ -4,17 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { ProductoService, Producto } from '../../services/producto/producto';
 import { CategoriaService, Categoria } from '../../services/categoria/categoria';
 import { DescuentoService, Descuento } from '../../services/descuento/descuento';
+import { BrowserMultiFormatReader } from '@zxing/browser'; // CAMARA 
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ],
   templateUrl: './productos.html',
   styleUrls: ['./productos.css']
 })
 export class ProductosComponent implements OnInit {
 
-  // Referencia al input oculto de archivos para el Excel
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   productos: Producto[] = [];
@@ -25,13 +26,13 @@ export class ProductosComponent implements OnInit {
   mensajeError = '';
   mensajeExito = '';
 
-  // Producto por defecto vacío para el formulario
   productoActual: Producto = this.generarProductoVacio();
 
   constructor(
     private productoService: ProductoService,
     private categoriaService: CategoriaService,
-    private descuentoService: DescuentoService
+    private descuentoService: DescuentoService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -84,7 +85,7 @@ export class ProductosComponent implements OnInit {
   }
 
   cambiarEstado(prod: Producto) {
-    prod.productoActivo = !prod.productoActivo; // Alternamos el estado
+    prod.productoActivo = !prod.productoActivo;
     if (prod.productoId) {
       this.productoService.actualizarProducto(prod.productoId, prod).subscribe({
         next: () => this.cargarDatos(),
@@ -97,9 +98,56 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  // --- MÉTODOS MÁGICOS DE EXCEL ---
+  // --- CAMARA ---
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  escanerAbierto = false;
+  codeReader = new BrowserMultiFormatReader();
+  controlesCamara: any;
+
+  abrirEscaner() {
+    this.escanerAbierto = true;
+    setTimeout(() => {
+      this.iniciarCamara();
+    }, 100);
+  }
+
+  iniciarCamara() {
+    this.codeReader.decodeFromVideoDevice(
+      undefined, 
+      this.videoElement.nativeElement, 
+      (result, err) => {
+        if (result) {
+          this.manejarEscaneoExitoso(result.getText());
+        }
+      }
+    ).then((controles) => {
+      this.controlesCamara = controles; 
+    }).catch(err => {
+      console.error('Error al abrir la cámara:', err);
+    });
+  }
+
+  cerrarEscaner() {
+    this.escanerAbierto = false;
+    
+    if (this.controlesCamara) {
+      this.controlesCamara.stop();
+      this.controlesCamara = null;
+    }
+  }
+
+  manejarEscaneoExitoso(codigo: string) {
+    this.productoActual.productoCodigo = codigo;
+    this.cerrarEscaner(); 
+    
+    this.mensajeExito = '¡Código escaneado correctamente!';
+    setTimeout(() => this.mensajeExito = '', 3000);
+  }
+
+  // AQUI TERMINA LA CAMARITA
+
   activarSubidaExcel() {
-    this.fileInput.nativeElement.click(); // Simula un clic en el input de archivo oculto
+    this.fileInput.nativeElement.click(); 
   }
 
   subirExcel(event: any) {
@@ -109,8 +157,8 @@ export class ProductosComponent implements OnInit {
       this.productoService.importarExcel(archivo).subscribe({
         next: () => {
           this.mensajeExito = '¡Excel importado correctamente!';
-          this.cargarDatos(); // Recargamos la tabla
-          event.target.value = ''; // Limpiamos el input
+          this.cargarDatos();
+          event.target.value = '';
         },
         error: () => this.mensajeError = 'Hubo un error al procesar el Excel.'
       });
@@ -126,5 +174,9 @@ export class ProductosComponent implements OnInit {
       a.click();
       window.URL.revokeObjectURL(url);
     });
+  }
+
+  goHome() {
+    this.router.navigate(['/home']);
   }
 }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CategoriaService, Categoria } from '../../services/categoria/categoria';
 import { DescuentoService, Descuento } from '../../services/descuento/descuento';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-categorias',
@@ -21,7 +22,8 @@ export class CategoriasComponent implements OnInit {
 
   constructor(
     private categoriaService: CategoriaService,
-    private descuentoService: DescuentoService
+    private descuentoService: DescuentoService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -100,5 +102,9 @@ export class CategoriasComponent implements OnInit {
 
   cancelar() {
     this.mostrarFormulario = false;
+  }
+
+  goHome() {
+    this.router.navigate(['/home']);
   }
 }

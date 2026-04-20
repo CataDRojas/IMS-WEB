@@ -83,4 +83,8 @@ export class RolesList implements OnInit {
   hasPermission(rol: Rol, perm: string): boolean {
     return rol.permisos?.some(p => p.permisosNombre === perm);
   }
+
+  goHome() {
+    this.router.navigate(['/home']);
+  }
 }

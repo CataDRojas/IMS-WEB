@@ -22,26 +22,42 @@ public class ProductoExcelExporter {
         Sheet sheet = workbook.createSheet("Productos");
 
         // =========================
-        // HEADER ROW
+        // HEADER STYLE (consistent + reusable idea)
         // =========================
-        Row header = sheet.createRow(0);
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        headerStyle.setFont(font);
 
-        header.createCell(0).setCellValue("Codigo");
-        header.createCell(1).setCellValue("Nombre");
-        header.createCell(2).setCellValue("Precio");
-        header.createCell(3).setCellValue("Stock");
-        header.createCell(4).setCellValue("Categoria");
-        header.createCell(5).setCellValue("Cantidad Lote");
+        // =========================
+        // HEADER ROW (STRICT CONTRACT)
+        // =========================
+        String[] headers = new String[] {
+                "Codigo",
+                "Nombre",
+                "Precio",
+                "Stock",
+                "Categoria",
+                "Cantidad Lote"
+        };
+
+        Row headerRow = sheet.createRow(0);
+
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
 
         // =========================
         // DATA ROWS
         // =========================
-        mapper.mapProductosToRow(workbook, sheet, productos);
+        mapper.mapProductosToRow(sheet, productos);
 
         // =========================
-        // AUTO SIZE (optional but nice)
+        // AUTO SIZE (aligned with contract length)
         // =========================
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
 
