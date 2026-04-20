@@ -5,15 +5,17 @@ import { Observable } from 'rxjs';
 export interface Descuento {
   descuentoId?: number;
   descuentoNombre: string;
-  descuentoTipo: string;
+  descuentoTipo: 'FLAT' | 'PORCENTAJE' | 'MULTIPLICATIVO';
   descuentoValor: number;
+  descuentoActivo: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class DescuentoService {
-  private apiUrl = 'http://localhost:8080/api/descuentos';
+export class DescuentosService {
+
+  private readonly baseUrl = 'http://localhost:8080/api/descuentos';
 
   constructor(private http: HttpClient) {}
 
@@ -22,8 +24,39 @@ export class DescuentoService {
     return new HttpHeaders().set('X-User', usuarioActual);
   }
 
-  // Solo traemos los activos, para que no le asignen descuentos viejos a las categorías
-  obtenerDescuentosActivos(): Observable<Descuento[]> {
-    return this.http.get<Descuento[]>(`${this.apiUrl}/active`, { headers: this.getHeaders() });
+  getAll(): Observable<Descuento[]> {
+    return this.http.get<Descuento[]>(this.baseUrl, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getActive(): Observable<Descuento[]> {
+    return this.http.get<Descuento[]>(`${this.baseUrl}/active`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getById(id: number): Observable<Descuento> {
+    return this.http.get<Descuento>(`${this.baseUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  create(dto: Descuento): Observable<Descuento> {
+    return this.http.post<Descuento>(this.baseUrl, dto, {
+      headers: this.getHeaders()
+    });
+  }
+
+  update(id: number, dto: Descuento): Observable<Descuento> {
+    return this.http.put<Descuento>(`${this.baseUrl}/${id}`, dto, {
+      headers: this.getHeaders()
+    });
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
   }
 }

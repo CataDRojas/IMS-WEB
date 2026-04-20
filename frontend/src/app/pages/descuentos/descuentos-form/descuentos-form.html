@@ -1,0 +1,40 @@
+<h2>{{ id ? 'Editar' : 'Crear' }} Descuento</h2>
+
+<div *ngIf="loading">Cargando...</div>
+
+<form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()">
+
+  <!-- NAME -->
+  <div>
+    <label>Nombre</label>
+    <input formControlName="descuentoNombre" />
+  </div>
+
+  <!-- TYPE -->
+  <div>
+    <label>Tipo</label>
+    <select formControlName="descuentoTipo">
+      <option value="FLAT">Monto fijo</option>
+      <option value="PORCENTAJE">Porcentaje</option>
+      <option value="MULTIPLICATIVO">Multiplicador</option>
+    </select>
+  </div>
+
+  <!-- VALUE -->
+  <div>
+    <label>Valor</label>
+    <input type="number" formControlName="descuentoValor" />
+  </div>
+
+  <!-- ACTIVE -->
+  <div>
+    <label>
+      <input type="checkbox" formControlName="descuentoActivo" />
+      Activo
+    </label>
+  </div>
+
+  <button type="submit">Guardar</button>
+  <button type="button" (click)="cancel()">Cancelar</button>
+
+</form>
