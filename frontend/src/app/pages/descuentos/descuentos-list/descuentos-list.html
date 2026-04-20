@@ -1,0 +1,68 @@
+<h2>Descuentos</h2>
+
+<button (click)="create()">Nuevo descuento</button>
+
+<div *ngIf="loading">Cargando...</div>
+
+<table *ngIf="!loading">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Tipo</th>
+      <th>Valor</th>
+      <th>Activo</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr *ngFor="let d of descuentos">
+
+      <td>{{ d.descuentoId }}</td>
+
+      <td>{{ d.descuentoNombre }}</td>
+
+      <td>
+        {{
+          d.descuentoTipo === 'FLAT' ? 'Monto fijo' :
+          d.descuentoTipo === 'PORCENTAJE' ? 'Porcentaje' :
+          d.descuentoTipo === 'MULTIPLICATIVO' ? 'Multiplicador' :
+          d.descuentoTipo
+        }}
+      </td>
+
+      <td>
+        <ng-container [ngSwitch]="d.descuentoTipo">
+
+          <span *ngSwitchCase="'PORCENTAJE'">
+            {{ d.descuentoValor }}%
+          </span>
+
+          <span *ngSwitchCase="'FLAT'">
+            ${{ d.descuentoValor }}
+          </span>
+
+          <span *ngSwitchCase="'MULTIPLICATIVO'">
+            x{{ d.descuentoValor }}
+          </span>
+
+          <span *ngSwitchDefault>
+            {{ d.descuentoValor }}
+          </span>
+
+        </ng-container>
+      </td>
+
+      <td>
+        {{ d.descuentoActivo ? 'Sí' : 'No' }}
+      </td>
+
+      <td>
+        <button (click)="edit(d.descuentoId!)">Editar</button>
+        <button (click)="delete(d.descuentoId!)">Eliminar</button>
+      </td>
+
+    </tr>
+  </tbody>
+</table>

@@ -11,11 +11,15 @@ import { permisosGuard } from './guards/permisos-guard';
 import { Ventas } from './pages/ventas/ventas';
 import { InicioInventario } from './pages/inicio-inventario/inicio-inventario';
 import { BusquedaInventario } from './pages/busqueda-inventario/busqueda-inventario';
-import { NOT_FOUND } from '@angular/core/primitives/di';
+
 import { NotFound } from './pages/not-found/not-found';
 import { AccessDenied } from './pages/access-denied/access-denied';
+
 import { CategoriasComponent } from './pages/categorias/categorias';
 import { ProductosComponent } from './pages/productos/productos';
+
+import { DescuentosListComponent } from './pages/descuentos/descuentos-list/descuentos-list';
+import { DescuentosFormComponent } from './pages/descuentos/descuentos-form/descuentos-form';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -28,6 +32,9 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
 
+  // =========================
+  // USERS
+  // =========================
   {
     path: 'usuarios',
     component: UsuariosComponent,
@@ -35,18 +42,43 @@ export const routes: Routes = [
     data: { requiredPermisos: ['USUARIOS_MANAGE'] }
   },
 
+  // =========================
+  // ROLES
+  // =========================
+  {
+    path: 'roles',
+    component: RolesList,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['ROLES_MANAGE'] }
+  },
+  {
+    path: 'roles/new',
+    component: RolesForm,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['ROLES_MANAGE'] }
+  },
+  {
+    path: 'roles/edit/:id',
+    component: RolesForm,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['ROLES_MANAGE'] }
+  },
+
+  // =========================
+  // VENTAS / MOVIMIENTOS
+  // =========================
   {
     path: 'ventas',
     component: Ventas,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['VENTAS_READ', 'VENTAS_MANAGE'] }
+    data: { requiredPermisos: ['MOVIMIENTO_READ', 'MOVIMIENTO_MANAGE'] }
   },
 
   {
     path: 'inicio-inventario',
     component: InicioInventario,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['INVENTARIO_READ'] }
+    data: { requiredPermisos: ['MOVIMIENTO_READ'] }
   },
 
   {
@@ -56,26 +88,51 @@ export const routes: Routes = [
     data: { requiredPermisos: ['INVENTARIO_READ'] }
   },
 
+  // =========================
+  // PRODUCTOS
+  // =========================
   {
-    path: 'roles',
-    component: RolesList,
+    path: 'productos',
+    component: ProductosComponent,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['ROLES_MANAGE'] }
+    data: { requiredPermisos: ['PRODUCTO_READ'] }
   },
 
+  // =========================
+  // CATEGORIAS
+  // =========================
   {
-    path: 'roles/new',
-    component: RolesForm,
+    path: 'categorias',
+    component: CategoriasComponent,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['ROLES_MANAGE'] }
+    data: { requiredPermisos: ['CATEGORIA_READ'] }
   },
 
+  // =========================
+  // DESCUENTOS
+  // =========================
   {
-    path: 'roles/edit/:id',
-    component: RolesForm,
+    path: 'descuentos',
+    component: DescuentosListComponent,
     canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['ROLES_MANAGE'] }
+    data: { requiredPermisos: ['DESCUENTO_READ'] }
   },
+  {
+    path: 'descuentos/new',
+    component: DescuentosFormComponent,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['DESCUENTO_MANAGE'] }
+  },
+  {
+    path: 'descuentos/edit/:id',
+    component: DescuentosFormComponent,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['DESCUENTO_MANAGE'] }
+  },
+
+  // =========================
+  // SYSTEM
+  // =========================
   { path: 'access-denied', component: AccessDenied },
   { path: '**', component: NotFound }
 ];

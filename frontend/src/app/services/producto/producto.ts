@@ -1,24 +1,40 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-// Importamos las "cajas" que ya existen para armar el Producto
-import { Categoria } from '../categoria/categoria';
-import { Descuento } from '../descuento/descuento';
 
-// Definimos exactamente la misma estructura que tiene Javier en Java
+// =========================
+// FLAT API MODELS ONLY
+// =========================
+
 export interface Producto {
   productoId?: number;
   productoNombre: string;
   productoDesc: string;
-  productoActivo: boolean;      // No borramos, solo apagamos
-  productoStock: number;        // Cantidad actual
-  productoStockCritico: boolean;// RF007: ¿Tiene alerta?
-  productoCriticoNumero: number;// RF007: ¿En qué número avisa?
+  productoActivo: boolean;
+  productoStock: number;
+  productoStockCritico: boolean;
+  productoCriticoNumero: number;
   productoPrecio: number;
   productoCantidadLote: number;
-  productoCodigo: string;       // Código de barras
-  categoria: Categoria | null;  // Obligatorio en BD
-  descuento?: Descuento | null; // Opcional
+  productoCodigo: string;
+
+  // ⚠️ FLAT STRUCTURE (NO CATEGORY/ENTITY DEPENDENCY)
+  categoriaId: number | null;
+  categoriaNombre?: string | null;
+
+  descuentoId?: number | null;
+  descuentoNombre?: string | null;
+  descuentoPorcentaje?: number | null;
+}
+
+// =========================
+// UI AGGREGATED RESPONSE
+// (matches backend Map exactly)
+// =========================
+export interface ProductoUiData {
+  productos: Producto[];
+  categorias: any[];
+  descuentos: any[];
 }
 
 @Injectable({
@@ -26,44 +42,85 @@ export interface Producto {
 })
 export class ProductoService {
 
-  private apiUrl = 'http://localhost:8080/api/productos'; // Asumimos que Javier usará esta ruta
+  private apiUrl = 'http://localhost:8080/api/productos';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   private getHeaders(): HttpHeaders {
     const usuarioActual = localStorage.getItem('usuario_email') || 'admin@ims.cl';
     return new HttpHeaders().set('X-User', usuarioActual);
   }
 
-  obtenerProductos(): Observable<Producto[]> {
-    return this.http.get<Producto[]>(this.apiUrl);
+  // =========================
+  // UI AGGREGATION
+  // =========================
+  obtenerUiData(): Observable<ProductoUiData> {
+    return this.http.get<ProductoUiData>(
+      `${this.apiUrl}/ui-data`,
+      { headers: this.getHeaders() }
+    );
   }
 
+  // =========================
+  // READ
+  // =========================
+  obtenerProductos(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(this.apiUrl, {
+      headers: this.getHeaders()
+    });
+  }
+
+  obtenerProductoPorId(id: number): Observable<Producto> {
+    return this.http.get<Producto>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  obtenerPorCodigo(codigo: string): Observable<Producto> {
+    return this.http.get<Producto>(`${this.apiUrl}/codigo/${codigo}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  // =========================
+  // WRITE
+  // =========================
   crearProducto(producto: Producto): Observable<Producto> {
-    return this.http.post<Producto>(this.apiUrl, producto, { headers: this.getHeaders() });
+    return this.http.post<Producto>(this.apiUrl, producto, {
+      headers: this.getHeaders()
+    });
   }
 
   actualizarProducto(id: number, producto: Producto): Observable<Producto> {
-    return this.http.put<Producto>(`${this.apiUrl}/${id}`, producto, { headers: this.getHeaders() });
+    return this.http.put<Producto>(`${this.apiUrl}/${id}`, producto, {
+      headers: this.getHeaders()
+    });
   }
 
-  // Desactivar en vez de eliminar
-  desactivarProducto(id: number): Observable<void> {
-    // Usamos PATCH o PUT dependiendo de cómo lo haga Javier. Usaremos una ruta especial o el mismo PUT.
-    // Por ahora lo preparamos como un DELETE lógico si Javier hace un endpoint /deactivate
-    return this.http.patch<void>(`${this.apiUrl}/${id}/deactivate`, {}, { headers: this.getHeaders() });
-  }
-
-  // --- MÉTODOS DE EXCEL ---
-  importarExcel(archivo: File): Observable<any> {
+  // =========================
+  // EXCEL
+  // =========================
+  importarExcel(archivo: File): Observable<string> {
     const formData = new FormData();
     formData.append('file', archivo);
-    // Nota: No enviamos X-User aquí porque el controlador de Javier usa multipart/form-data
-    return this.http.post(`${this.apiUrl}/import-excel`, formData, { responseType: 'text' });
+
+    return this.http.post(
+      `${this.apiUrl}/import-excel`,
+      formData,
+      {
+        headers: this.getHeaders(),
+        responseType: 'text'
+      }
+    );
   }
 
   exportarExcel(): Observable<Blob> {
-    // Pedimos el archivo Excel como un "Blob" (datos binarios)
-    return this.http.get(`${this.apiUrl}/export-excel`, { responseType: 'blob' });
+    return this.http.get(
+      `${this.apiUrl}/export-excel`,
+      {
+        headers: this.getHeaders(),
+        responseType: 'blob'
+      }
+    );
   }
 }
