@@ -25,6 +25,7 @@
       <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ddd;">
         <th style="padding: 12px;">ID</th>
         <th style="padding: 12px;">Nombre</th>
+        <th style="padding: 12px;">Descuento</th>
         <th style="padding: 12px;">Acciones</th>
       </tr>
     </thead>
@@ -38,6 +39,13 @@
 
         <td style="padding: 12px; font-weight: bold;">
           {{ cat.categoriaNombre }}
+        </td>
+
+        <td style="padding: 12px;">
+          <span *ngIf="cat.descuento" style="background: #17a2b8; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.85em;">
+            {{ cat.descuento.descuentoNombre }}
+          </span>
+          <span *ngIf="!cat.descuento" style="color: #999; font-style: italic;">Ninguno</span>
         </td>
 
         <td style="padding: 12px;">
@@ -84,6 +92,16 @@
                [(ngModel)]="categoriaActual.categoriaNombre"
                placeholder="Ej: Lácteos, Herramientas..."
                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Descuento (Opcional):</label>
+        <select [(ngModel)]="categoriaActual.descuento" [compareWith]="compararDescuentos"
+                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+          <option [ngValue]="null">-- Sin descuento --</option>
+          <option *ngFor="let desc of descuentos" [ngValue]="desc">
+            {{ desc.descuentoNombre }} (Valor: {{ desc.descuentoValor }})
+          </option>
+        </select>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px;">

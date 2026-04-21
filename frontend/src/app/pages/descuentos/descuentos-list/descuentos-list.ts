@@ -93,4 +93,8 @@ export class DescuentosListComponent implements OnInit {
 
     return `x${descuento.descuentoValor}`;
   }
+
+  goHome() {
+    this.router.navigate(['/home']);
+  }
 }

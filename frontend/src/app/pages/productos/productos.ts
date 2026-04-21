@@ -1,15 +1,15 @@
 import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { BrowserMultiFormatReader } from '@zxing/browser'; // CAMARA 
 
 import { ProductoService, Producto } from '../../services/producto/producto';
-import { BrowserMultiFormatReader } from '@zxing/browser'; // CAMARA 
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './productos.html',
   styleUrls: ['./productos.css']
 })
@@ -81,8 +81,14 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = true;
   }
 
-  editarProducto(prod: Producto): void {
-    this.productoActual = { ...prod };
+  editarProducto(prod: any): void {
+    this.productoActual = { 
+      ...prod,
+      // 🔥 TRUCO: Sacamos los IDs de adentro hacia afuera para que los <select> se llenen correctamente
+      categoriaId: prod.categoria ? prod.categoria.categoriaId : null,
+      descuentoId: prod.descuento ? prod.descuento.descuentoId : null
+    };
+    
     this.mensajeError = '';
     this.mostrarFormulario = true;
   }
@@ -91,73 +97,37 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  // --- CAMARA ---
-  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
-  escanerAbierto = false;
-  codeReader = new BrowserMultiFormatReader();
-  controlesCamara: any;
-
-  abrirEscaner() {
-    this.escanerAbierto = true;
-    setTimeout(() => {
-      this.iniciarCamara();
-    }, 100);
-  }
-
-  iniciarCamara() {
-    this.codeReader.decodeFromVideoDevice(
-      undefined, 
-      this.videoElement.nativeElement, 
-      (result, err) => {
-        if (result) {
-          this.manejarEscaneoExitoso(result.getText());
-        }
-      }
-    ).then((controles) => {
-      this.controlesCamara = controles; 
-    }).catch(err => {
-      console.error('Error al abrir la cámara:', err);
-    });
-  }
-
-  cerrarEscaner() {
-    this.escanerAbierto = false;
-    
-    if (this.controlesCamara) {
-      this.controlesCamara.stop();
-      this.controlesCamara = null;
-    }
-  }
-
-  manejarEscaneoExitoso(codigo: string) {
-    this.productoActual.productoCodigo = codigo;
-    this.cerrarEscaner(); 
-    
-    this.mensajeExito = '¡Código escaneado correctamente!';
-    setTimeout(() => this.mensajeExito = '', 3000);
-  }
-
-  // AQUI TERMINA LA CAMARITA
-
   // =========================
-  // SAVE FLOW
+  // GUARDAR PRODUCTO
   // =========================
   guardarProducto(): void {
+    // 🔥 1. Extraemos y aislamos las variables que Java no reconoce o no puede modificar
+    const { 
+      categoriaId, categoriaNombre, 
+      descuentoId, descuentoNombre, descuentoPorcentaje, 
+      productoStockCritico, // Java ya no permite modificar esto manualmente
+      ...productoLimpio    // <-- Aquí queda el producto puro que Java SÍ acepta
+    } = this.productoActual;
+
+    // 🔥 2. Reconstruimos el objeto exactamente como lo quiere Java
+    const payloadEnvio = {
+      ...productoLimpio,
+      categoria: this.productoActual.categoriaId ? { categoriaId: this.productoActual.categoriaId } : null,
+      descuento: this.productoActual.descuentoId ? { descuentoId: this.productoActual.descuentoId } : null
+    };
 
     const request$ = this.productoActual.productoId
-      ? this.productoService.actualizarProducto(
-          this.productoActual.productoId,
-          this.productoActual
-        )
-      : this.productoService.crearProducto(this.productoActual);
+      ? this.productoService.actualizarProducto(this.productoActual.productoId, payloadEnvio as any)
+      : this.productoService.crearProducto(payloadEnvio as any);
 
     request$.subscribe({
       next: () => {
         this.mostrarFormulario = false;
         this.cargarDatos();
       },
-      error: () => {
-        this.mensajeError = 'Error al guardar producto.';
+      error: (err) => {
+        console.error('Error del backend:', err);
+        this.mensajeError = 'Error al guardar producto. Revisa los datos.';
       }
     });
   }
@@ -229,6 +199,55 @@ export class ProductosComponent implements OnInit {
       }
     });
   }
+
+  // --- CAMARA ---
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  escanerAbierto = false;
+  codeReader = new BrowserMultiFormatReader();
+  controlesCamara: any;
+
+  abrirEscaner() {
+    this.escanerAbierto = true;
+    setTimeout(() => {
+      this.iniciarCamara();
+    }, 100);
+  }
+
+  iniciarCamara() {
+    this.codeReader.decodeFromVideoDevice(
+      undefined, 
+      this.videoElement.nativeElement, 
+      (result, err) => {
+        if (result) {
+          this.manejarEscaneoExitoso(result.getText());
+        }
+      }
+    ).then((controles) => {
+      this.controlesCamara = controles; 
+    }).catch(err => {
+      console.error('Error al abrir la cámara:', err);
+    });
+  }
+
+  cerrarEscaner() {
+    this.escanerAbierto = false;
+    
+    if (this.controlesCamara) {
+      this.controlesCamara.stop();
+      this.controlesCamara = null;
+    }
+  }
+
+  manejarEscaneoExitoso(codigo: string) {
+    this.productoActual.productoCodigo = codigo;
+    this.cerrarEscaner(); 
+    
+    this.mensajeExito = '¡Código escaneado correctamente!';
+    setTimeout(() => this.mensajeExito = '', 3000);
+  }
+
+  // AQUI TERMINA LA CAMARITA
+
 
   goHome() {
     this.router.navigate(['/home']);

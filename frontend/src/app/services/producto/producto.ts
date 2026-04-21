@@ -25,6 +25,9 @@ export interface Producto {
   descuentoId?: number | null;
   descuentoNombre?: string | null;
   descuentoPorcentaje?: number | null;
+
+  categoria?: any;
+  descuento?: any;
 }
 
 // =========================

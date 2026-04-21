@@ -37,7 +37,7 @@ public class Producto implements Auditable {
     private Integer productoStock;
 
     // 🔒 DB-CONTROLLED (trigger: trg_producto_stockcritico_update)
-    @Column(name = "ProductoStockCritico", nullable = false, insertable = false, updatable = false)
+    @Column(name = "ProductoStockCritico", nullable = false, insertable = false, updatable = false, columnDefinition = "boolean default false")
     private Boolean productoStockCritico;
 
     @Setter

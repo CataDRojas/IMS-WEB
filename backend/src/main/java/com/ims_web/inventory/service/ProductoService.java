@@ -137,6 +137,11 @@ public class ProductoService {
 
             for (ProductoExcelDTO dto : productos) {
 
+                // 🔥 ESCUDOS ANTI-CAÍDAS (Evitan el Error 500 por filas vacías)
+                if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty()) continue;
+                if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) continue;
+                if (dto.getPrecio() == null) continue;
+
                 Integer cantidadLote = dto.getCantidadLote() != null ? dto.getCantidadLote() : 1;
 
                 Categoria categoria = null;

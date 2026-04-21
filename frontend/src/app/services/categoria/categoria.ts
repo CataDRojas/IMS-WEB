@@ -8,6 +8,8 @@ import { Observable } from 'rxjs';
 export interface Categoria {
   categoriaId?: number;
   categoriaNombre: string;
+
+  descuento?: any;
 }
 
 export interface Descuento {

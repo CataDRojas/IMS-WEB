@@ -72,4 +72,8 @@ export class DescuentosFormComponent implements OnInit {
   cancel(): void {
     this.router.navigate(['/descuentos']);
   }
+
+  goHome() {
+    this.router.navigate(['/home']);
+  }
 }
