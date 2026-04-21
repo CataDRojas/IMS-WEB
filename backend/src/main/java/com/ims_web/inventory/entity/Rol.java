@@ -28,8 +28,4 @@ public class Rol {
     )
     private Set<Permisos> permisos;
 
-    // ================
-    // GETTERS & SETTERS
-    // ================
-
 }

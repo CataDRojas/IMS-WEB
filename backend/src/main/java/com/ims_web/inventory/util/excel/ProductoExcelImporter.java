@@ -22,10 +22,6 @@ public class ProductoExcelImporter {
 
             Sheet sheet = workbook.getSheetAt(0);
 
-            // =========================
-            // STRUCTURE VALIDATION
-            // =========================
-
             if (sheet.getPhysicalNumberOfRows() <= 1) {
                 return List.of();
             }

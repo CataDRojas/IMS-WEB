@@ -39,9 +39,6 @@ public class ProductoController {
         this.descuentoService = descuentoService;
     }
 
-    // =========================
-    // READ ACCESS
-    // =========================
 
     @PreAuthorize("hasAuthority('PRODUCTO_READ')")
     @GetMapping
@@ -61,9 +58,6 @@ public class ProductoController {
         return service.getProductoByCodigo(codigo);
     }
 
-    // =========================
-    // WRITE ACCESS
-    // =========================
 
     @PreAuthorize("hasAuthority('PRODUCTO_MANAGE')")
     @PostMapping
@@ -82,9 +76,7 @@ public class ProductoController {
         return service.updateProducto(producto, currentUser);
     }
 
-    // =========================
     // EXCEL IMPORT
-    // =========================
 
     @PreAuthorize("hasAuthority('PRODUCTO_MANAGE')")
     @PostMapping(value = "/import-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -95,9 +87,7 @@ public class ProductoController {
         return ResponseEntity.ok("Excel imported successfully");
     }
 
-    // =========================
     // EXCEL EXPORT
-    // =========================
 
     @PreAuthorize("hasAuthority('PRODUCTO_READ')")
     @GetMapping("/export-excel")
@@ -120,9 +110,6 @@ public class ProductoController {
         }
     }
 
-    // ==========================================================
-    // 🧠 NEW: UI AGGREGATION ENDPOINT (ADDED ONLY SECTION)
-    // ==========================================================
 
     @PreAuthorize("hasAuthority('PRODUCTO_READ')")
     @GetMapping("/ui-data")

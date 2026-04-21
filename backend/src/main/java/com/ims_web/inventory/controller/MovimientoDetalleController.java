@@ -17,7 +17,6 @@ public class MovimientoDetalleController {
 
     private final MovimientoDetalleService service;
 
-    // 🔥 ADDED SERVICES
     private final ProductoService productoService;
     private final MovimientoLugarService movimientoLugarService;
 
@@ -31,9 +30,6 @@ public class MovimientoDetalleController {
         this.movimientoLugarService = movimientoLugarService;
     }
 
-    // -----------------------
-    // READ ACCESS
-    // -----------------------
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
     @GetMapping
@@ -47,9 +43,6 @@ public class MovimientoDetalleController {
         return service.getDetalleById(id);
     }
 
-    // =========================
-    // 🔥 PRODUCT LOOKUPS
-    // =========================
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
     @GetMapping("/productos")
@@ -69,9 +62,6 @@ public class MovimientoDetalleController {
         return productoService.getProductoByCodigo(codigo);
     }
 
-    // =========================
-    // 🔥 MOVIMIENTO LUGAR LOOKUPS
-    // =========================
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
     @GetMapping("/lugares")
@@ -91,9 +81,6 @@ public class MovimientoDetalleController {
         return movimientoLugarService.getById(id);
     }
 
-    // -----------------------
-    // WRITE ACCESS
-    // -----------------------
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
     @PostMapping("/movimiento/{movimientoId}")

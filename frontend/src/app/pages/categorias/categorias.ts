@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { CategoriaService, Categoria } from '../../services/categoria/categoria';
-import { DescuentosService, Descuento } from '../../services/descuento/descuento'; // 🔥 1. RESTAURADO EL IMPORT
+import { DescuentosService, Descuento } from '../../services/descuento/descuento';
 
 @Component({
   selector: 'app-categorias',
@@ -16,11 +16,10 @@ import { DescuentosService, Descuento } from '../../services/descuento/descuento
 export class CategoriasComponent implements OnInit {
 
   categorias: Categoria[] = [];
-  descuentos: Descuento[] = []; // 🔥 2. LISTA PARA GUARDAR LOS DESCUENTOS DEL BACKEND
+  descuentos: Descuento[] = [];
 
   mostrarFormulario = false;
 
-  // 🔥 3. Usamos 'any' para evitar que TypeScript llore si Categoria no tiene 'descuento' definido en la interfaz
   categoriaActual: any = this.crearCategoriaVacia();
 
   mensajeError = '';
@@ -28,18 +27,17 @@ export class CategoriasComponent implements OnInit {
 
   constructor(
     private categoriaService: CategoriaService, 
-    private descuentoService: DescuentosService, // 🔥 4. INYECTAMOS EL SERVICIO
+    private descuentoService: DescuentosService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.cargarCategorias();
-    this.cargarDescuentos(); // 🔥 5. CARGAMOS LOS DESCUENTOS AL INICIAR
+    this.cargarDescuentos();
   }
 
-  // =========================
-  // DATA
-  // =========================
+  // CARGA DE DATOS
+
   cargarCategorias(): void {
     this.categoriaService.obtenerCategorias().subscribe({
       next: (data) => {
@@ -51,7 +49,6 @@ export class CategoriasComponent implements OnInit {
     });
   }
 
-  // 🔥 6. FUNCIÓN QUE TRAE LOS DESCUENTOS
   cargarDescuentos(): void {
     this.descuentoService.getActive().subscribe({
       next: (data: Descuento[]) => this.descuentos = data,
@@ -59,13 +56,10 @@ export class CategoriasComponent implements OnInit {
     });
   }
 
-  // =========================
-  // FORM STATE
-  // =========================
   crearCategoriaVacia(): any {
     return {
       categoriaNombre: '',
-      descuento: null // 🔥 7. EL DESCUENTO EMPIEZA NULO
+      descuento: null
     };
   }
 
@@ -83,7 +77,6 @@ export class CategoriasComponent implements OnInit {
     this.mostrarFormulario = true;
   }
 
-  // 🔥 8. EL COMPARADOR PARA QUE EL <SELECT> DEL HTML FUNCIONE PERFECTO
   compararDescuentos(d1: any, d2: any): boolean {
     return d1 && d2 ? d1.descuentoId === d2.descuentoId : d1 === d2;
   }
@@ -92,9 +85,8 @@ export class CategoriasComponent implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  // =========================
-  // SAVE FLOW
-  // =========================
+  // GUARDADO
+
   guardarCategoria(): void {
 
     const request$ = this.categoriaActual.categoriaId
@@ -118,9 +110,8 @@ export class CategoriasComponent implements OnInit {
     });
   }
 
-  // =========================
-  // DELETE FLOW
-  // =========================
+  // ELIMINAR
+
   eliminarCategoria(id: number | undefined): void {
 
     if (!id) return;

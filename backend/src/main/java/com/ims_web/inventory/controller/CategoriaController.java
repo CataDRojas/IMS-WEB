@@ -22,9 +22,7 @@ public class CategoriaController {
         this.descuentoService = descuentoService;
     }
 
-    // =========================
-    // CATEGORY CORE (UNCHANGED)
-    // =========================
+    // CATEGORIA
 
     @GetMapping
     @PreAuthorize("hasAuthority('CATEGORIA_READ')")
@@ -60,9 +58,7 @@ public class CategoriaController {
         service.delete(id);
     }
 
-    // =========================
-    // 🔥 ADDED: DESCUENTO ACCESS (READ ONLY)
-    // =========================
+    // DESCUENTO
 
     @GetMapping("/descuentos")
     @PreAuthorize("hasAuthority('CATEGORIA_READ')")

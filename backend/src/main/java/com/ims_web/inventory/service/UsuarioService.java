@@ -46,9 +46,6 @@ public class UsuarioService {
                 .orElseThrow(() -> new EntityNotFoundException("Usuario with email " + email + " not found"));
     }
 
-    // =========================
-    // NEW: SAFE LOOKUP FOR INITIALIZER
-    // =========================
     public Optional<Usuario> findByUsuarioEmailIgnoreCase(String email) {
         return repo.findByUsuarioEmailIgnoreCase(normalizeEmail(email));
     }
@@ -112,9 +109,6 @@ public class UsuarioService {
         repo.delete(usuario);
     }
 
-    // =======================
-    // Validation & Helpers
-    // =======================
     private void validateUsuario(Usuario usuario, boolean requirePassword) {
         if (usuario.getUsuarioNombre() == null || usuario.getUsuarioNombre().isBlank()) {
             throw new IllegalArgumentException("UsuarioNombre is required");

@@ -16,7 +16,6 @@ export interface UsuarioRaw {
   usuarioPassword?: string;
   usuarioActivo: boolean;
 
-  // backend may send either:
   rolId?: number;
   rol?: Rol;
 }
@@ -54,7 +53,6 @@ export class UsuarioService {
           usuarioPassword: u.usuarioPassword,
           usuarioActivo: u.usuarioActivo,
 
-          // 🔥 CRITICAL FIX: normalize BOTH possible shapes
           rolId: u.rolId ?? u.rol?.rolId ?? 0
         }))
       )

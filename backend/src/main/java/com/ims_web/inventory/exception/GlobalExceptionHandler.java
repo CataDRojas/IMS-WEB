@@ -15,9 +15,6 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // =========================
-    // MAIN HANDLER (DB + TRIGGERS)
-    // =========================
     @ExceptionHandler({DataIntegrityViolationException.class, UncategorizedSQLException.class})
     public ResponseEntity<Map<String, Object>> handleDatabaseException(Exception ex, HttpServletRequest request) {
 
@@ -27,27 +24,19 @@ public class GlobalExceptionHandler {
         String userMessage = "Database error";
         HttpStatus status = HttpStatus.BAD_REQUEST;
 
-        // =========================
-        // 1️⃣ CUSTOM TRIGGER ERRORS (ERR_CODE|Message)
-        // =========================
         if (rawMessage != null && rawMessage.contains("|")) {
             String[] parts = rawMessage.split("\\|", 2);
             errorCode = parts[0];
             userMessage = parts[1];
         }
 
-        // =========================
-        // 2️⃣ CONSTRAINT HANDLING (FK / UNIQUE / CHECK)
-        // =========================
         else if (rawMessage != null) {
 
-            // UNIQUE constraints
             if (rawMessage.contains("Duplicate entry")) {
                 errorCode = "ERR_DUPLICATE";
                 userMessage = "Duplicate value violates unique constraint";
             }
 
-            // FOREIGN KEY constraints
             else if (rawMessage.contains("foreign key constraint fails")) {
 
                 if (rawMessage.contains("MovimientoDetalle")) {
@@ -68,7 +57,6 @@ public class GlobalExceptionHandler {
                 }
             }
 
-            // CHECK constraints (based on names you defined)
             else if (rawMessage.contains("chk_producto_stock")) {
                 errorCode = "ERR_PRODUCTO_STOCK_INVALID";
                 userMessage = "Producto stock must be >= 0";
@@ -103,9 +91,6 @@ public class GlobalExceptionHandler {
             }
         }
 
-        // =========================
-        // RESPONSE
-        // =========================
         Map<String, Object> body = new HashMap<>();
         body.put("errorCode", errorCode);
         body.put("message", userMessage);
@@ -114,9 +99,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
-    // =========================
-    // FALLBACK
-    // =========================
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex, HttpServletRequest request) {
 
@@ -128,9 +110,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 
-    // =========================
-    // HELPER: EXTRACT ROOT MESSAGE
-    // =========================
     private String extractRootMessage(Throwable ex) {
         Throwable root = ex;
         while (root.getCause() != null && root.getCause() != root) {

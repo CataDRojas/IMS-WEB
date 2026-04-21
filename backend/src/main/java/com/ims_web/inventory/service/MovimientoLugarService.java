@@ -40,7 +40,6 @@ public class MovimientoLugarService {
         return repo.save(lugar);
     }
 
-    /** HARD DELETE – unsafe if referenced */
     @Transactional
     public void delete(Long id) {
         MovimientoLugar lugar = repo.findById(id)
@@ -54,7 +53,6 @@ public class MovimientoLugarService {
         repo.delete(lugar);
     }
 
-    /** SOFT DELETE – just mark as inactive */
     @Transactional
     public MovimientoLugar softDelete(Long id, String currentUser) {
         MovimientoLugar lugar = repo.findById(id)

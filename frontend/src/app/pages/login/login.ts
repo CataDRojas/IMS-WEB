@@ -32,15 +32,15 @@ export class LoginComponent {
 
         if (respuesta.token) {
 
-          // AUTH CORE
+          // AUTH
           localStorage.setItem('token_ims', respuesta.token);
           localStorage.setItem('nombre_ims', respuesta.nombre);
 
-          // ROLE
+          // ROL
           localStorage.setItem('rol_ims', respuesta.rol);
           localStorage.setItem('rol_id_ims', String(respuesta.rolId));
 
-          // PERMISSIONS
+          // PERMISOS
           localStorage.setItem(
             'permisos_ims',
             JSON.stringify(respuesta.permisos ?? [])

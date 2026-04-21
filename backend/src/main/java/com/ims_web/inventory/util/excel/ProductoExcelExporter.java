@@ -21,17 +21,11 @@ public class ProductoExcelExporter {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Productos");
 
-        // =========================
-        // HEADER STYLE (consistent + reusable idea)
-        // =========================
         CellStyle headerStyle = workbook.createCellStyle();
         Font font = workbook.createFont();
         font.setBold(true);
         headerStyle.setFont(font);
 
-        // =========================
-        // HEADER ROW (STRICT CONTRACT)
-        // =========================
         String[] headers = new String[] {
                 "Codigo",
                 "Nombre",
@@ -49,14 +43,8 @@ public class ProductoExcelExporter {
             cell.setCellStyle(headerStyle);
         }
 
-        // =========================
-        // DATA ROWS
-        // =========================
         mapper.mapProductosToRow(sheet, productos);
 
-        // =========================
-        // AUTO SIZE (aligned with contract length)
-        // =========================
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }

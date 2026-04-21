@@ -4,7 +4,6 @@ import { Router } from '@angular/router';
 
 import { RolesService, Rol } from '../../../services/roles/roles';
 
-// 🧠 shared runtime constant (exported for reuse)
 export const PERMISSION_LABELS: Record<string, string> = {
   CONFIGURACION_MANAGE: 'Gestionar configuración',
   CATEGORIA_READ: 'Ver categorías',

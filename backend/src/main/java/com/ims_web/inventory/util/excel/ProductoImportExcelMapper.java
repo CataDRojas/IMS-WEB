@@ -11,9 +11,6 @@ import java.util.List;
 @Component
 public class ProductoImportExcelMapper {
 
-    // =========================
-    // EXCEL → DTO
-    // =========================
     public List<ProductoExcelDTO> mapProductos(Sheet sheet) {
 
         List<ProductoExcelDTO> productos = new ArrayList<>();
@@ -32,13 +29,13 @@ public class ProductoImportExcelMapper {
             // STOCK
             dto.setStock(getInteger(row.getCell(3)));
 
-            // CATEGORY
+            // CATEGORIA
             dto.setCategoria(getString(row.getCell(4)));
 
-            // LOT SIZE (IMPORTANT FIX)
+            // CANTIDAD POR LOTE
             dto.setCantidadLote(getInteger(row.getCell(5)));
 
-            // skip empty rows
+            // PARA SALTARSE LAS FILAS VACIAS
             if (dto.getCodigo() == null && dto.getNombre() == null) {
                 continue;
             }
@@ -49,9 +46,6 @@ public class ProductoImportExcelMapper {
         return productos;
     }
 
-    // =========================
-    // DTO → EXCEL
-    // =========================
     public void mapProductosToRow(Sheet sheet, List<ProductoExcelDTO> data) {
 
         int rowIndex = 1;
@@ -72,19 +66,16 @@ public class ProductoImportExcelMapper {
                     dto.getStock() != null ? dto.getStock() : 0
             );
 
-            // CATEGORY
+            // CATEGORIA
             row.createCell(4).setCellValue(nvl(dto.getCategoria()));
 
-            // LOT SIZE (FIXED)
+            // CANTIDAD POR LOTE
             row.createCell(5).setCellValue(
                     dto.getCantidadLote() != null ? dto.getCantidadLote() : 1
             );
         }
     }
 
-    // =========================
-    // HELPERS
-    // =========================
 
     private String getString(Cell cell) {
         if (cell == null) return null;

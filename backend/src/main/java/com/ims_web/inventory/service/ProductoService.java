@@ -53,7 +53,7 @@ public class ProductoService {
     }
 
     // =========================
-    // CREATE
+    // CREACION
     // =========================
 
     @Transactional
@@ -73,10 +73,6 @@ public class ProductoService {
 
         return repo.save(producto);
     }
-
-    // =========================
-    // UPDATE
-    // =========================
 
     @Transactional
     public Producto updateProducto(Producto producto, String currentUser) {
@@ -111,10 +107,6 @@ public class ProductoService {
 
         return repo.save(existing);
     }
-
-    // =========================
-    // VALIDATION
-    // =========================
 
     private void validateProducto(Producto producto) {
 

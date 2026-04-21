@@ -22,12 +22,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
     catchError((error: HttpErrorResponse) => {
 
-      // 🔴 session expired / invalid token
       if (error.status === 401) {
         auth.logout();
       }
 
-      // 🟡 permissions outdated
       if (error.status === 403) {
 
         const refresh$ = auth.refreshMe?.();

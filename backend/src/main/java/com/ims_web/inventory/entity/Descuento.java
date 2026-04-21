@@ -35,9 +35,6 @@ public class Descuento implements Auditable {
     @Column(name = "DescuentoActivo", nullable = false)
     private Boolean descuentoActivo = true;
 
-    // =========================
-    // Audit fields
-    // =========================
     @Column(name = "DescuentoUsuarioCreacion", nullable = false)
     private String descuentoUsuarioCreacion;
 
@@ -50,9 +47,6 @@ public class Descuento implements Auditable {
     @Column(name = "DescuentoFechaModif")
     private LocalDateTime descuentoFechaModif;
 
-    // =========================
-    // Auditable implementation
-    // =========================
     @Override
     public void setUsuarioCreacion(String usuario) { this.descuentoUsuarioCreacion = usuario; }
     @Override

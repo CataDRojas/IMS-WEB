@@ -105,9 +105,6 @@ public class MovimientoDetalleService {
         entityManager.flush();
     }
 
-    // =========================
-    // VALIDATION
-    // =========================
     private void validateDetalle(MovimientoDetalle detalle) {
 
         if (detalle.getMovimientoDetalleCantidad() == null ||

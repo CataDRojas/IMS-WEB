@@ -20,9 +20,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByUsuarioEmailIgnoreCase(String usuarioEmail);
 
-    // =========================
-    // SECURITY SAFE FETCH (NO LAZY ISSUES)
-    // =========================
     @Query("""
         SELECT u FROM Usuario u
         JOIN FETCH u.rol r

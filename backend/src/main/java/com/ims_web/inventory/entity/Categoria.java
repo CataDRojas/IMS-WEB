@@ -39,13 +39,6 @@ public class Categoria implements Auditable {
     @Column(name = "CategoriaFechaModif")
     private LocalDateTime categoriaFechaModif;
 
-    // =========================
-    // GETTERS & SETTERS
-    // =========================
-
-    // =========================
-    // Auditable interface
-    // =========================
     @Override
     public void setUsuarioCreacion(String usuario) { this.categoriaUsuarioCreacion = usuario; }
     @Override

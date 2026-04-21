@@ -2,10 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// =========================
-// FLAT API MODELS ONLY
-// =========================
-
 export interface Producto {
   productoId?: number;
   productoNombre: string;
@@ -18,7 +14,6 @@ export interface Producto {
   productoCantidadLote: number;
   productoCodigo: string;
 
-  // ⚠️ FLAT STRUCTURE (NO CATEGORY/ENTITY DEPENDENCY)
   categoriaId: number | null;
   categoriaNombre?: string | null;
 
@@ -30,10 +25,6 @@ export interface Producto {
   descuento?: any;
 }
 
-// =========================
-// UI AGGREGATED RESPONSE
-// (matches backend Map exactly)
-// =========================
 export interface ProductoUiData {
   productos: Producto[];
   categorias: any[];
@@ -54,9 +45,6 @@ export class ProductoService {
     return new HttpHeaders().set('X-User', usuarioActual);
   }
 
-  // =========================
-  // UI AGGREGATION
-  // =========================
   obtenerUiData(): Observable<ProductoUiData> {
     return this.http.get<ProductoUiData>(
       `${this.apiUrl}/ui-data`,
@@ -64,9 +52,6 @@ export class ProductoService {
     );
   }
 
-  // =========================
-  // READ
-  // =========================
   obtenerProductos(): Observable<Producto[]> {
     return this.http.get<Producto[]>(this.apiUrl, {
       headers: this.getHeaders()
@@ -85,9 +70,6 @@ export class ProductoService {
     });
   }
 
-  // =========================
-  // WRITE
-  // =========================
   crearProducto(producto: Producto): Observable<Producto> {
     return this.http.post<Producto>(this.apiUrl, producto, {
       headers: this.getHeaders()
@@ -100,9 +82,8 @@ export class ProductoService {
     });
   }
 
-  // =========================
   // EXCEL
-  // =========================
+
   importarExcel(archivo: File): Observable<string> {
     const formData = new FormData();
     formData.append('file', archivo);

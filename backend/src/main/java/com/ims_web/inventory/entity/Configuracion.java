@@ -31,8 +31,4 @@ public class Configuracion {
     @Column(name = "IVA", nullable = false)
     private BigDecimal iva;
 
-    // =========================
-    // GETTERS & SETTERS
-    // =========================
-
 }

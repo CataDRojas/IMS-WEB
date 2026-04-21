@@ -64,7 +64,6 @@ export class DescuentosFormComponent implements OnInit {
     request$.subscribe({
       next: () => this.router.navigate(['/descuentos']),
       error: () => {
-        // optional UI error handling later
       }
     });
   }

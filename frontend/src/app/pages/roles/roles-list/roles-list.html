@@ -19,7 +19,6 @@
 
     <ng-container *ngFor="let rol of roles">
 
-      <!-- MAIN ROW -->
       <tr>
         <td>
           <button (click)="toggleExpand(rol.rolId!)">
@@ -36,7 +35,6 @@
         </td>
       </tr>
 
-      <!-- EXPANDED PERMISSIONS ROW -->
       <tr *ngIf="expandedRoleId === rol.rolId">
         <td colspan="4">
 

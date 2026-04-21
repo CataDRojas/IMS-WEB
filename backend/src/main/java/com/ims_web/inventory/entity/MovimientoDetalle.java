@@ -36,22 +36,18 @@ public class MovimientoDetalle {
     @Column(name = "MovimientoDetalleUnidadesPorPaquete", nullable = false)
     private Integer movimientoDetalleUnidadesPorPaquete = 1;
 
-    // 🔒 CALCULATED BY DB
     @Setter(AccessLevel.NONE)
     @Column(name = "MovimientoDetallePrecioBase", nullable = false, insertable = false, updatable = false)
     private BigDecimal movimientoDetallePrecioBase;
 
-    // 🔒 CALCULATED BY DB
     @Setter(AccessLevel.NONE)
     @Column(name = "MovimientoDetalleDescuentoAplicado", insertable = false, updatable = false)
     private BigDecimal movimientoDetalleDescuentoAplicado;
 
-    // 🔒 CALCULATED BY DB
     @Setter(AccessLevel.NONE)
     @Column(name = "MovimientoDetallePrecioUnitario", nullable = false, insertable = false, updatable = false)
     private BigDecimal movimientoDetallePrecioUnitario;
 
-    // 🔒 CALCULATED BY DB
     @Setter(AccessLevel.NONE)
     @Column(name = "MovimientoDetallePrecioTotal", nullable = false, insertable = false, updatable = false)
     private BigDecimal movimientoDetallePrecioTotal;

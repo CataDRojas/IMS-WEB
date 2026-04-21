@@ -2,9 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// =========================
-// FLAT API MODELS ONLY
-// =========================
 export interface Categoria {
   categoriaId?: number;
   categoriaNombre: string;
@@ -19,9 +16,6 @@ export interface Descuento {
   descuentoActivo?: boolean;
 }
 
-// =========================
-// OPTIONAL UI AGGREGATION
-// =========================
 export interface CategoriaUiData {
   categorias: Categoria[];
   descuentos: Descuento[];
@@ -41,9 +35,6 @@ export class CategoriaService {
     return new HttpHeaders().set('X-User', usuarioActual);
   }
 
-  // =========================
-  // CORE CATEGORY API
-  // =========================
   obtenerCategorias(): Observable<Categoria[]> {
     return this.http.get<Categoria[]>(this.apiUrl, {
       headers: this.getHeaders()
@@ -76,9 +67,6 @@ export class CategoriaService {
     });
   }
 
-  // =========================
-  // DISCOUNT (READ-ONLY EXTENSION)
-  // =========================
   obtenerDescuentos(): Observable<Descuento[]> {
     return this.http.get<Descuento[]>(`${this.apiUrl}/descuentos`, {
       headers: this.getHeaders()
@@ -97,9 +85,6 @@ export class CategoriaService {
     });
   }
 
-  // =========================
-  // OPTIONAL UI AGGREGATION
-  // =========================
   obtenerUiData(): Observable<CategoriaUiData> {
     return this.http.get<CategoriaUiData>(this.apiUrl, {
       headers: this.getHeaders()

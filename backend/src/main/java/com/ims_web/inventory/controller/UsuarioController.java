@@ -63,9 +63,6 @@ public class UsuarioController {
         service.delete(id);
     }
 
-    // =========================
-    // 🔥 ADD THIS ONLY
-    // =========================
     @GetMapping("/roles")
     @PreAuthorize("hasAuthority('USUARIOS_MANAGE')")
     public List<Rol> getRolesForUsuarios() {

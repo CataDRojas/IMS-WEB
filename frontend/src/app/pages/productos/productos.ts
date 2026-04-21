@@ -34,9 +34,8 @@ export class ProductosComponent implements OnInit {
     this.cargarDatos();
   }
 
-  // =========================
-  // DATA LOADING
-  // =========================
+  // CARGA DE DATOS
+
   cargarDatos(): void {
     this.productoService.obtenerUiData().subscribe({
       next: (data) => {
@@ -50,9 +49,6 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  // =========================
-  // FORM STATE
-  // =========================
   generarProductoVacio(): Producto {
     return {
       productoNombre: '',
@@ -65,7 +61,6 @@ export class ProductosComponent implements OnInit {
       productoCantidadLote: 1,
       productoCodigo: '',
 
-      // flattened API contract
       categoriaId: null,
       categoriaNombre: null,
 
@@ -84,7 +79,6 @@ export class ProductosComponent implements OnInit {
   editarProducto(prod: any): void {
     this.productoActual = { 
       ...prod,
-      // 🔥 TRUCO: Sacamos los IDs de adentro hacia afuera para que los <select> se llenen correctamente
       categoriaId: prod.categoria ? prod.categoria.categoriaId : null,
       descuentoId: prod.descuento ? prod.descuento.descuentoId : null
     };
@@ -97,19 +91,17 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  // =========================
   // GUARDAR PRODUCTO
-  // =========================
+
   guardarProducto(): void {
-    // 🔥 1. Extraemos y aislamos las variables que Java no reconoce o no puede modificar
+
     const { 
       categoriaId, categoriaNombre, 
       descuentoId, descuentoNombre, descuentoPorcentaje, 
-      productoStockCritico, // Java ya no permite modificar esto manualmente
-      ...productoLimpio    // <-- Aquí queda el producto puro que Java SÍ acepta
+      productoStockCritico,
+      ...productoLimpio 
     } = this.productoActual;
 
-    // 🔥 2. Reconstruimos el objeto exactamente como lo quiere Java
     const payloadEnvio = {
       ...productoLimpio,
       categoria: this.productoActual.categoriaId ? { categoriaId: this.productoActual.categoriaId } : null,
@@ -132,9 +124,6 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  // =========================
-  // STATUS TOGGLE
-  // =========================
   cambiarEstado(prod: Producto): void {
 
     if (!prod.productoId) return;
@@ -152,9 +141,9 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  // =========================
+
   // EXCEL FLOW
-  // =========================
+
   activarSubidaExcel(): void {
     this.fileInput.nativeElement.click();
   }
@@ -200,7 +189,8 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  // --- CAMARA ---
+  // CAMARA
+
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
   escanerAbierto = false;
   codeReader = new BrowserMultiFormatReader();
@@ -239,6 +229,12 @@ export class ProductosComponent implements OnInit {
   }
 
   manejarEscaneoExitoso(codigo: string) {
+
+    //SONIDO
+    const sonidoCajero = new Audio('/sonidos/store-scanner-beep.mp3');
+
+    sonidoCajero.play().catch(e => console.log('No funcó el sonido'));
+
     this.productoActual.productoCodigo = codigo;
     this.cerrarEscaner(); 
     
@@ -247,7 +243,6 @@ export class ProductosComponent implements OnInit {
   }
 
   // AQUI TERMINA LA CAMARITA
-
 
   goHome() {
     this.router.navigate(['/home']);
