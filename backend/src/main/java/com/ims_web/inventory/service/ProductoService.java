@@ -53,7 +53,7 @@ public class ProductoService {
     }
 
     // =========================
-    // CREATE
+    // CREACION
     // =========================
 
     @Transactional
@@ -73,10 +73,6 @@ public class ProductoService {
 
         return repo.save(producto);
     }
-
-    // =========================
-    // UPDATE
-    // =========================
 
     @Transactional
     public Producto updateProducto(Producto producto, String currentUser) {
@@ -100,8 +96,6 @@ public class ProductoService {
         existing.setProductoDesc(producto.getProductoDesc());
         existing.setProductoActivo(producto.getProductoActivo());
 
-        // STOCK STILL EXCLUDED (movement system owns it)
-
         existing.setProductoCriticoNumero(producto.getProductoCriticoNumero());
         existing.setProductoPrecio(producto.getProductoPrecio());
         existing.setProductoCantidadLote(producto.getProductoCantidadLote());
@@ -114,22 +108,16 @@ public class ProductoService {
         return repo.save(existing);
     }
 
-    // =========================
-    // VALIDATION
-    // =========================
-
     private void validateProducto(Producto producto) {
 
         if (producto.getProductoPrecio() == null ||
                 producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Precio cannot be negative");
         }
-
-        // Stock intentionally NOT validated here (DB + movements own it)
     }
 
     // =========================
-    // EXCEL IMPORT (NOW CAN SET STOCK)
+    // EXCEL IMPORT
     // =========================
 
     @Transactional
@@ -140,29 +128,26 @@ public class ProductoService {
             List<ProductoExcelDTO> productos = excelImporter.importProductos(inputStream);
 
             for (ProductoExcelDTO dto : productos) {
-                Producto producto = new Producto();
 
-                producto.setProductoCodigo(dto.getCodigo());
-                producto.setProductoNombre(dto.getNombre());
-                producto.setProductoPrecio(dto.getPrecio());
-                producto.setProductoStock(dto.getStock());
+                // 🔥 ESCUDOS ANTI-CAÍDAS (Evitan el Error 500 por filas vacías)
+                if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty()) continue;
+                if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) continue;
+                if (dto.getPrecio() == null) continue;
 
-                // 🔥 EL TORPEDO (Cantidad por Lote)
-                // Si viene nulo desde el Excel, por defecto es 1 unidad.
                 Integer cantidadLote = dto.getCantidadLote() != null ? dto.getCantidadLote() : 1;
-                producto.setProductoCantidadLote(cantidadLote);
 
-                // Lógica de Categorías
+                Categoria categoria = null;
+
                 if (dto.getCategoria() != null && !dto.getCategoria().trim().isEmpty()) {
                     String catNombre = dto.getCategoria().trim();
-                    Categoria categoria = categoriaRepo.findByCategoriaNombreIgnoreCase(catNombre)
+
+                    categoria = categoriaRepo.findByCategoriaNombreIgnoreCase(catNombre)
                             .orElseGet(() -> {
                                 Categoria nuevaCat = new Categoria();
                                 nuevaCat.setCategoriaNombre(catNombre);
                                 AuditHelper.setCreationAudit(nuevaCat, "EXCEL_IMPORT");
                                 return categoriaRepo.save(nuevaCat);
                             });
-                    producto.setCategoria(categoria);
                 }
 
                 boolean exists = repo.existsByProductoCodigoIgnoreCase(dto.getCodigo());
@@ -176,34 +161,33 @@ public class ProductoService {
                     existing.setProductoPrecio(dto.getPrecio());
                     existing.setProductoCodigo(dto.getCodigo());
 
-                    // ✅ ALLOWED: controlled override for ingestion/migration
                     if (dto.getStock() != null) {
                         existing.setProductoStock(dto.getStock());
                     }
-                    existing.setProductoStock(dto.getStock());
-                    existing.setCategoria(producto.getCategoria());
 
-                    // 🔥 Actualizamos también el torpedo si el producto ya existía
+                    existing.setCategoria(categoria);
                     existing.setProductoCantidadLote(cantidadLote);
 
                     repo.save(existing);
 
                 } else {
 
-                    Producto producto = new Producto();
+                    Producto nuevoProducto = new Producto();
 
-                    producto.setProductoCodigo(dto.getCodigo());
-                    producto.setProductoNombre(dto.getNombre());
-                    producto.setProductoPrecio(dto.getPrecio());
+                    nuevoProducto.setProductoCodigo(dto.getCodigo());
+                    nuevoProducto.setProductoNombre(dto.getNombre());
+                    nuevoProducto.setProductoPrecio(dto.getPrecio());
 
-                    // ✅ ALLOWED: initial stock seeding
-                    producto.setProductoStock(
+                    nuevoProducto.setProductoStock(
                             dto.getStock() != null ? dto.getStock() : 0
                     );
 
-                    AuditHelper.setCreationAudit(producto, "EXCEL_IMPORT");
+                    nuevoProducto.setProductoCantidadLote(cantidadLote);
+                    nuevoProducto.setCategoria(categoria);
 
-                    repo.save(producto);
+                    AuditHelper.setCreationAudit(nuevoProducto, "EXCEL_IMPORT");
+
+                    repo.save(nuevoProducto);
                 }
             }
 
@@ -225,13 +209,11 @@ public class ProductoService {
             dto.setCodigo(p.getProductoCodigo());
             dto.setNombre(p.getProductoNombre());
             dto.setPrecio(p.getProductoPrecio());
-            dto.setStock(p.getProductoStock()); // read-only projection
+            dto.setStock(p.getProductoStock());
             dto.setCategoria(
                     p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
             );
-            // 🔥 Exportamos el torpedo al Excel
             dto.setCantidadLote(p.getProductoCantidadLote());
-
             return dto;
         }).toList();
 

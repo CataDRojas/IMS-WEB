@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, map } from 'rxjs';
 import { UsuarioService } from '../../services/usuario/usuario';
+import { Router } from '@angular/router';
 
 export interface Rol {
   rolId: number;
@@ -20,9 +21,6 @@ export interface Usuario {
   usuarioActivo: boolean;
 }
 
-/**
- * raw backend user (unknown shape)
- */
 interface UsuarioRaw {
   usuarioId?: number;
   usuarioEmail: string;
@@ -36,9 +34,6 @@ interface UsuarioRaw {
   rol?: Rol;
 }
 
-/**
- * UI view model
- */
 interface UsuarioView extends Usuario {
   rolNombre: string;
 }
@@ -62,15 +57,12 @@ export class UsuariosComponent implements OnInit {
 
   private rolesMap: Record<number, string> = {};
 
-  constructor(private usuarioService: UsuarioService) {}
+  constructor(private usuarioService: UsuarioService, private router: Router) {}
 
   ngOnInit() {
     this.cargarTodo();
   }
 
-  // -----------------------
-  // INIT (SAFE SYNC LOAD)
-  // -----------------------
   cargarTodo() {
     forkJoin({
       roles: this.usuarioService.obtenerRoles(),
@@ -80,13 +72,11 @@ export class UsuariosComponent implements OnInit {
 
         this.rolesDisponibles = roles;
 
-        // build map safely
         this.rolesMap = roles.reduce((acc, r) => {
           acc[Number(r.rolId)] = r.rolNombre;
           return acc;
         }, {} as Record<number, string>);
 
-        // normalize users
         this.listaUsuarios = usuarios.map((u: any) => ({
           usuarioId: u.usuarioId,
           usuarioEmail: u.usuarioEmail,
@@ -96,7 +86,6 @@ export class UsuariosComponent implements OnInit {
           usuarioPassword: u.usuarioPassword,
           usuarioActivo: u.usuarioActivo,
 
-          // 🔥 CRITICAL NORMALIZATION (handles ANY backend shape)
           rolId: Number(u.rolId ?? u.rol?.rolId ?? 0)
         }));
 
@@ -106,9 +95,6 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  // -----------------------
-  // VIEW BUILD
-  // -----------------------
   private rebuildView() {
     this.listaUsuariosView = this.listaUsuarios.map(u => ({
       ...u,
@@ -116,9 +102,6 @@ export class UsuariosComponent implements OnInit {
     }));
   }
 
-  // -----------------------
-  // FORM
-  // -----------------------
   crearUsuarioVacio(): Usuario {
     return {
       usuarioEmail: '',
@@ -150,9 +133,6 @@ export class UsuariosComponent implements OnInit {
     this.mostrarFormulario = false;
   }
 
-  // -----------------------
-  // SAVE
-  // -----------------------
   guardarUsuario() {
 
   const payload: any = {
@@ -164,7 +144,6 @@ export class UsuariosComponent implements OnInit {
     usuarioPassword: this.usuarioActual.usuarioPassword,
     usuarioActivo: this.usuarioActual.usuarioActivo,
 
-    // 🔥 CRITICAL: backend likely expects object, not id
     rol: {
       rolId: Number(this.usuarioActual.rolId)
     }
@@ -185,9 +164,6 @@ export class UsuariosComponent implements OnInit {
   this.mostrarFormulario = false;
 }
 
-  // -----------------------
-  // DELETE
-  // -----------------------
   eliminarUsuario(id: number | undefined) {
     if (!id) return;
 
@@ -197,5 +173,9 @@ export class UsuariosComponent implements OnInit {
         error: (err) => console.error('Error al eliminar', err)
       });
     }
+  }
+
+  goHome() {
+    this.router.navigate(['/home']);
   }
 }

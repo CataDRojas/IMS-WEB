@@ -1,4 +1,5 @@
 <div class="productos-container" style="padding: 20px;">
+  <button (click)="goHome()">Go home</button>
   
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2>📦 Catálogo de Productos</h2>
@@ -9,6 +10,7 @@
       <button (click)="activarSubidaExcel()" style="background-color: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
         ⬆️ Importar Excel
       </button>
+
       <button (click)="descargarExcel()" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
         ⬇️ Exportar Excel
       </button>
@@ -20,11 +22,16 @@
   </div>
 
   <div *ngIf="categorias.length === 0" style="background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; margin-bottom: 20px;">
-    <strong>⚠️ Atención:</strong> No puedes crear productos porque no hay categorías registradas. Por favor, crea una categoría primero.
+    <strong>⚠️ Atención:</strong> No puedes crear productos porque no hay categorías registradas.
   </div>
 
-  <div *ngIf="mensajeError" style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;">{{ mensajeError }}</div>
-  <div *ngIf="mensajeExito" style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px;">{{ mensajeExito }}</div>
+  <div *ngIf="mensajeError" style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;">
+    {{ mensajeError }}
+  </div>
+
+  <div *ngIf="mensajeExito" style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px;">
+    {{ mensajeExito }}
+  </div>
 
   <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
     <thead>
@@ -38,17 +45,32 @@
         <th style="padding: 12px;">Acciones</th>
       </tr>
     </thead>
+
     <tbody>
       <tr *ngFor="let prod of productos" style="border-bottom: 1px solid #eee;">
-        <td style="padding: 12px; font-family: monospace;">{{ prod.productoCodigo }}</td>
-        <td style="padding: 12px;"><strong>{{ prod.productoNombre }}</strong></td>
-        <td style="padding: 12px;">{{ prod.categoria?.categoriaNombre }}</td>
-        <td style="padding: 12px;">${{ prod.productoPrecio }}</td>
         
+        <td style="padding: 12px; font-family: monospace;">
+          {{ prod.productoCodigo }}
+        </td>
+
         <td style="padding: 12px;">
-          <span *ngIf="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero" style="color: red; font-weight: bold;">
+          <strong>{{ prod.productoNombre }}</strong>
+        </td>
+
+        <td style="padding: 12px;">
+          {{ prod.categoria?.categoriaNombre || '—' }}
+        </td>
+
+        <td style="padding: 12px;">
+          ${{ prod.productoPrecio }}
+        </td>
+
+        <td style="padding: 12px;">
+          <span *ngIf="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
+                style="color: red; font-weight: bold;">
             ⚠️ {{ prod.productoStock }}
           </span>
+
           <span *ngIf="!prod.productoStockCritico || prod.productoStock > prod.productoCriticoNumero">
             {{ prod.productoStock }}
           </span>
@@ -61,26 +83,55 @@
         </td>
 
         <td style="padding: 12px;">
-          <button (click)="editarProducto(prod)" style="background: #007bff; color: white; border: none; padding: 5px 10px; margin-right: 5px; cursor: pointer;">✎ Editar</button>
-          <button (click)="cambiarEstado(prod)" [style.background]="prod.productoActivo ? '#dc3545' : '#28a745'" style="color: white; border: none; padding: 5px 10px; cursor: pointer;">
+          <button (click)="editarProducto(prod)" 
+                  style="background: #007bff; color: white; border: none; padding: 5px 10px; margin-right: 5px; cursor: pointer;">
+            ✎ Editar
+          </button>
+
+          <button (click)="cambiarEstado(prod)"
+                  [style.background]="prod.productoActivo ? '#dc3545' : '#28a745'"
+                  style="color: white; border: none; padding: 5px 10px; cursor: pointer;">
             {{ prod.productoActivo ? 'Desactivar' : 'Activar' }}
           </button>
         </td>
+
       </tr>
     </tbody>
   </table>
 
-  <div *ngIf="mostrarFormulario" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; overflow-y: auto;">
-    <div style="background: white; padding: 30px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+  <!-- FORM MODAL -->
+  <div *ngIf="mostrarFormulario" 
+       style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; overflow-y: auto;">
+    
+    <div style="background: white; padding: 30px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto;">
       
-      <h3 style="margin-top: 0;">{{ productoActual.productoId ? 'Editar' : 'Nuevo' }} Producto</h3>
+      <h3>
+        {{ productoActual.productoId ? 'Editar' : 'Nuevo' }} Producto
+      </h3>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-        
+
         <div>
           <label><strong>Código / SKU:</strong></label>
-          <input type="text" [(ngModel)]="productoActual.productoCodigo" style="width: 100%; padding: 8px;">
+          <div style="display: flex; gap: 5px;">
+            <input type="text" [(ngModel)]="productoActual.productoCodigo" style="width: 100%; padding: 8px;" placeholder="Tipea o escanea...">
+            
+            <button (click)="abrirEscaner()" title="Escanear Código" style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
+              📷
+            </button>
+          </div>
+
+          <div *ngIf="escanerAbierto" style="margin-top: 10px; border: 2px dashed #17a2b8; padding: 10px; border-radius: 5px; text-align: center; background: #f8f9fa;">
+            <p style="margin-top: 0; font-size: 0.9em; font-weight: bold; color: #17a2b8;">Apunta el código a la cámara</p>
+            
+            <video #videoElement style="width: 100%; max-height: 200px; border-radius: 5px;"></video>
+            
+            <button (click)="cerrarEscaner()" style="margin-top: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+              Cancelar Escaneo
+            </button>
+          </div>
         </div>
+
         <div>
           <label><strong>Nombre:</strong></label>
           <input type="text" [(ngModel)]="productoActual.productoNombre" style="width: 100%; padding: 8px;">
@@ -88,56 +139,62 @@
 
         <div>
           <label><strong>Categoría:</strong></label>
-          <select [(ngModel)]="productoActual.categoria" [compareWith]="compararObjetos" style="width: 100%; padding: 8px;">
+          <select [(ngModel)]="productoActual.categoriaId" style="width: 100%; padding: 8px;">
             <option [ngValue]="null">-- Seleccione --</option>
-            <option *ngFor="let cat of categorias" [ngValue]="cat">{{ cat.categoriaNombre }}</option>
+            <option *ngFor="let cat of categorias" [ngValue]="cat.categoriaId">
+              {{ cat.categoriaNombre }}
+            </option>
           </select>
-        </div>
-        <div>
-          <label><strong>Precio Base ($):</strong></label>
-          <input type="number" [(ngModel)]="productoActual.productoPrecio" min="0" style="width: 100%; padding: 8px;">
         </div>
 
         <div>
-          <label><strong>Stock Inicial (Unidades sueltas):</strong></label>
-          <input type="number" [(ngModel)]="productoActual.productoStock" min="0" style="width: 100%; padding: 8px;">
-        </div>
-        <div>
-          <label><strong>Unidades por Lote / Caja (Torpedo):</strong></label>
-          <input type="number" [(ngModel)]="productoActual.productoCantidadLote" min="1" placeholder="Ej: 12, 24, 6..." style="width: 100%; padding: 8px;">
+          <label><strong>Precio:</strong></label>
+          <input type="number" [(ngModel)]="productoActual.productoPrecio" style="width: 100%; padding: 8px;">
         </div>
 
         <div>
-          <label><strong>Descuento (Opcional):</strong></label>
-          <select [(ngModel)]="productoActual.descuento" [compareWith]="compararObjetos" style="width: 100%; padding: 8px;">
-            <option [ngValue]="null">-- Sin Descuento --</option>
-            <option *ngFor="let desc of descuentos" [ngValue]="desc">{{ desc.descuentoNombre }}</option>
+          <label><strong>Stock:</strong></label>
+          <input type="number" [(ngModel)]="productoActual.productoStock" style="width: 100%; padding: 8px;">
+        </div>
+
+        <div>
+          <label><strong>Lote:</strong></label>
+          <input type="number" [(ngModel)]="productoActual.productoCantidadLote" style="width: 100%; padding: 8px;">
+        </div>
+
+        <div>
+          <label><strong>Descuento:</strong></label>
+          <select [(ngModel)]="productoActual.descuentoId" style="width: 100%; padding: 8px;">
+            <option [ngValue]="null">-- Sin descuento --</option>
+            <option *ngFor="let desc of descuentos" [ngValue]="desc.descuentoId">
+              {{ desc.descuentoNombre }}
+            </option>
           </select>
         </div>
-        
-        <div></div>
 
       </div>
 
       <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;">
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: bold;">
-          <input type="checkbox" [(ngModel)]="productoActual.productoStockCritico">
-          Activar alerta de Stock Crítico
-        </label>
-        
-        <div *ngIf="productoActual.productoStockCritico" style="margin-top: 10px;">
-          <label>¿Avisar cuando el stock baje a cuánto?</label>
-          <input type="number" [(ngModel)]="productoActual.productoCriticoNumero" min="0" style="width: 100%; padding: 8px;">
-        </div>
+        <label><strong>🚨 Nivel de Stock Crítico:</strong></label>
+        <p style="font-size: 0.85em; color: #666; margin-top: 2px;">
+          ¿A las cuántas unidades el sistema debe arrojar una alerta en color rojo? <br>
+          <em>(Déjalo en 0 si no quieres que este producto tenga alertas).</em>
+        </p>
+        <input type="number" [(ngModel)]="productoActual.productoCriticoNumero" min="0" style="width: 100%; padding: 8px;">
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
-        <button (click)="cancelar()" style="padding: 10px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
-        <button (click)="guardarProducto()" 
-                [disabled]="!productoActual.productoCodigo || !productoActual.productoNombre || !productoActual.categoria"
-                style="padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Guardar Producto
+        
+        <button (click)="cancelar()" style="padding: 10px 15px; background: #6c757d; color: white;">
+          Cancelar
         </button>
+
+        <button (click)="guardarProducto()"
+                [disabled]="!productoActual.productoCodigo || !productoActual.productoNombre || !productoActual.categoriaId"
+                style="padding: 10px 15px; background: #28a745; color: white;">
+          Guardar
+        </button>
+
       </div>
 
     </div>

@@ -1,7 +1,11 @@
 package com.ims_web.inventory.controller;
 
 import com.ims_web.inventory.entity.MovimientoDetalle;
+import com.ims_web.inventory.entity.Producto;
+import com.ims_web.inventory.entity.MovimientoLugar;
 import com.ims_web.inventory.service.MovimientoDetalleService;
+import com.ims_web.inventory.service.ProductoService;
+import com.ims_web.inventory.service.MovimientoLugarService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,13 +17,19 @@ public class MovimientoDetalleController {
 
     private final MovimientoDetalleService service;
 
-    public MovimientoDetalleController(MovimientoDetalleService service) {
+    private final ProductoService productoService;
+    private final MovimientoLugarService movimientoLugarService;
+
+    public MovimientoDetalleController(
+            MovimientoDetalleService service,
+            ProductoService productoService,
+            MovimientoLugarService movimientoLugarService
+    ) {
         this.service = service;
+        this.productoService = productoService;
+        this.movimientoLugarService = movimientoLugarService;
     }
 
-    // -----------------------
-    // READ ACCESS
-    // -----------------------
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
     @GetMapping
@@ -33,9 +43,44 @@ public class MovimientoDetalleController {
         return service.getDetalleById(id);
     }
 
-    // -----------------------
-    // WRITE ACCESS
-    // -----------------------
+
+    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @GetMapping("/productos")
+    public List<Producto> getAllProductos() {
+        return productoService.getAllProductos();
+    }
+
+    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @GetMapping("/productos/{id}")
+    public Producto getProductoById(@PathVariable Long id) {
+        return productoService.getProductoById(id);
+    }
+
+    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @GetMapping("/productos/codigo/{codigo}")
+    public Producto getProductoByCodigo(@PathVariable String codigo) {
+        return productoService.getProductoByCodigo(codigo);
+    }
+
+
+    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @GetMapping("/lugares")
+    public List<MovimientoLugar> getAllLugares() {
+        return movimientoLugarService.getAll();
+    }
+
+    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @GetMapping("/lugares/active")
+    public List<MovimientoLugar> getActiveLugares() {
+        return movimientoLugarService.getActive();
+    }
+
+    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @GetMapping("/lugares/{id}")
+    public MovimientoLugar getLugarById(@PathVariable Long id) {
+        return movimientoLugarService.getById(id);
+    }
+
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
     @PostMapping("/movimiento/{movimientoId}")

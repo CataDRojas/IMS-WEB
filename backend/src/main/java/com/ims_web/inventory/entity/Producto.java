@@ -31,13 +31,11 @@ public class Producto implements Auditable {
     @Column(name = "ProductoActivo", nullable = false)
     private Boolean productoActivo = true;
 
-    // ⚠️ Setter restored ONLY for controlled ingestion (e.g. Excel import)
     @Setter
     @Column(name = "ProductoStock", nullable = false)
     private Integer productoStock;
 
-    // 🔒 DB-CONTROLLED (trigger: trg_producto_stockcritico_update)
-    @Column(name = "ProductoStockCritico", nullable = false, insertable = false, updatable = false)
+    @Column(name = "ProductoStockCritico", nullable = false, insertable = false, updatable = false, columnDefinition = "boolean default false")
     private Boolean productoStockCritico;
 
     @Setter
@@ -78,9 +76,6 @@ public class Producto implements Auditable {
     @Column(name = "ProductosFechaModif")
     private LocalDateTime productosFechaModif;
 
-    // =========================
-    // Auditable implementation
-    // =========================
 
     @Override
     public void setUsuarioCreacion(String usuario) {

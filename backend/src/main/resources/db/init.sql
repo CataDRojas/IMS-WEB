@@ -105,19 +105,29 @@ CREATE TABLE IF NOT EXISTS productos (
     ProductoDesc VARCHAR(255),
     ProductoActivo BOOLEAN NOT NULL DEFAULT TRUE,
     ProductoStock INT NOT NULL DEFAULT 0,
+
+    -- 🔧 FIX: safe default, avoids insert failures while trigger handles logic
     ProductoStockCritico BOOLEAN NOT NULL DEFAULT FALSE,
+
     ProductoCriticoNumero INT NOT NULL DEFAULT 0,
     ProductoPrecio DECIMAL(12,2) NOT NULL,
     ProductoCantidadLote INT,
+
     ProductoCodigo VARCHAR(100) NOT NULL UNIQUE,
     ProductoCategoria BIGINT,
     DescuentoId BIGINT,
+
     ProductosUsuarioCreacion VARCHAR(100) NOT NULL,
     ProductosFechaCreacion DATETIME NOT NULL,
     ProductosUsuarioModif VARCHAR(100),
     ProductosFechaModif DATETIME,
-    CONSTRAINT fk_producto_categoria FOREIGN KEY (ProductoCategoria) REFERENCES Categoria(CategoriaId),
-    CONSTRAINT fk_producto_descuento FOREIGN KEY (DescuentoId) REFERENCES Descuento(DescuentoId),
+
+    CONSTRAINT fk_producto_categoria
+        FOREIGN KEY (ProductoCategoria) REFERENCES Categoria(CategoriaId),
+
+    CONSTRAINT fk_producto_descuento
+        FOREIGN KEY (DescuentoId) REFERENCES Descuento(DescuentoId),
+
     CONSTRAINT chk_producto_stock CHECK (ProductoStock >= 0),
     CONSTRAINT chk_producto_precio CHECK (ProductoPrecio >= 0)
 );

@@ -6,7 +6,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RolesService, Rol } from '../../../services/roles/roles';
 import { PermisosService, Permisos } from '../../../services/permisos/permisos';
 
-// 🧠 reuse from list (single source inside UI layer)
 import {
   PERMISSION_LABELS,
   ALL_PERMISSIONS
@@ -30,7 +29,6 @@ export class RolesForm implements OnInit {
 
   rolId?: number;
 
-  // 🧠 UI shared mapping (no duplication)
   permissionLabels = PERMISSION_LABELS;
   allPermissions = ALL_PERMISSIONS;
 
@@ -127,7 +125,6 @@ export class RolesForm implements OnInit {
     this.router.navigate(['/roles']);
   }
 
-  // (kept for now, even if redundant with shared labels)
   getPermisoLabel(nombre?: string): string {
     if (!nombre) return '';
     return nombre

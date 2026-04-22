@@ -1,57 +1,79 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
 import { CategoriaService, Categoria } from '../../services/categoria/categoria';
-import { DescuentoService, Descuento } from '../../services/descuento/descuento';
+import { DescuentosService, Descuento } from '../../services/descuento/descuento';
 
 @Component({
   selector: 'app-categorias',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './categorias.html',
-  styleUrls: ['./categorias.css'] // Si usas SCSS, cambia la extensión
+  styleUrls: ['./categorias.css']
 })
 export class CategoriasComponent implements OnInit {
 
   categorias: Categoria[] = [];
   descuentos: Descuento[] = [];
+
   mostrarFormulario = false;
-  categoriaActual: Categoria = { categoriaNombre: '' };
+
+  categoriaActual: any = this.crearCategoriaVacia();
+
   mensajeError = '';
+  mensajeExito = '';
 
   constructor(
-    private categoriaService: CategoriaService,
-    private descuentoService: DescuentoService
+    private categoriaService: CategoriaService, 
+    private descuentoService: DescuentosService,
+    private router: Router
   ) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.cargarCategorias();
     this.cargarDescuentos();
   }
 
-  cargarCategorias() {
+  // CARGA DE DATOS
+
+  cargarCategorias(): void {
     this.categoriaService.obtenerCategorias().subscribe({
-      next: (datos) => this.categorias = datos,
-      error: (err) => console.error('Error al cargar categorías', err)
+      next: (data) => {
+        this.categorias = data;
+      },
+      error: () => {
+        this.mensajeError = 'Error al cargar categorías';
+      }
     });
   }
 
-  cargarDescuentos() {
-    this.descuentoService.obtenerDescuentosActivos().subscribe({
-      next: (datos) => this.descuentos = datos,
-      error: (err) => console.error('Error al cargar descuentos', err)
+  cargarDescuentos(): void {
+    this.descuentoService.getActive().subscribe({
+      next: (data: Descuento[]) => this.descuentos = data,
+      error: (err: any) => console.error('Error al cargar descuentos', err)
     });
   }
 
-  abrirNuevo() {
-    this.categoriaActual = { categoriaNombre: '' };
+  crearCategoriaVacia(): any {
+    return {
+      categoriaNombre: '',
+      descuento: null
+    };
+  }
+
+  abrirNuevo(): void {
+    this.categoriaActual = this.crearCategoriaVacia();
     this.mensajeError = '';
+    this.mensajeExito = '';
     this.mostrarFormulario = true;
   }
 
-  editarCategoria(cat: Categoria) {
+  editarCategoria(cat: Categoria): void {
     this.categoriaActual = { ...cat };
     this.mensajeError = '';
+    this.mensajeExito = '';
     this.mostrarFormulario = true;
   }
 
@@ -59,46 +81,63 @@ export class CategoriasComponent implements OnInit {
     return d1 && d2 ? d1.descuentoId === d2.descuentoId : d1 === d2;
   }
 
-  guardarCategoria() {
-    if (this.categoriaActual.categoriaId) {
-      this.categoriaService.actualizarCategoria(this.categoriaActual.categoriaId, this.categoriaActual)
-        .subscribe({
-          next: () => {
-            this.cargarCategorias();
-            this.mostrarFormulario = false;
-          }
-        });
-    } else {
-      this.categoriaService.crearCategoria(this.categoriaActual)
-        .subscribe({
-          next: () => {
-            this.cargarCategorias();
-            this.mostrarFormulario = false;
-          }
-        });
-    }
-  }
-
-  eliminarCategoria(id: number | undefined) {
-    if (!id) return;
-    this.mensajeError = ''; // Limpiamos errores previos
-
-    if (confirm('¿Seguro que deseas eliminar esta categoría?')) {
-      this.categoriaService.eliminarCategoria(id).subscribe({
-        next: () => this.cargarCategorias(),
-        error: (err) => {
-          // AQUÍ ATAJAMOS EL ERROR DEL RF005 (Si tiene productos asociados)
-          if (err.status === 409 || err.status === 400 || err.status === 500) {
-             this.mensajeError = '⚠️ No se puede eliminar: Esta categoría tiene productos asociados.';
-             // En un futuro podemos cambiar este alert por un "Toast" o alerta más bonita en el HTML
-             alert(this.mensajeError); 
-          }
-        }
-      });
-    }
-  }
-
-  cancelar() {
+  cancelar(): void {
     this.mostrarFormulario = false;
+  }
+
+  // GUARDADO
+
+  guardarCategoria(): void {
+
+    const request$ = this.categoriaActual.categoriaId
+      ? this.categoriaService.actualizarCategoria(
+          this.categoriaActual.categoriaId,
+          this.categoriaActual
+        )
+      : this.categoriaService.crearCategoria(this.categoriaActual);
+
+    request$.subscribe({
+      next: () => {
+        this.mostrarFormulario = false;
+        this.mensajeError = '';
+        this.mensajeExito = 'Categoría guardada correctamente';
+        this.cargarCategorias();
+      },
+      error: () => {
+        this.mensajeError = 'Error al guardar categoría';
+        this.mensajeExito = '';
+      }
+    });
+  }
+
+  // ELIMINAR
+
+  eliminarCategoria(id: number | undefined): void {
+
+    if (!id) return;
+
+    this.mensajeError = '';
+    this.mensajeExito = '';
+
+    if (!confirm('¿Seguro que deseas eliminar esta categoría?')) return;
+
+    this.categoriaService.eliminarCategoria(id).subscribe({
+      next: () => {
+        this.mensajeExito = 'Categoría eliminada correctamente';
+        this.cargarCategorias();
+      },
+      error: (err) => {
+        if (err.status === 409 || err.status === 400 || err.status === 500) {
+          this.mensajeError =
+            'No se puede eliminar: existen productos asociados a esta categoría.';
+        } else {
+          this.mensajeError = 'Error al eliminar categoría';
+        }
+      }
+    });
+  }
+
+  goHome() {
+    this.router.navigate(['/home']);
   }
 }

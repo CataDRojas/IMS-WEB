@@ -17,7 +17,7 @@
       </button>
 
       <button
-        *ngIf="tienePermiso('PRODUCTO_MANAGE') || tienePermiso('PRODUCTO_READ')"
+        *ngIf="tienePermiso('PRODUCTO_READ')"
         routerLink="/productos"
         class="btn-action"
       >
@@ -41,7 +41,7 @@
       </button>
 
       <button
-        *ngIf="tienePermiso('CATEGORIA_MANAGE') || tienePermiso('CATEGORIA_READ')"
+        *ngIf="tienePermiso('CATEGORIA_READ')"
         routerLink="/categorias"
         class="btn-action"
       >
@@ -49,7 +49,7 @@
       </button>
 
       <button
-        *ngIf="tienePermiso('DESCUENTO_MANAGE') || tienePermiso('DESCUENTO_READ')"
+        *ngIf="tienePermiso('DESCUENTO_READ')"
         routerLink="/descuentos"
         class="btn-action"
       >

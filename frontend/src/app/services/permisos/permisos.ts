@@ -2,17 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// =========================
-// INTERFACE
-// =========================
 export interface Permisos {
   permisosId: number;
   permisosNombre: string;
 }
 
-// =========================
-// SERVICE
-// =========================
 @Injectable({
   providedIn: 'root'
 })

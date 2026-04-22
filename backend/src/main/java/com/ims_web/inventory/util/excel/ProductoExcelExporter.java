@@ -21,27 +21,31 @@ public class ProductoExcelExporter {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Productos");
 
-        // =========================
-        // HEADER ROW
-        // =========================
-        Row header = sheet.createRow(0);
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        headerStyle.setFont(font);
 
-        header.createCell(0).setCellValue("Codigo");
-        header.createCell(1).setCellValue("Nombre");
-        header.createCell(2).setCellValue("Precio");
-        header.createCell(3).setCellValue("Stock");
-        header.createCell(4).setCellValue("Categoria");
-        header.createCell(5).setCellValue("Cantidad Lote");
+        String[] headers = new String[] {
+                "Codigo",
+                "Nombre",
+                "Precio",
+                "Stock",
+                "Categoria",
+                "Cantidad Lote"
+        };
 
-        // =========================
-        // DATA ROWS
-        // =========================
-        mapper.mapProductosToRow(workbook, sheet, productos);
+        Row headerRow = sheet.createRow(0);
 
-        // =========================
-        // AUTO SIZE (optional but nice)
-        // =========================
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        mapper.mapProductosToRow(sheet, productos);
+
+        for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
 

@@ -47,8 +47,4 @@ public class Usuario {
     @Column(name = "UsuarioActivo", nullable = false)
     private Boolean usuarioActivo = true;
 
-    // ========================
-    // Getters & Setters
-    // ========================
-
 }

@@ -30,9 +30,6 @@ public class RolService {
                 .orElseThrow(() -> new EntityNotFoundException("Rol with ID " + id + " not found"));
     }
 
-    // =========================
-    // NEW: SAFE LOOKUP FOR DATA INITIALIZER
-    // =========================
     public Optional<Rol> findByRolNombreIgnoreCase(String name) {
         return repo.findByRolNombreIgnoreCase(name);
     }

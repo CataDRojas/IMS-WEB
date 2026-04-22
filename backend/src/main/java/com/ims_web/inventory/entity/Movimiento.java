@@ -33,7 +33,6 @@ public class Movimiento implements Auditable {
     @Column(name = "MovimientoMetodoPago")
     private String movimientoMetodoPago;
 
-    // 🔒 CALCULATED BY DB
     @Setter(AccessLevel.NONE)
     @Column(name = "MovimientoStock", nullable = false, insertable = false, updatable = false)
     private Integer movimientoStock;
@@ -71,9 +70,6 @@ public class Movimiento implements Auditable {
     @OneToMany(mappedBy = "movimiento", cascade = CascadeType.ALL)
     private List<MovimientoDetalle> detalles;
 
-    // =========================
-    // Auditable implementation
-    // =========================
 
     @Override
     public void setUsuarioCreacion(String usuario) {

@@ -10,7 +10,6 @@ public interface RolRepository extends JpaRepository<Rol, Long> {
 
     Rol findByRolNombre(String rolNombre);
 
-    // SQL-level uniqueness check for create/update
     boolean existsByRolNombreIgnoreCaseAndRolIdNot(String rolNombre, Long idToExclude);
     Optional<Rol> findByRolNombreIgnoreCase(String rolNombre);
 }

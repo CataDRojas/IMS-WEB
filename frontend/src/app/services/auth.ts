@@ -11,13 +11,9 @@ export class Auth {
   private meUrl = 'http://localhost:8080/api/auth/me';
 
   private permisosTsKey = 'permisos_ts';
-  private ttlMs = 1 * 30 * 1000; // 2 min freshness window (adjust later if needed)
+  private ttlMs = 1 * 30 * 1000;
 
   constructor(private http: HttpClient, private router: Router) {}
-
-  // =========================
-  // AUTH
-  // =========================
 
   iniciarSesion(credenciales: any) {
     return this.http.post(this.apiUrl, credenciales);
@@ -26,10 +22,6 @@ export class Auth {
   refreshMe() {
     return this.http.get<any>(this.meUrl);
   }
-
-  // =========================
-  // STORAGE
-  // =========================
 
   getToken(): string | null {
     return localStorage.getItem('token_ims');
@@ -53,17 +45,9 @@ export class Auth {
     return Number(localStorage.getItem(this.permisosTsKey) || 0);
   }
 
-  // =========================
-  // AUTH STATE
-  // =========================
-
   isLoggedIn(): boolean {
     return !!this.getToken();
   }
-
-  // =========================
-  // PERMISSION LOGIC
-  // =========================
 
   hasPermission(permission: string): boolean {
     return this.getPermisos().includes(permission);
@@ -77,10 +61,6 @@ export class Auth {
     return perms.every(p => this.hasPermission(p));
   }
 
-  // =========================
-  // LAZY REFRESH (KEY PIECE)
-  // =========================
-
   refreshPermisosIfNeeded() {
     const last = this.getPermisosTimestamp();
 
@@ -92,10 +72,6 @@ export class Auth {
 
     return this.refreshMe();
   }
-
-  // =========================
-  // SESSION CONTROL
-  // =========================
 
   logout() {
     localStorage.removeItem('token_ims');

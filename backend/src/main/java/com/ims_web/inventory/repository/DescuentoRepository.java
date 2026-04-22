@@ -8,6 +8,5 @@ public interface DescuentoRepository extends JpaRepository<Descuento, Long> {
 
     List<Descuento> findByDescuentoActivoTrue();
 
-    // SQL-level uniqueness check for create/update
     boolean existsByDescuentoNombreIgnoreCaseAndDescuentoIdNot(String nombre, Long idToExclude);
 }
