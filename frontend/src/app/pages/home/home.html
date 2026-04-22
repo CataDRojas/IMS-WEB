@@ -34,7 +34,7 @@
 
       <button
         *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')"
-        routerLink="/inicio-inventario"
+        routerLink="/inventario"
         class="btn-action"
       >
         📋 Inventario
@@ -57,11 +57,11 @@
       </button>
 
       <button
-        *ngIf="tienePermiso('CONFIGURACION_MANAGE')"
-        routerLink="/configuracion"
+        *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')"
+        routerLink="/lugares"
         class="btn-action"
       >
-        ⚙️ Configuración Sistema
+        🏢 Gestión de Áreas de almacenaje
       </button>
     </div>
   </div>

@@ -1,0 +1,113 @@
+<div class="dashboard-container">
+  <div style="margin-bottom: 15px">
+    <button
+      routerLink="/home"
+      style="
+        padding: 8px 15px;
+        background: transparent;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+      "
+    >
+      ⬅ Volver al Home
+    </button>
+  </div>
+
+  <header
+    class="dashboard-header"
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <div>
+      <h2>🏢 Gestión de Lugares de Almacenamiento</h2>
+      <p>Administra los sectores físicos de tu inventario</p>
+    </div>
+    <button class="btn-action" routerLink="/lugares/nuevo">+ Nuevo Lugar</button>
+  </header>
+
+  <div
+    class="table-container"
+    style="
+      margin-top: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    "
+  >
+    <table style="width: 100%; border-collapse: collapse; text-align: left">
+      <thead style="background-color: #f4f6f8; border-bottom: 2px solid #ddd">
+        <tr>
+          <th style="padding: 12px">ID</th>
+          <th style="padding: 12px">Descripción / Sector</th>
+          <th style="padding: 12px">Estado</th>
+          <th style="padding: 12px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let lugar of lugares" style="border-bottom: 1px solid #eee">
+          <td style="padding: 12px">{{ lugar.movimientoLugarId }}</td>
+          <td style="padding: 12px">{{ lugar.movimientoLugarDescripcion }}</td>
+
+          <td style="padding: 12px">
+            <span *ngIf="lugar.movimientoLugarActivo" style="color: green; font-weight: bold"
+              >🟢 Activo</span
+            >
+            <span *ngIf="!lugar.movimientoLugarActivo" style="color: red; font-weight: bold"
+              >🔴 Inactivo</span
+            >
+          </td>
+
+          <td style="padding: 12px; display: flex; gap: 10px">
+            <button
+              [routerLink]="['/lugares/edit', lugar.movimientoLugarId]"
+              style="
+                cursor: pointer;
+                background-color: #ffc107;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 4px;
+              "
+            >
+              ✏️ Editar
+            </button>
+
+            <button
+              (click)="toggleEstado(lugar)"
+              style="
+                cursor: pointer;
+                background-color: #17a2b8;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 4px;
+              "
+            >
+              {{ lugar.movimientoLugarActivo ? '⏸ Desactivar' : '▶ Activar' }}
+            </button>
+
+            <button
+              (click)="borrarLugar(lugar.movimientoLugarId)"
+              style="
+                cursor: pointer;
+                background-color: #dc3545;
+                color: white;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 4px;
+              "
+            >
+              🗑️ Eliminar
+            </button>
+          </td>
+        </tr>
+
+        <tr *ngIf="lugares.length === 0">
+          <td colspan="4" style="text-align: center; padding: 20px; color: #666">
+            No hay lugares registrados. ¡Crea el primero!
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
