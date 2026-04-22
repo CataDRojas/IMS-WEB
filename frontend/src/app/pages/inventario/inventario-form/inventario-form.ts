@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
+import { InventarioService } from '../../../services/inventario/inventario';
 
 // Angular Material
 import { MatInputModule } from '@angular/material/input';
@@ -26,9 +27,12 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 })
 export class InventarioForm {
 
-  constructor(private router: Router, private location: Location) {}
+  constructor(
+    private router: Router, 
+    private location: Location,
+    private inventarioService: InventarioService // Inyectamos el servicio
+  ) {}
 
-  // ESTADO DE PANTALLA
   estado: 'inicio' | 'agregar' | 'lista' | 'editar' = 'inicio';
 
   codigo = '';
@@ -39,35 +43,29 @@ export class InventarioForm {
 
   lista: any[] = [];
 
-  productosMock = [
-    { codigo: '123', nombre: 'Coca Cola', categoria: 'Bebidas', precio: 1000 },
-    { codigo: '456', nombre: 'Pan', categoria: 'Alimentos', precio: 1500 }
-  ];
-
-  // BUSCAR PRODUCTO
+  // BUSCAR PRODUCTO REAL EN BD
   buscarProducto() {
-    this.productoEncontrado = this.productosMock.find(p => p.codigo === this.codigo);
+    if (!this.codigo) return;
 
-    if (!this.productoEncontrado) {
-      alert('Producto no encontrado');
-      return;
-    }
-
-    this.estado = 'agregar';
+    this.inventarioService.buscarProductoPorCodigo(this.codigo).subscribe({
+      next: (producto) => {
+        this.productoEncontrado = producto;
+        this.estado = 'agregar';
+      },
+      error: (err) => {
+        console.error(err);
+        alert('❌ Producto no encontrado en la base de datos. Revisa el código.');
+      }
+    });
   }
 
-  aumentar() {
-    this.cantidad++;
-  }
-
-  disminuir() {
-    if (this.cantidad > 1) this.cantidad--;
-  }
+  aumentar() { this.cantidad++; }
+  disminuir() { if (this.cantidad > 1) this.cantidad--; }
 
   agregarProducto() {
     this.lista.push({
-      ...this.productoEncontrado,
-      cantidad: this.cantidad
+      ...this.productoEncontrado, // Guardamos todo el objeto producto real
+      cantidadAgregada: this.cantidad // Usamos nombre distinto para no pisar el stock
     });
 
     this.reset();
@@ -76,16 +74,15 @@ export class InventarioForm {
 
   seleccionarParaEditar(item: any) {
     this.productoEditando = { ...item };
-    this.cantidad = item.cantidad;
+    this.cantidad = item.cantidadAgregada;
     this.estado = 'editar';
   }
 
   modificarProducto() {
-    const index = this.lista.findIndex(p => p.codigo === this.productoEditando.codigo);
+    const index = this.lista.findIndex(p => p.productoCodigo === this.productoEditando.productoCodigo);
     if (index !== -1) {
-      this.lista[index].cantidad = this.cantidad;
+      this.lista[index].cantidadAgregada = this.cantidad;
     }
-
     this.reset();
     this.estado = 'lista';
   }
@@ -95,18 +92,61 @@ export class InventarioForm {
   }
 
   guardar() {
-    alert('Inventario guardado (pendiente)');
+    alert('Borrador guardado localmente (se podría implementar localStorage aquí)');
   }
 
+  // EL GUARDADO REAL EN MYSQL
   finalizar() {
-    alert('Inventario finalizado ✅');
-    this.lista = [];
-    this.estado = 'inicio';
+    if (this.lista.length === 0) {
+      alert('⚠️ Agrega al menos un producto antes de finalizar.');
+      return;
+    }
+
+    // 1. Armamos la cabecera del Movimiento
+    const nuevoMovimiento = {
+      movimientoTipo: 'ENTRADA', // Ajustar si después le pones un select
+      movimientoEstado: 'CONFIRMADO',
+      movimientoDescripcion: 'Ingreso de inventario desde interfaz',
+      movimientoMetodoPago: 'EFECTIVO' // Requisito obligatorio de tu backend
+    };
+
+    // 2. Creamos la cabecera
+    this.inventarioService.crearMovimientoCabecera(nuevoMovimiento).subscribe({
+      next: (movimientoCreado) => {
+        const movId = movimientoCreado.movimientoId;
+        let detallesProcesados = 0;
+
+        // 3. Recorremos la lista y creamos los detalles uno por uno
+        this.lista.forEach(item => {
+          const detalle = {
+            movimientoDetalleCantidad: item.cantidadAgregada,
+            movimientoDetalleUnidadesPorPaquete: 1, // Exigencia de la validación Java
+            movimientoDetalleDescripcion: 'Ingresado por sistema',
+            producto: { productoId: item.productoId } // Match con el ID real
+          };
+
+          this.inventarioService.crearDetalle(movId, detalle).subscribe({
+            next: () => {
+              detallesProcesados++;
+              // Verificamos si terminamos de guardar toda la lista
+              if (detallesProcesados === this.lista.length) {
+                alert('✅ ¡Inventario guardado con éxito en la Base de Datos!');
+                this.lista = [];
+                this.estado = 'inicio';
+              }
+            },
+            error: (err) => console.error('Error al guardar detalle:', err)
+          });
+        });
+      },
+      error: (err) => {
+        console.error('Error al crear cabecera:', err);
+        alert('❌ Hubo un error al crear el movimiento de cabecera.');
+      }
+    });
   }
 
-  volver() {
-    this.location.back();
-  }
+  volver() { this.location.back(); }
 
   reset() {
     this.codigo = '';

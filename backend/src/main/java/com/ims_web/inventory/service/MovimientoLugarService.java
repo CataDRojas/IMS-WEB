@@ -33,11 +33,25 @@ public class MovimientoLugarService {
     @Transactional
     public MovimientoLugar createOrUpdate(MovimientoLugar lugar, String currentUser) {
         if (lugar.getMovimientoLugarId() == null) {
-            AuditHelper.setCreationAudit(lugar, currentUser); // static call
+            // NUEVO: Viene sin ID. Le ponemos datos de creación y se va a la BD.
+            // Asume que se crea como Activo por defecto en la BD.
+            AuditHelper.setCreationAudit(lugar, currentUser);
+            return repo.save(lugar);
         } else {
-            AuditHelper.setModificationAudit(lugar, currentUser); // static call
+            // EDICIÓN: Trae ID. Buscamos el original primero para rescatar su fecha y
+            // estado.
+            MovimientoLugar lugarExistente = repo.findById(lugar.getMovimientoLugarId())
+                    .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
+
+            // Pisamos SOLO el texto que el usuario cambió en el formulario
+            lugarExistente.setMovimientoLugarDescripcion(lugar.getMovimientoLugarDescripcion());
+
+            // Le pasamos el objeto mezclado al AuditHelper
+            AuditHelper.setModificationAudit(lugarExistente, currentUser);
+
+            // Guardamos el objeto
+            return repo.save(lugarExistente);
         }
-        return repo.save(lugar);
     }
 
     @Transactional

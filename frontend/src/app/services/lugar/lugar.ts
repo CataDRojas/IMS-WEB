@@ -18,7 +18,7 @@ export class LugarService {
 
   private getHeaders() {
     // Rescatamos el usuario real de la sesión
-    const currentUser = localStorage.getItem('usuario_nombre'); 
+    const currentUser = localStorage.getItem('nombre_ims'); 
     
     // Si por algún motivo no hay usuario en sesión (onda, se venció o borró el caché), 
     // mandamos un string que el backend reconozca como error, o simplemente lo mandamos nulo 
