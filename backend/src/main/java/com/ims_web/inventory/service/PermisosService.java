@@ -27,9 +27,6 @@ public class PermisosService {
                 .orElseThrow(() -> new EntityNotFoundException("Permiso not found"));
     }
 
-    // =========================
-    // NEW: SAFE LOOKUP (needed for DataInitializer)
-    // =========================
     public Optional<Permisos> findByPermisosNombreIgnoreCase(String name) {
         return repo.findByPermisosNombreIgnoreCase(name);
     }

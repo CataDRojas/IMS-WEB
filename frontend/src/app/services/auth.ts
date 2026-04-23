@@ -8,47 +8,77 @@ import { Router } from '@angular/router';
 export class Auth {
 
   private apiUrl = 'http://localhost:8080/api/auth/login';
+  private meUrl = 'http://localhost:8080/api/auth/me';
+
+  private permisosTsKey = 'permisos_ts';
+  private ttlMs = 1 * 30 * 1000;
 
   constructor(private http: HttpClient, private router: Router) {}
 
   iniciarSesion(credenciales: any) {
     return this.http.post(this.apiUrl, credenciales);
   }
-  
-  // ==========================================
-  // NUEVAS HERRAMIENTAS DE SESIÓN Y ROLES
-  // ==========================================
 
-  // Extraer datos del bolsillo (localStorage)
-  getToken(): string | null {
-    return localStorage.getItem('token_ims');
+  refreshMe() {
+    return this.http.get<any>(this.meUrl);
   }
 
-  getRol(): string | null {
-    return localStorage.getItem('rol_ims');
+  getToken(): string | null {
+    return localStorage.getItem('token_ims');
   }
 
   getNombre(): string | null {
     return localStorage.getItem('nombre_ims');
   }
 
-  // Verificar si hay alguien logueado
+  getPermisos(): string[] {
+    const raw = localStorage.getItem('permisos_ims');
+    return raw ? JSON.parse(raw) : [];
+  }
+
+  setPermisos(permisos: string[]) {
+    localStorage.setItem('permisos_ims', JSON.stringify(permisos));
+    localStorage.setItem(this.permisosTsKey, Date.now().toString());
+  }
+
+  getPermisosTimestamp(): number {
+    return Number(localStorage.getItem(this.permisosTsKey) || 0);
+  }
+
   isLoggedIn(): boolean {
-    return this.getToken() !== null; // Devuelve true si hay un token
+    return !!this.getToken();
   }
 
-  // Verificar si el usuario tiene un rol específico
-  hasRole(roleEsperado: string): boolean {
-    const rolActual = this.getRol();
-    // Validamos que exista un rol y que coincida exactamente
-    return rolActual === roleEsperado; 
+  hasPermission(permission: string): boolean {
+    return this.getPermisos().includes(permission);
   }
 
-  // Botón de escape: Destruye la sesión y vuelve al login
+  hasAnyPermission(perms: string[]): boolean {
+    return perms.some(p => this.hasPermission(p));
+  }
+
+  hasAllPermissions(perms: string[]): boolean {
+    return perms.every(p => this.hasPermission(p));
+  }
+
+  refreshPermisosIfNeeded() {
+    const last = this.getPermisosTimestamp();
+
+    const isStale = Date.now() - last > this.ttlMs;
+
+    if (!isStale) {
+      return null;
+    }
+
+    return this.refreshMe();
+  }
+
   logout() {
     localStorage.removeItem('token_ims');
     localStorage.removeItem('rol_ims');
     localStorage.removeItem('nombre_ims');
+    localStorage.removeItem('permisos_ims');
+    localStorage.removeItem(this.permisosTsKey);
     this.router.navigate(['/login']);
   }
 }

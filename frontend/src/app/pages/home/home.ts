@@ -9,7 +9,22 @@ import { RouterLink } from '@angular/router';
   styleUrl: './home.css',
 })
 export class Home {
-  rolUsuario = localStorage.getItem('rol_ims');
-  nombreUsuario = localStorage.getItem('nombre_ims');
 
+  nombreUsuario = localStorage.getItem('nombre_ims') ?? '';
+
+  permisosUsuario: string[] = [];
+
+  constructor() {
+    const stored = localStorage.getItem('permisos_ims');
+
+    try {
+      this.permisosUsuario = stored ? JSON.parse(stored) : [];
+    } catch {
+      this.permisosUsuario = [];
+    }
+  }
+
+  tienePermiso(permiso: string): boolean {
+    return this.permisosUsuario.includes(permiso);
+  }
 }

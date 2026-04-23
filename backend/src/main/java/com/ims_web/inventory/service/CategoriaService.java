@@ -29,10 +29,8 @@ public class CategoriaService {
     @Transactional
     public Categoria createOrUpdate(Categoria categoria, String currentUser) {
         if (categoria.getCategoriaId() == null) {
-            // New Categoria → use helper
             AuditHelper.setCreationAudit(categoria, currentUser);
         } else {
-            // Existing Categoria → use helper
             AuditHelper.setModificationAudit(categoria, currentUser);
         }
         return repo.save(categoria);

@@ -1,17 +1,22 @@
 <div class="admin-container">
+  <button (click)="goHome()">Go home</button>
   
   <div class="header-admin">
     <div>
       <h2>Panel de Usuarios</h2>
       <p>Gestión de accesos y roles del sistema.</p>
     </div>
-    <button class="btn-primario" (click)="abrirNuevo()" *ngIf="!mostrarFormulario">
+
+    <button class="btn-primario"
+            (click)="abrirNuevo()"
+            *ngIf="!mostrarFormulario">
       + Nuevo Usuario
     </button>
   </div>
 
   <div class="layout-dividido">
-    
+
+    <!-- TABLA -->
     <div class="seccion-tabla" [ngClass]="{'tabla-comprimida': mostrarFormulario}">
       <table class="tabla-datos">
         <thead>
@@ -24,104 +29,159 @@
             <th>Acciones</th>
           </tr>
         </thead>
+
         <tbody>
-          <tr *ngFor="let u of listaUsuarios">
+
+          <tr *ngFor="let u of listaUsuariosView">
+
             <td><strong>{{ u.usuarioNombre }}</strong></td>
-            
+
             <td>
-              <span *ngIf="u.usuarioRun">{{ u.usuarioRun }}-{{ u.usuarioDV }}</span>
-              <span *ngIf="!u.usuarioRun" class="texto-suave">No aplica</span>
+              <span *ngIf="u.usuarioRun">
+                {{ u.usuarioRun }}-{{ u.usuarioDV }}
+              </span>
+              <span *ngIf="!u.usuarioRun" class="texto-suave">
+                Vacío
+              </span>
             </td>
-            
+
             <td>{{ u.usuarioEmail }}</td>
-            
-            <td><span class="badge-rol">{{ u.rol.rolNombre }}</span></td>
-            
+
             <td>
-              <span class="badge-estado" [ngClass]="{'inactivo': !u.usuarioActivo}">
+              <span class="badge-rol">
+                {{ u.rolNombre }}
+              </span>
+            </td>
+
+            <td>
+              <span class="badge-estado"
+                    [ngClass]="{'inactivo': !u.usuarioActivo}">
                 {{ u.usuarioActivo ? 'Activo' : 'Inactivo' }}
               </span>
             </td>
+
             <td>
-              <button class="btn-editar" (click)="editarUsuario(u)">✎ Editar</button>
+              <button class="btn-editar"
+                      (click)="editarUsuario(u)">
+                ✎ Editar
+              </button>
             </td>
-            
+
             <td>
-              
-              
-              <button class="btn-peligro" 
-                      *ngIf="u.usuarioEmail !== 'admin@ims.cl'" 
-                      (click)="eliminarUsuario(u.usuarioId)" 
-                      style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+              <button class="btn-peligro"
+                      *ngIf="u.usuarioEmail !== 'admin@ims.cl'"
+                      (click)="eliminarUsuario(u.usuarioId)">
                 🗑️ Eliminar
               </button>
             </td>
+
           </tr>
-          
-          <tr *ngIf="listaUsuarios.length === 0">
-            <td colspan="6" style="text-align: center; padding: 30px;">
+
+          <tr *ngIf="listaUsuariosView.length === 0">
+            <td colspan="6" style="text-align:center; padding:30px;">
               Cargando usuarios o no hay datos...
             </td>
           </tr>
+
         </tbody>
       </table>
     </div>
 
+    <!-- FORM -->
     <div class="seccion-formulario" *ngIf="mostrarFormulario">
+
       <div class="card-formulario">
-        <h3>{{ usuarioActual.usuarioId ? 'Editar Usuario' : 'Nuevo Usuario' }}</h3>
-        
+
+        <h3>
+          {{ usuarioActual.usuarioId ? 'Editar Usuario' : 'Nuevo Usuario' }}
+        </h3>
+
         <form (ngSubmit)="guardarUsuario()">
-          
+
           <div class="form-group">
             <label>Nombre Completo</label>
-            <input type="text" [(ngModel)]="usuarioActual.usuarioNombre" name="nombre" required>
+            <input type="text"
+                   [(ngModel)]="usuarioActual.usuarioNombre"
+                   name="usuarioNombre"
+                   required>
           </div>
 
           <div class="form-row">
-            <div class="form-group" style="flex: 3;">
-              <label>RUN (Sin puntos)</label>
-              <input type="text" [(ngModel)]="usuarioActual.usuarioRun" name="run" placeholder="Ej: 12345678">
+
+            <div class="form-group" style="flex:3;">
+              <label>RUN</label>
+              <input type="text"
+                     [(ngModel)]="usuarioActual.usuarioRun"
+                     name="usuarioRun">
             </div>
-            <div class="form-group" style="flex: 1;">
+
+            <div class="form-group" style="flex:1;">
               <label>DV</label>
-              <input type="text" [(ngModel)]="usuarioActual.usuarioDV" name="dv" maxlength="1" placeholder="Ej: K">
+              <input type="text"
+                     [(ngModel)]="usuarioActual.usuarioDV"
+                     name="usuarioDV"
+                     maxlength="1">
             </div>
+
           </div>
 
           <div class="form-group">
-            <label>Correo Electrónico</label>
-            <input type="email" [(ngModel)]="usuarioActual.usuarioEmail" name="email" required>
+            <label>Email</label>
+            <input type="email"
+                   [(ngModel)]="usuarioActual.usuarioEmail"
+                   name="usuarioEmail"
+                   required>
           </div>
 
           <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" [(ngModel)]="usuarioActual.usuarioPassword" name="password" 
-                   [placeholder]="usuarioActual.usuarioId ? 'Dejar en blanco para mantener actual' : 'Requerida para nuevos'">
+            <input type="password"
+                   [(ngModel)]="usuarioActual.usuarioPassword"
+                   name="usuarioPassword">
           </div>
 
+          <!-- ROLE -->
           <div class="form-group">
-            <label>Rol del Sistema</label>
-            <select [(ngModel)]="usuarioActual.rol" name="rol" required>
-              <option *ngFor="let r of rolesDisponibles" [ngValue]="r">
+            <label>Rol</label>
+
+            <select [(ngModel)]="usuarioActual.rolId"
+                    name="rolId"
+                    required>
+
+              <option *ngFor="let r of rolesDisponibles"
+                      [value]="r.rolId">
                 {{ r.rolNombre }}
               </option>
+
             </select>
           </div>
 
           <div class="form-group checkbox-group">
             <label>
-              <input type="checkbox" [(ngModel)]="usuarioActual.usuarioActivo" name="activo">
-              Usuario Activo
+              <input type="checkbox"
+                     [(ngModel)]="usuarioActual.usuarioActivo"
+                     name="usuarioActivo">
+              Activo
             </label>
           </div>
 
           <div class="form-acciones">
-            <button type="button" class="btn-secundario" (click)="cancelar()">Cancelar</button>
-            <button type="submit" class="btn-primario">Guardar</button>
+            <button type="button"
+                    class="btn-secundario"
+                    (click)="cancelar()">
+              Cancelar
+            </button>
+
+            <button type="submit"
+                    class="btn-primario">
+              Guardar
+            </button>
           </div>
+
         </form>
+
       </div>
+
     </div>
 
   </div>

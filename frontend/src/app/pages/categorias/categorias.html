@@ -1,0 +1,126 @@
+<div class="categorias-container">
+  <button (click)="goHome()">Go home</button>
+  
+  <div class="header-acciones" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>🏷️ Gestión de Categorías</h2>
+
+    <button (click)="abrirNuevo()"
+            style="background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer;">
+      + Nueva Categoría
+    </button>
+  </div>
+
+  <div *ngIf="mensajeError"
+       style="background-color: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    {{ mensajeError }}
+  </div>
+
+  <div *ngIf="mensajeExito"
+       style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+    {{ mensajeExito }}
+  </div>
+
+  <table style="width: 100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ddd;">
+        <th style="padding: 12px;">ID</th>
+        <th style="padding: 12px;">Nombre</th>
+        <th style="padding: 12px;">Descuento</th>
+        <th style="padding: 12px;">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let cat of categorias" style="border-bottom: 1px solid #eee;">
+        
+        <td style="padding: 12px;">
+          {{ cat.categoriaId || '—' }}
+        </td>
+
+        <td style="padding: 12px; font-weight: bold;">
+          {{ cat.categoriaNombre }}
+        </td>
+
+        <td style="padding: 12px;">
+          <span *ngIf="cat.descuento" style="background: #17a2b8; color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.85em;">
+            {{ cat.descuento.descuentoNombre }}
+          </span>
+          <span *ngIf="!cat.descuento" style="color: #999; font-style: italic;">Ninguno</span>
+        </td>
+
+        <td style="padding: 12px;">
+          <button (click)="editarCategoria(cat)"
+                  style="background-color: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 3px; margin-right: 5px; cursor: pointer;">
+            ✎ Editar
+          </button>
+
+          <button (click)="eliminarCategoria(cat.categoriaId)"
+                  [disabled]="!cat.categoriaId"
+                  style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;"
+                  [style.opacity]="!cat.categoriaId ? 0.5 : 1">
+            🗑️ Eliminar
+          </button>
+        </td>
+
+      </tr>
+
+      <tr *ngIf="categorias.length === 0">
+        <td colspan="3" style="text-align: center; padding: 20px; color: #777;">
+          No hay categorías registradas en el sistema.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FORM MODAL -->
+  <div *ngIf="mostrarFormulario"
+       style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+              background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
+    
+    <div style="background: white; padding: 30px; border-radius: 8px; width: 400px;">
+      
+      <h3>
+        {{ categoriaActual.categoriaId ? 'Editar' : 'Nueva' }} Categoría
+      </h3>
+
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">
+          Nombre:
+        </label>
+
+        <input type="text"
+               [(ngModel)]="categoriaActual.categoriaNombre"
+               placeholder="Ej: Lácteos, Herramientas..."
+               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Descuento (Opcional):</label>
+        <select [(ngModel)]="categoriaActual.descuento" [compareWith]="compararDescuentos"
+                style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+          <option [ngValue]="null">-- Sin descuento --</option>
+          <option *ngFor="let desc of descuentos" [ngValue]="desc">
+            {{ desc.descuentoNombre }} (Valor: {{ desc.descuentoValor }})
+          </option>
+        </select>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        
+        <button (click)="cancelar()"
+                style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px;">
+          Cancelar
+        </button>
+
+        <button (click)="guardarCategoria()"
+                [disabled]="!categoriaActual.categoriaNombre"
+                style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px;"
+                [style.opacity]="!categoriaActual.categoriaNombre ? 0.5 : 1">
+          Guardar
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>

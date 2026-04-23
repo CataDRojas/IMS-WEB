@@ -1,8 +1,13 @@
 package com.ims_web.inventory.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.Set;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "Rol")
 public class Rol {
@@ -23,31 +28,4 @@ public class Rol {
     )
     private Set<Permisos> permisos;
 
-    // ================
-    // GETTERS & SETTERS
-    // ================
-
-    public Long getRolId() {
-        return rolId;
-    }
-
-    public void setRolId(Long rolId) {
-        this.rolId = rolId;
-    }
-
-    public String getRolNombre() {
-        return rolNombre;
-    }
-
-    public void setRolNombre(String rolNombre) {
-        this.rolNombre = rolNombre;
-    }
-
-    public Set<Permisos> getPermisos() {
-        return permisos;
-    }
-
-    public void setPermisos(Set<Permisos> permisos) {
-        this.permisos = permisos;
-    }
 }

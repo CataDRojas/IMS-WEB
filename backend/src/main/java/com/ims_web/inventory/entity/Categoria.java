@@ -2,20 +2,27 @@ package com.ims_web.inventory.entity;
 
 import com.ims_web.inventory.util.Auditable;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
 @Entity
 @Table(name = "Categoria")
 public class Categoria implements Auditable {
 
+    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CategoriaId")
     private Long categoriaId;
 
+    @Setter
     @Column(name = "CategoriaNombre", nullable = false)
     private String categoriaNombre;
 
+    @Setter
     @ManyToOne
     @JoinColumn(name = "DescuentoId", referencedColumnName = "DescuentoId")
     private Descuento descuento;
@@ -32,22 +39,6 @@ public class Categoria implements Auditable {
     @Column(name = "CategoriaFechaModif")
     private LocalDateTime categoriaFechaModif;
 
-    // =========================
-    // GETTERS & SETTERS
-    // =========================
-
-    public Long getCategoriaId() { return categoriaId; }
-    public void setCategoriaId(Long categoriaId) { this.categoriaId = categoriaId; }
-
-    public String getCategoriaNombre() { return categoriaNombre; }
-    public void setCategoriaNombre(String categoriaNombre) { this.categoriaNombre = categoriaNombre; }
-
-    public Descuento getDescuento() { return descuento; }
-    public void setDescuento(Descuento descuento) { this.descuento = descuento; }
-
-    // =========================
-    // Auditable interface
-    // =========================
     @Override
     public void setUsuarioCreacion(String usuario) { this.categoriaUsuarioCreacion = usuario; }
     @Override
@@ -57,8 +48,4 @@ public class Categoria implements Auditable {
     @Override
     public void setFechaModif(LocalDateTime fecha) { this.categoriaFechaModif = fecha; }
 
-    public String getCategoriaUsuarioCreacion() { return categoriaUsuarioCreacion; }
-    public LocalDateTime getCategoriaFechaCreacion() { return categoriaFechaCreacion; }
-    public String getCategoriaUsuarioModif() { return categoriaUsuarioModif; }
-    public LocalDateTime getCategoriaFechaModif() { return categoriaFechaModif; }
 }

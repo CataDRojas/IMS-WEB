@@ -17,9 +17,6 @@ public class MovimientoController {
         this.service = service;
     }
 
-    // -----------------------
-    // READ ACCESS
-    // -----------------------
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
     @GetMapping
@@ -33,9 +30,6 @@ public class MovimientoController {
         return service.getById(id);
     }
 
-    // -----------------------
-    // WRITE ACCESS
-    // -----------------------
 
     @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
     @PostMapping

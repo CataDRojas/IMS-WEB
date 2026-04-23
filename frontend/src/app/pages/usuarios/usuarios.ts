@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core'; 
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, map } from 'rxjs';
 import { UsuarioService } from '../../services/usuario/usuario';
+import { Router } from '@angular/router';
 
 export interface Rol {
   rolId: number;
@@ -15,8 +17,25 @@ export interface Usuario {
   usuarioRun: string;
   usuarioDV: string;
   usuarioPassword?: string;
-  rol: Rol;
+  rolId: number;
   usuarioActivo: boolean;
+}
+
+interface UsuarioRaw {
+  usuarioId?: number;
+  usuarioEmail: string;
+  usuarioNombre: string;
+  usuarioRun: string;
+  usuarioDV: string;
+  usuarioPassword?: string;
+  usuarioActivo: boolean;
+
+  rolId?: number;
+  rol?: Rol;
+}
+
+interface UsuarioView extends Usuario {
+  rolNombre: string;
 }
 
 @Component({
@@ -26,42 +45,72 @@ export interface Usuario {
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })
-export class UsuariosComponent implements OnInit { 
-  
-  // Lista de roles
-  rolesDisponibles: Rol[] = [
-    { rolId: 1, rolNombre: 'ADMIN' },
-    { rolId: 2, rolNombre: 'VENDEDOR' },
-    { rolId: 3, rolNombre: 'BODEGUERO' }
-  ];
+export class UsuariosComponent implements OnInit {
 
+  rolesDisponibles: Rol[] = [];
   listaUsuarios: Usuario[] = [];
+  listaUsuariosView: UsuarioView[] = [];
 
   mostrarFormulario = false;
+
   usuarioActual: Usuario = this.crearUsuarioVacio();
 
-  constructor(private usuarioService: UsuarioService) {}
+  private rolesMap: Record<number, string> = {};
+
+  constructor(private usuarioService: UsuarioService, private router: Router) {}
 
   ngOnInit() {
-    this.cargarUsuarios();
+    this.cargarTodo();
   }
 
-  cargarUsuarios() {
-    this.usuarioService.obtenerUsuarios().subscribe({
-      next: (datosDelBackend) => {
-        console.log('¡Usuarios recibidos desde Spring Boot!', datosDelBackend);
-        this.listaUsuarios = datosDelBackend; 
+  cargarTodo() {
+    forkJoin({
+      roles: this.usuarioService.obtenerRoles(),
+      usuarios: this.usuarioService.obtenerUsuarios()
+    }).subscribe({
+      next: ({ roles, usuarios }) => {
+
+        this.rolesDisponibles = roles;
+
+        this.rolesMap = roles.reduce((acc, r) => {
+          acc[Number(r.rolId)] = r.rolNombre;
+          return acc;
+        }, {} as Record<number, string>);
+
+        this.listaUsuarios = usuarios.map((u: any) => ({
+          usuarioId: u.usuarioId,
+          usuarioEmail: u.usuarioEmail,
+          usuarioNombre: u.usuarioNombre,
+          usuarioRun: u.usuarioRun,
+          usuarioDV: u.usuarioDV,
+          usuarioPassword: u.usuarioPassword,
+          usuarioActivo: u.usuarioActivo,
+
+          rolId: Number(u.rolId ?? u.rol?.rolId ?? 0)
+        }));
+
+        this.rebuildView();
       },
-      error: (err) => {
-        console.error('Error al cargar usuarios:', err);
-      }
+      error: (err) => console.error('Error cargando datos:', err)
     });
+  }
+
+  private rebuildView() {
+    this.listaUsuariosView = this.listaUsuarios.map(u => ({
+      ...u,
+      rolNombre: this.rolesMap[Number(u.rolId)] ?? 'VACIO'
+    }));
   }
 
   crearUsuarioVacio(): Usuario {
     return {
-      usuarioEmail: '', usuarioNombre: '', usuarioRun: '', usuarioDV: '',
-      usuarioPassword: '', rol: this.rolesDisponibles[1], usuarioActivo: true
+      usuarioEmail: '',
+      usuarioNombre: '',
+      usuarioRun: '',
+      usuarioDV: '',
+      usuarioPassword: '',
+      rolId: 0,
+      usuarioActivo: true
     };
   }
 
@@ -71,50 +120,62 @@ export class UsuariosComponent implements OnInit {
   }
 
   editarUsuario(usuario: Usuario) {
-    this.usuarioActual = { ...usuario };
-    this.usuarioActual.usuarioPassword = ''; 
+    this.usuarioActual = {
+      ...usuario,
+      rolId: Number(usuario.rolId ?? 0),
+      usuarioPassword: ''
+    };
+
     this.mostrarFormulario = true;
   }
 
-  guardarUsuario() {
-    if (this.usuarioActual.usuarioId) {
-      this.usuarioService.actualizarUsuario(this.usuarioActual.usuarioId, this.usuarioActual).subscribe({
-        next: () => {
-          console.log('¡Usuario actualizado en la BD!');
-          this.cargarUsuarios();
-          this.mostrarFormulario = false;
-        },
-        error: (err) => console.error('Error al actualizar', err)
-      });
-    } else {
-      this.usuarioService.crearUsuario(this.usuarioActual).subscribe({
-        next: () => {
-          console.log('¡Usuario creado en la BD!');
-          this.cargarUsuarios();
-          this.mostrarFormulario = false;
-        },
-        error: (err) => console.error('Error al crear', err)
-      });
-    }
+  cancelar() {
+    this.mostrarFormulario = false;
   }
 
+  guardarUsuario() {
+
+  const payload: any = {
+    usuarioId: this.usuarioActual.usuarioId,
+    usuarioEmail: this.usuarioActual.usuarioEmail,
+    usuarioNombre: this.usuarioActual.usuarioNombre,
+    usuarioRun: this.usuarioActual.usuarioRun,
+    usuarioDV: this.usuarioActual.usuarioDV,
+    usuarioPassword: this.usuarioActual.usuarioPassword,
+    usuarioActivo: this.usuarioActual.usuarioActivo,
+
+    rol: {
+      rolId: Number(this.usuarioActual.rolId)
+    }
+  };
+
+  if (payload.usuarioId) {
+    this.usuarioService.actualizarUsuario(payload.usuarioId, payload).subscribe({
+      next: () => this.cargarTodo(),
+      error: (err) => console.error('Error al actualizar', err)
+    });
+  } else {
+    this.usuarioService.crearUsuario(payload).subscribe({
+      next: () => this.cargarTodo(),
+      error: (err) => console.error('Error al crear', err)
+    });
+  }
+
+  this.mostrarFormulario = false;
+}
+
   eliminarUsuario(id: number | undefined) {
-    if (!id) return; 
-    
-    const confirmar = confirm('¿Estás seguro de que deseas eliminar este usuario del sistema?');
-    
-    if (confirmar) {
+    if (!id) return;
+
+    if (confirm('¿Eliminar usuario?')) {
       this.usuarioService.eliminarUsuario(id).subscribe({
-        next: () => {
-          console.log('¡Usuario eliminado de la BD!');
-          this.cargarUsuarios(); 
-        },
+        next: () => this.cargarTodo(),
         error: (err) => console.error('Error al eliminar', err)
       });
     }
   }
 
-  cancelar() {
-    this.mostrarFormulario = false;
+  goHome() {
+    this.router.navigate(['/home']);
   }
 }

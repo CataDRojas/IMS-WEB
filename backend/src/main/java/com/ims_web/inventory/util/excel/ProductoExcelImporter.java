@@ -17,9 +17,22 @@ public class ProductoExcelImporter {
     }
 
     public List<ProductoExcelDTO> importProductos(InputStream inputStream) {
+
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
 
             Sheet sheet = workbook.getSheetAt(0);
+
+            if (sheet.getPhysicalNumberOfRows() <= 1) {
+                return List.of();
+            }
+
+            Row header = sheet.getRow(0);
+
+            if (header == null || header.getPhysicalNumberOfCells() < 6) {
+                throw new RuntimeException(
+                        "Invalid Excel format: expected 6 columns (codigo, nombre, precio, stock, categoria, cantidadLote)"
+                );
+            }
 
             return mapper.mapProductos(sheet);
 

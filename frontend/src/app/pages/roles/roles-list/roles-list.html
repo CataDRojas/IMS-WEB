@@ -1,0 +1,66 @@
+<h2>Roles</h2>
+<button (click)="goHome()">Go home</button>
+
+<button (click)="crear()">Nuevo rol</button>
+
+<hr />
+
+<table border="1" width="100%">
+  <thead>
+    <tr>
+      <th></th>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    <ng-container *ngFor="let rol of roles">
+
+      <tr>
+        <td>
+          <button (click)="toggleExpand(rol.rolId!)">
+            {{ expandedRoleId === rol.rolId ? '▼' : '▶' }}
+          </button>
+        </td>
+
+        <td>{{ rol.rolId }}</td>
+        <td>{{ rol.rolNombre }}</td>
+
+        <td>
+          <button (click)="editar(rol.rolId!)">Editar</button>
+          <button (click)="eliminar(rol.rolId!)">Eliminar</button>
+        </td>
+      </tr>
+
+      <tr *ngIf="expandedRoleId === rol.rolId">
+        <td colspan="4">
+
+          <div class="permissions-grid">
+
+            <div *ngFor="let perm of allPermissions">
+
+              <label>
+                <input
+                  type="checkbox"
+                  [checked]="hasPermission(rol, perm)"
+                  disabled
+                />
+
+                {{ permissionLabels[perm] }}
+
+              </label>
+
+            </div>
+
+          </div>
+
+        </td>
+      </tr>
+
+    </ng-container>
+
+  </tbody>
+</table>

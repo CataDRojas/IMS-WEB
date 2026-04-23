@@ -9,6 +9,7 @@ public class ProductoExcelDTO {
     private BigDecimal precio;
     private Integer stock;
     private String categoria;
+    private Integer cantidadLote;
 
     public String getCodigo() {
         return codigo;
@@ -48,5 +49,13 @@ public class ProductoExcelDTO {
 
     public void setCategoria(String categoria) {
         this.categoria = categoria;
+    }
+
+    public Integer getCantidadLote() {
+        return cantidadLote;
+    }
+
+    public void setCantidadLote(Integer cantidadLote) {
+        this.cantidadLote = cantidadLote;
     }
 }

@@ -53,9 +53,7 @@ public class MovimientoDetalleService {
         Producto producto = productoRepo.findById(detalle.getProducto().getProductoId())
                 .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
-        if (detalle.getMovimientoDetalleCantidad() <= 0) {
-            throw new IllegalArgumentException("Cantidad must be greater than zero");
-        }
+        validateDetalle(detalle);
 
         detalle.setMovimiento(movimiento);
         detalle.setProducto(producto);
@@ -77,11 +75,12 @@ public class MovimientoDetalleService {
             throw new IllegalStateException("Cannot modify detail of a confirmed movimiento");
         }
 
-        if (detalle.getMovimientoDetalleCantidad() <= 0) {
-            throw new IllegalArgumentException("Cantidad must be greater than zero");
-        }
+        validateDetalle(detalle);
 
         existing.setMovimientoDetalleCantidad(detalle.getMovimientoDetalleCantidad());
+        existing.setMovimientoDetalleUnidadesPorPaquete(
+                detalle.getMovimientoDetalleUnidadesPorPaquete()
+        );
         existing.setMovimientoDetalleDescripcion(detalle.getMovimientoDetalleDescripcion());
         existing.setMovimientoLugar(detalle.getMovimientoLugar());
 
@@ -104,5 +103,18 @@ public class MovimientoDetalleService {
 
         detalleRepo.delete(detalle);
         entityManager.flush();
+    }
+
+    private void validateDetalle(MovimientoDetalle detalle) {
+
+        if (detalle.getMovimientoDetalleCantidad() == null ||
+                detalle.getMovimientoDetalleCantidad() == 0) {
+            throw new IllegalArgumentException("Cantidad cannot be zero");
+        }
+
+        if (detalle.getMovimientoDetalleUnidadesPorPaquete() == null ||
+                detalle.getMovimientoDetalleUnidadesPorPaquete() < 1) {
+            throw new IllegalArgumentException("UnidadesPorPaquete must be >= 1");
+        }
     }
 }

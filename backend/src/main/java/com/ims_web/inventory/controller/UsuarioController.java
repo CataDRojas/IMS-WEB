@@ -1,7 +1,9 @@
 package com.ims_web.inventory.controller;
 
 import com.ims_web.inventory.entity.Usuario;
+import com.ims_web.inventory.entity.Rol;
 import com.ims_web.inventory.service.UsuarioService;
+import com.ims_web.inventory.service.RolService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +14,11 @@ import java.util.List;
 public class UsuarioController {
 
     private final UsuarioService service;
+    private final RolService rolService;
 
-    public UsuarioController(UsuarioService service) {
+    public UsuarioController(UsuarioService service, RolService rolService) {
         this.service = service;
+        this.rolService = rolService;
     }
 
     @GetMapping
@@ -57,5 +61,11 @@ public class UsuarioController {
     @PreAuthorize("hasAuthority('USUARIOS_MANAGE')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    @GetMapping("/roles")
+    @PreAuthorize("hasAuthority('USUARIOS_MANAGE')")
+    public List<Rol> getRolesForUsuarios() {
+        return rolService.getAll();
     }
 }

@@ -6,12 +6,13 @@ import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [FormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class LoginComponent {
-  
+
   credenciales = {
     email: '',
     password: ''
@@ -19,7 +20,8 @@ export class LoginComponent {
 
   constructor(
     private router: Router,
-    private auth: Auth) {}
+    private auth: Auth
+  ) {}
 
   iniciarSesion() {
     console.log('Intentando iniciar sesión con:', this.credenciales);
@@ -27,22 +29,30 @@ export class LoginComponent {
     this.auth.iniciarSesion(this.credenciales).subscribe({
       next: (respuesta: any) => {
         console.log('¡Éxito! El backend respondió esto:', respuesta);
-        
+
         if (respuesta.token) {
-          // 1. SE GUARDA EL TOKEN EN EL BOLSILLITO DEL NAVEGADOR
+
+          // AUTH
           localStorage.setItem('token_ims', respuesta.token);
-          localStorage.setItem('rol_ims', respuesta.rol);
           localStorage.setItem('nombre_ims', respuesta.nombre);
-          
-          // 2. Salta al Dashboard
-          this.router.navigate(['/home']); 
+
+          // ROL
+          localStorage.setItem('rol_ims', respuesta.rol);
+          localStorage.setItem('rol_id_ims', String(respuesta.rolId));
+
+          // PERMISOS
+          localStorage.setItem(
+            'permisos_ims',
+            JSON.stringify(respuesta.permisos ?? [])
+          );
+
+          this.router.navigate(['/home']);
         }
       },
       error: (error) => {
-        console.error('¡Ups! Conexión rechazada. Detalles del error:', error);
+        console.error('Login error:', error);
         alert('Credenciales incorrectas o error de conexión.');
       }
     });
   }
-
 }

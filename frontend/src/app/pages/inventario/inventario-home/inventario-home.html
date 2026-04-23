@@ -1,0 +1,20 @@
+<mat-toolbar color="primary">
+  <button mat-button (click)="volver()">⬅ Volver</button>
+  <span style="flex: 1; text-align: center">Inventario</span>
+</mat-toolbar>
+
+<mat-toolbar color="primary">
+  <span>Inventario</span>
+</mat-toolbar>
+
+<div class="container">
+  <mat-card class="card" (click)="goToNew()">
+    <h2>➕ Nuevo inventario</h2>
+    <p>Registrar entrada o ajuste de productos</p>
+  </mat-card>
+
+  <mat-card class="card" (click)="goToHistory()">
+    <h2>📅 Historial</h2>
+    <p>Revisar inventarios anteriores</p>
+  </mat-card>
+</div>

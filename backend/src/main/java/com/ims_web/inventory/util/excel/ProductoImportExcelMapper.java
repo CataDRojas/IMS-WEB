@@ -11,16 +11,13 @@ import java.util.List;
 @Component
 public class ProductoImportExcelMapper {
 
-    // =========================
-    // EXCEL → DTO
-    // =========================
     public List<ProductoExcelDTO> mapProductos(Sheet sheet) {
+
         List<ProductoExcelDTO> productos = new ArrayList<>();
 
-        // start at row 1 (row 0 = headers)
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-            Row row = sheet.getRow(i);
 
+            Row row = sheet.getRow(i);
             if (row == null) continue;
 
             ProductoExcelDTO dto = new ProductoExcelDTO();
@@ -28,10 +25,17 @@ public class ProductoImportExcelMapper {
             dto.setCodigo(getString(row.getCell(0)));
             dto.setNombre(getString(row.getCell(1)));
             dto.setPrecio(getBigDecimal(row.getCell(2)));
+
+            // STOCK
             dto.setStock(getInteger(row.getCell(3)));
+
+            // CATEGORIA
             dto.setCategoria(getString(row.getCell(4)));
 
-            // skip empty rows
+            // CANTIDAD POR LOTE
+            dto.setCantidadLote(getInteger(row.getCell(5)));
+
+            // PARA SALTARSE LAS FILAS VACIAS
             if (dto.getCodigo() == null && dto.getNombre() == null) {
                 continue;
             }
@@ -42,14 +46,12 @@ public class ProductoImportExcelMapper {
         return productos;
     }
 
-    // =========================
-    // DTO → EXCEL
-    // =========================
-    public void mapProductosToRow(Workbook workbook, Sheet sheet, List<ProductoExcelDTO> data) {
+    public void mapProductosToRow(Sheet sheet, List<ProductoExcelDTO> data) {
 
         int rowIndex = 1;
 
         for (ProductoExcelDTO dto : data) {
+
             Row row = sheet.createRow(rowIndex++);
 
             row.createCell(0).setCellValue(nvl(dto.getCodigo()));
@@ -59,17 +61,21 @@ public class ProductoImportExcelMapper {
                 row.createCell(2).setCellValue(dto.getPrecio().doubleValue());
             }
 
-            if (dto.getStock() != null) {
-                row.createCell(3).setCellValue(dto.getStock());
-            }
+            // STOCK
+            row.createCell(3).setCellValue(
+                    dto.getStock() != null ? dto.getStock() : 0
+            );
 
+            // CATEGORIA
             row.createCell(4).setCellValue(nvl(dto.getCategoria()));
+
+            // CANTIDAD POR LOTE
+            row.createCell(5).setCellValue(
+                    dto.getCantidadLote() != null ? dto.getCantidadLote() : 1
+            );
         }
     }
 
-    // =========================
-    // HELPERS (dirty Excel survival kit)
-    // =========================
 
     private String getString(Cell cell) {
         if (cell == null) return null;

@@ -30,7 +30,6 @@ public class DataInitializer {
                     "CONFIGURACION_MANAGE",
                     "CATEGORIA_READ", "CATEGORIA_MANAGE",
                     "DESCUENTO_READ", "DESCUENTO_MANAGE",
-                    "PERMISOS_MANAGE",
                     "ROLES_MANAGE",
                     "MOVIMIENTO_LUGAR_MANAGE",
                     "USUARIOS_MANAGE",

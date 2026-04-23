@@ -18,25 +18,25 @@ public class PermisosController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PERMISOS_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLES_MANAGE')")
     public List<Permisos> getAll() {
         return service.getAll();
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERMISOS_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLES_MANAGE')")
     public Permisos getById(@PathVariable Long id) {
         return service.getById(id);
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('PERMISOS_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLES_MANAGE')")
     public Permisos create(@RequestBody Permisos permiso) {
         return service.create(permiso);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERMISOS_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLES_MANAGE')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }

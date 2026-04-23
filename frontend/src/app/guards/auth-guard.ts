@@ -1,20 +1,23 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { Auth } from '../services/auth';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
-  
-  const token = localStorage.getItem('token_ims');
-  
-  console.log('El Guardia está revisando la puerta...');
-  console.log('¿Qué encontró en el bolsillo?:', token);
+  const auth = inject(Auth);
 
-  if (token) {
-    console.log('¡El Guardia te deja pasar a', route.url.toString(), '!');
-    return true; 
-  } else {
-    console.log('¡El Guardia te bloqueó el paso!');
+  const token = auth.getToken();
+  const permisos = auth.getPermisos();
+
+  if (!token) {
     router.navigate(['/login']);
     return false;
   }
+
+  if (!permisos || permisos.length === 0) {
+    router.navigate(['/login']);
+    return false;
+  }
+
+  return true;
 };
