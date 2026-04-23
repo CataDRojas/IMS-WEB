@@ -5,6 +5,8 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.UncategorizedSQLException;
+import org.springframework.security.authentication.BadCredentialsException; // 👈 NEW
+import org.springframework.security.access.AccessDeniedException; // 👈 NEW
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -14,6 +16,42 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // =========================
+    // 🔐 AUTH ERRORS (NEW)
+    // =========================
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, Object>> handleBadCredentials(
+            BadCredentialsException ex,
+            HttpServletRequest request
+    ) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("errorCode", "ERR_AUTH_INVALID");
+        body.put("message", "Credenciales incorrectas");
+        body.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("errorCode", "ERR_FORBIDDEN");
+        body.put("message", "Acceso denegado");
+        body.put("path", request.getRequestURI());
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    // =========================
+    // MAIN HANDLER (DB + TRIGGERS)
+    // =========================
 
     @ExceptionHandler({DataIntegrityViolationException.class, UncategorizedSQLException.class})
     public ResponseEntity<Map<String, Object>> handleDatabaseException(Exception ex, HttpServletRequest request) {
@@ -99,6 +137,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 
+    // =========================
+    // FALLBACK
+    // =========================
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex, HttpServletRequest request) {
 
@@ -109,6 +151,10 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
+    // =========================
+    // HELPER
+    // =========================
 
     private String extractRootMessage(Throwable ex) {
         Throwable root = ex;
