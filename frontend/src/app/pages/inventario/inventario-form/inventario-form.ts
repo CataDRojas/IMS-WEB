@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
 import { InventarioService } from '../../../services/inventario/inventario';
+import { BrowserMultiFormatReader } from '@zxing/browser';
 
 // Angular Material
 import { MatInputModule } from '@angular/material/input';
@@ -42,6 +43,60 @@ export class InventarioForm {
   productoEditando: any = null;
 
   lista: any[] = [];
+
+  // ==========================================
+  // 🔥 LÓGICA DE LA CÁMARA (TU CÓDIGO ORIGINAL)
+  // ==========================================
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  escanerAbierto = false;
+  codeReader = new BrowserMultiFormatReader();
+  controlesCamara: any;
+
+  abrirEscaner() {
+    this.estado = 'agregar'; // Cambiamos la vista para que se vea el HTML del escáner
+    this.escanerAbierto = true;
+    setTimeout(() => {
+      this.iniciarCamara();
+    }, 100);
+  }
+
+  iniciarCamara() {
+    this.codeReader.decodeFromVideoDevice(
+      undefined, 
+      this.videoElement.nativeElement, 
+      (result, err) => {
+        if (result) {
+          this.manejarEscaneoExitoso(result.getText());
+        }
+      }
+    ).then((controles) => {
+      this.controlesCamara = controles; 
+    }).catch(err => {
+      console.error('Error al abrir la cámara:', err);
+    });
+  }
+
+  cerrarEscaner() {
+    this.escanerAbierto = false;
+    
+    if (this.controlesCamara) {
+      this.controlesCamara.stop();
+      this.controlesCamara = null;
+    }
+  }
+
+  manejarEscaneoExitoso(codigoObtenido: string) {
+    // SONIDO
+    const sonidoCajero = new Audio('/sonidos/store-scanner-beep.mp3');
+    sonidoCajero.play().catch(e => console.log('No funcó el sonido'));
+
+    // 🔥 ADAPTADO A LA LÓGICA DE INVENTARIO
+    this.codigo = codigoObtenido; // Asignamos el código al input de Cristóbal
+    this.cerrarEscaner(); 
+    
+    // Disparamos la búsqueda automáticamente
+    this.buscarProducto();
+  }
 
   // BUSCAR PRODUCTO REAL EN BD
   buscarProducto() {

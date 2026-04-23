@@ -4,36 +4,56 @@
   <span>📤</span>
 </mat-toolbar>
 
-<div class="container">
-  <div *ngIf="estado === 'inicio'">
-    <button mat-raised-button color="primary" (click)="estado='agregar'">
-      📷 ESCANEAR PRODUCTO
-    </button>
+<div class="container" style="padding: 20px;">
 
-    <button mat-stroked-button (click)="estado='agregar'">✏️ INGRESAR CÓDIGO</button>
-  </div>
-
-  <div *ngIf="estado === 'agregar'">
-    <mat-card>
-      <input matInput placeholder="Código de barras" [(ngModel)]="codigo" />
-      <button mat-button (click)="buscarProducto()">Buscar</button>
-    </mat-card>
-
-    <mat-card *ngIf="productoEncontrado">
-      <h2>{{productoEncontrado.productoNombre}}</h2>
-      <p>{{productoEncontrado.categoria?.categoriaNombre}}</p>
-      <p><strong>Stock actual:</strong> {{productoEncontrado.productoStock}}</p>
-
-      <div>
-        <button mat-stroked-button (click)="disminuir()">-</button>
-        <span style="margin: 0 15px; font-size: 1.2rem">{{cantidad}}</span>
-        <button mat-stroked-button (click)="aumentar()">+</button>
+  <div *ngIf="estado === 'inicio' || estado === 'agregar'">
+    
+    <mat-card style="margin-bottom: 20px; padding: 20px;">
+      <label style="font-size: 1.1em; color: #333;"><strong>Código del Producto:</strong></label>
+      
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <input type="text" [(ngModel)]="codigo" 
+               placeholder="Tipea o escanea el código..." 
+               style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em;"
+               (keyup.enter)="buscarProducto()">
+        
+        <button mat-raised-button color="primary" (click)="buscarProducto()" style="padding: 0 20px;">
+          Buscar
+        </button>
+        
+        <button (click)="abrirEscaner()" title="Escanear Código" 
+                style="background: #17a2b8; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; font-size: 1.2em;">
+          📷
+        </button>
       </div>
 
-      <button mat-button color="warn" (click)="reset()">Cancelar</button>
-      <button mat-raised-button color="primary" (click)="agregarProducto()">
-        Agregar a la lista
-      </button>
+      <div *ngIf="escanerAbierto" style="margin-top: 15px; border: 2px dashed #17a2b8; padding: 15px; border-radius: 5px; text-align: center; background: #f8f9fa;">
+        <p style="margin-top: 0; font-size: 0.9em; font-weight: bold; color: #17a2b8;">Apunta el código de barras a la cámara</p>
+        <video #videoElement style="width: 100%; max-height: 250px; border-radius: 5px; background: #000;"></video>
+        <br>
+        <button mat-button color="warn" (click)="cerrarEscaner()" style="margin-top: 10px;">
+          Cancelar Escaneo
+        </button>
+      </div>
+    </mat-card>
+
+    <mat-card *ngIf="productoEncontrado" style="padding: 20px; text-align: center;">
+      <h2>{{productoEncontrado.productoNombre}}</h2>
+      <p style="color: gray;">{{productoEncontrado.categoria?.categoriaNombre}}</p>
+      <p><strong>Stock actual en BD:</strong> {{productoEncontrado.productoStock}}</p>
+
+      <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
+        <button mat-stroked-button (click)="disminuir()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">-</button>
+        <span style="margin: 0 25px; font-size: 1.8rem; font-weight: bold;">{{cantidad}}</span>
+        <button mat-stroked-button (click)="aumentar()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">+</button>
+      </div>
+
+      <div style="display: flex; justify-content: center; gap: 10px;">
+        <button mat-button color="warn" (click)="reset()">Cancelar</button>
+        <button mat-raised-button color="primary" (click)="agregarProducto()">
+          Agregar a la lista
+        </button>
+      </div>
     </mat-card>
   </div>
 
@@ -50,10 +70,7 @@
       <strong>Cantidad a ingresar: {{item.cantidadAgregada}}</strong>
     </mat-card>
 
-    <div
-      class="acciones"
-      style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px"
-    >
+    <div class="acciones" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px">
       <button mat-button (click)="estado='agregar'; reset()">➕ Agregar más productos</button>
       <button mat-stroked-button (click)="guardar()">Guardar borrador</button>
       <button mat-raised-button color="primary" (click)="finalizar()">
@@ -63,22 +80,25 @@
   </div>
 
   <div *ngIf="estado === 'editar'">
-    <mat-card>
+    <mat-card style="padding: 20px; text-align: center;">
       <h2>Editando: {{productoEditando.productoNombre}}</h2>
-      <p>{{productoEditando.categoria?.categoriaNombre}}</p>
+      <p style="color: gray;">{{productoEditando.categoria?.categoriaNombre}}</p>
 
-      <div>
-        <button mat-stroked-button (click)="disminuir()">-</button>
-        <span style="margin: 0 15px; font-size: 1.2rem">{{cantidad}}</span>
-        <button mat-stroked-button (click)="aumentar()">+</button>
+      <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
+        <button mat-stroked-button (click)="disminuir()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">-</button>
+        <span style="margin: 0 25px; font-size: 1.8rem; font-weight: bold;">{{cantidad}}</span>
+        <button mat-stroked-button (click)="aumentar()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">+</button>
       </div>
 
-      <button mat-button color="warn" (click)="eliminar(productoEditando); estado='lista'">
-        Sacar de la lista
-      </button>
-      <button mat-raised-button color="primary" (click)="modificarProducto()">
-        Modificar cantidad
-      </button>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button mat-button color="warn" (click)="eliminar(productoEditando); estado='lista'">
+          Sacar de la lista
+        </button>
+        <button mat-raised-button color="primary" (click)="modificarProducto()">
+          Modificar cantidad
+        </button>
+      </div>
     </mat-card>
   </div>
+
 </div>

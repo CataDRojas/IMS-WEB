@@ -10,8 +10,6 @@ import { authGuard } from './guards/auth-guard';
 import { permisosGuard } from './guards/permisos-guard';
 
 import { Ventas } from './pages/ventas/ventas';
-import { InicioInventario } from './pages/inicio-inventario/inicio-inventario';
-import { BusquedaInventario } from './pages/busqueda-inventario/busqueda-inventario';
 import { NOT_FOUND } from '@angular/core/primitives/di';
 
 import { NotFound } from './pages/not-found/not-found';
