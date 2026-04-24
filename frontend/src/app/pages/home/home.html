@@ -16,11 +16,7 @@
         Gestión de Roles
       </button>
 
-      <button
-        *ngIf="tienePermiso('PRODUCTO_READ')"
-        routerLink="/productos"
-        class="btn-action"
-      >
+      <button *ngIf="tienePermiso('PRODUCTO_READ')" routerLink="/productos" class="btn-action">
         🛒 Productos
       </button>
 
@@ -34,25 +30,17 @@
 
       <button
         *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')"
-        routerLink="/inventario"
+        routerLink="/inventario/nuevo"
         class="btn-action"
       >
         📋 Inventario
       </button>
 
-      <button
-        *ngIf="tienePermiso('CATEGORIA_READ')"
-        routerLink="/categorias"
-        class="btn-action"
-      >
+      <button *ngIf="tienePermiso('CATEGORIA_READ')" routerLink="/categorias" class="btn-action">
         📂 Categorías
       </button>
 
-      <button
-        *ngIf="tienePermiso('DESCUENTO_READ')"
-        routerLink="/descuentos"
-        class="btn-action"
-      >
+      <button *ngIf="tienePermiso('DESCUENTO_READ')" routerLink="/descuentos" class="btn-action">
         💰 Descuentos
       </button>
 
