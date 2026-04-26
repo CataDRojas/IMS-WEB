@@ -31,8 +31,10 @@ public class ProductoExcelExporter {
                 "Nombre",
                 "Precio",
                 "Stock",
+                "Stock Critico Numero",
+                "Cantidad Lote",
                 "Categoria",
-                "Cantidad Lote"
+                "Activo"
         };
 
         Row headerRow = sheet.createRow(0);

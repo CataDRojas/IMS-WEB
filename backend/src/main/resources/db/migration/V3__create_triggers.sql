@@ -282,3 +282,31 @@ BEGIN
         SET NEW.MovimientoDetallePrecioTotal = v_total_final;
     END IF;
 END;
+
+-- =========================
+-- PRODUCTO STOCK CRITICO AUTO FLAG (INSERT)
+-- =========================
+CREATE TRIGGER trg_producto_stock_critico_insert
+BEFORE INSERT ON productos
+FOR EACH ROW
+BEGIN
+    IF NEW.ProductoStock < NEW.ProductoCriticoNumero THEN
+        SET NEW.ProductoStockCritico = TRUE;
+    ELSE
+        SET NEW.ProductoStockCritico = FALSE;
+    END IF;
+END;
+
+-- =========================
+-- PRODUCTO STOCK CRITICO AUTO FLAG (UPDATE)
+-- =========================
+CREATE TRIGGER trg_producto_stock_critico_update
+BEFORE UPDATE ON productos
+FOR EACH ROW
+BEGIN
+    IF NEW.ProductoStock < NEW.ProductoCriticoNumero THEN
+        SET NEW.ProductoStockCritico = TRUE;
+    ELSE
+        SET NEW.ProductoStockCritico = FALSE;
+    END IF;
+END;

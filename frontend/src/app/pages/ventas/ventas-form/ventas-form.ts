@@ -129,46 +129,41 @@ buscarProducto() {
   // DISCOUNT SIMULATION
   // =========================
 
-  private simularDescuento(base: number, cantidad: number): number {
+private simularDescuento(base: number, cantidad: number, desc: any): number {
 
-    const desc = this.productoEncontrado?.descuento;
+  if (!desc) return 0;
 
-    if (!desc) return 0;
+  const tipo = desc.descuentoTipo;
+  const v1 = Number(desc.descuentoValor ?? 0);
+  const v2 = Number(desc.descuentoValorSecundario ?? 0);
 
-    const tipo = desc.descuentoTipo;
-    const v1 = Number(desc.descuentoValor ?? 0);
-    const v2 = Number(desc.descuentoValorSecundario ?? 0);
+  const total = base * cantidad;
 
-    const total = base * cantidad;
-
-    if (tipo === 'FLAT') {
-      return v1 * cantidad;
-    }
-
-    if (tipo === 'PORCENTAJE') {
-      return total * (v1 / 100);
-    }
-
-    if (tipo === 'MULTIPLICATIVO') {
-
-      if (v1 <= 0) return 0;
-
-      const groupSize = v1;
-      const paidPerGroup = v2 > 0 ? v2 : (groupSize - 1);
-
-      const fullGroups = Math.floor(cantidad / groupSize);
-      const remainder = cantidad % groupSize;
-
-      const payableUnits =
-        (fullGroups * paidPerGroup) + remainder;
-
-      const freeUnits = cantidad - payableUnits;
-
-      return freeUnits * base;
-    }
-
-    return 0;
+  if (tipo === 'FLAT') {
+    return v1 * cantidad;
   }
+
+  if (tipo === 'PORCENTAJE') {
+    return total * (v1 / 100);
+  }
+
+  if (tipo === 'MULTIPLICATIVO') {
+
+    if (v1 <= 0) return 0;
+
+    const groupSize = v1;
+    const paidPerGroup = v2 > 0 ? v2 : (groupSize - 1);
+
+    const fullGroups = Math.floor(cantidad / groupSize);
+    const remainder = cantidad % groupSize;
+
+    const payableUnits = (fullGroups * paidPerGroup) + remainder;
+
+    return (cantidad - payableUnits) * base;
+  }
+
+  return 0;
+}
 
   // =========================
   // ADD PRODUCT
@@ -182,7 +177,9 @@ buscarProducto() {
     const base = this.productoEncontrado.productoPrecio;
     const qty = this.cantidad;
 
-    const descuentoTotal = this.simularDescuento(base, qty);
+    const desc = this.productoEncontrado?.descuento;
+
+    const descuentoTotal = this.simularDescuento(base, qty, desc);
     const unitario = base - (descuentoTotal / qty);
 
     const existing = this.detalles.find(d =>
@@ -194,7 +191,8 @@ buscarProducto() {
       existing.movimientoDetalleCantidad += qty;
 
       const newQty = existing.movimientoDetalleCantidad;
-      const newDesc = this.simularDescuento(base, newQty);
+      const desc = existing.descuento;
+      const newDesc = this.simularDescuento(base, newQty, desc);
 
       existing.movimientoDetalleDescuentoAplicado = newDesc / newQty;
       existing.movimientoDetallePrecioBase = base;
@@ -207,11 +205,12 @@ buscarProducto() {
       this.detalles.push({
         productoId: this.productoEncontrado.productoId,
         productoNombre: this.productoEncontrado.productoNombre,
+        descuento: desc, // 🔥 freeze it
         movimientoDetalleCantidad: qty,
         movimientoDetallePrecioBase: base,
         movimientoDetalleDescuentoAplicado: descuentoTotal / qty,
-        movimientoDetallePrecioUnitario: unitario,
-        movimientoDetallePrecioTotal: unitario * qty
+        movimientoDetallePrecioUnitario: base - (descuentoTotal / qty),
+        movimientoDetallePrecioTotal: (base - (descuentoTotal / qty)) * qty
       });
     }
 
@@ -228,7 +227,9 @@ buscarProducto() {
     const base = detalle.movimientoDetallePrecioBase;
     const qty = detalle.movimientoDetalleCantidad;
 
-    const descuentoTotal = this.simularDescuento(base, qty);
+    const desc = detalle.descuento;
+
+    const descuentoTotal = this.simularDescuento(base, qty, desc);
 
     detalle.movimientoDetalleDescuentoAplicado = descuentoTotal / qty;
     detalle.movimientoDetallePrecioUnitario = base - (descuentoTotal / qty);

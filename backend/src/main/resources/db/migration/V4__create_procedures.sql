@@ -178,18 +178,26 @@ BEGIN
 
     IF v_tipo = 'ENTRADA' THEN
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock +
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock + resumen.total;
     ELSE
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock -
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock - resumen.total;
     END IF;
 END$$
 
@@ -206,39 +214,27 @@ BEGIN
     WHERE MovimientoId = p_movimiento_id;
 
     IF v_tipo = 'ENTRADA' THEN
-
-        -- =========================================
-        -- SAFETY CHECK (ENTRADA rollback only)
-        -- =========================================
-        IF EXISTS (
-            SELECT 1
-            FROM productos p
-            JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-            WHERE d.MovimientoId = p_movimiento_id
-              AND p.ProductoStock <
-                  (d.MovimientoDetalleCantidad *
-                   IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        ) THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'ERR_ROLLBACK_STOCK_NEGATIVE';
-        END IF;
-
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock -
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
-
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock - resumen.total;
     ELSE
-
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock +
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
-
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock + resumen.total;
     END IF;
 END$$
 
