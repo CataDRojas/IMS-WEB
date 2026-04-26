@@ -106,10 +106,6 @@ proc: BEGIN
     FROM Movimiento
     WHERE MovimientoId = p_movimiento_id;
 
-    IF v_tipo <> 'SALIDA' THEN
-        LEAVE proc;
-    END IF;
-
     -- =========================
     -- BASE VALUE (matches detail model)
     -- =========================
