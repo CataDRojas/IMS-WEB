@@ -138,7 +138,7 @@ CREATE TABLE MovimientoDetalle (
     MovimientoDetalleCantidad INT NOT NULL,
     MovimientoDetalleUnidadesPorPaquete INT NOT NULL DEFAULT 1,
 
-    MovimientoDetallePrecioBase DECIMAL(12,2) NOT NULL,
+    MovimientoDetallePrecioBase DECIMAL(12,2) ,
     MovimientoDetalleDescuentoAplicado DECIMAL(12,2),
     MovimientoDetallePrecioUnitario DECIMAL(12,2),
     MovimientoDetallePrecioTotal DECIMAL(12,2),

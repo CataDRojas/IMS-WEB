@@ -2,7 +2,18 @@
   <button mat-button (click)="volver()">⬅ Volver</button>
   <span style="flex: 1; text-align: center">VENTAS</span>
 </mat-toolbar>
-
+<!-- ========================= -->
+<!-- success DISPLAY -->
+<!-- ========================= -->
+<mat-card *ngIf="successMessage" style="margin: 15px; background: #e8f5e9; color: #2e7d32">
+  <strong>Éxito:</strong> {{ successMessage }}
+</mat-card>
+<!-- ========================= -->
+<!-- ERROR DISPLAY -->
+<!-- ========================= -->
+<mat-card *ngIf="errorMessage" style="margin: 15px; background: #ffebee; color: #c62828">
+  <strong>Error:</strong> {{ errorMessage }}
+</mat-card>
 <div style="padding: 20px; max-width: 600px; margin: auto">
 
   <!-- ========================= -->

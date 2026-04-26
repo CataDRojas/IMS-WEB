@@ -11,6 +11,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { Location } from '@angular/common';
 import { PagoTarjeta } from '../../../services/pago-tarjeta';
 import { BoletaService } from '../../../services/boleta';
+import { ApiError } from '../../../core/errors/api-error';
 
 import { VentasService } from '../../../services/ventas/ventas';
 
@@ -51,7 +52,9 @@ export class VentasForm implements OnInit {
   controlesCamara: any;
   descuentoHeader: number = 0;
 
-
+  errorMessage: string | null = null;
+  errorCode: string | null = null;
+  successMessage: string | null = null;
 
   constructor(
     private router: Router,
@@ -85,23 +88,42 @@ export class VentasForm implements OnInit {
   // PRODUCTO
   // =========================
 
-  buscarProducto() {
-    if (!this.codigo?.trim()) return;
+buscarProducto() {
+  if (!this.codigo?.trim()) return;
 
-    const codigoLimpio = this.codigo.trim();
+  const codigoLimpio = this.codigo.trim();
 
-    this.ventasService.getProductoByCodigo(codigoLimpio).subscribe({
-      next: (prod: any) => {
-        this.productoEncontrado = prod;
-        this.cantidad = 1;
-        this.agregarProductoLocal();
-      },
-      error: () => {
-        this.productoEncontrado = null;
-        alert('❌ Producto no encontrado');
-      }
-    });
-  }
+  // optional: clear previous messages on new search
+  this.errorMessage = null;
+  this.errorCode = null;
+  this.successMessage = null;
+
+  this.ventasService.getProductoByCodigo(codigoLimpio).subscribe({
+    next: (prod: any) => {
+
+      this.productoEncontrado = prod;
+      this.cantidad = 1;
+
+      this.agregarProductoLocal();
+
+      // success feedback (optional but consistent UX)
+      this.successMessage = `Producto ${prod.productoNombre} agregado`;
+      this.errorMessage = null;
+      this.errorCode = null;
+    },
+
+    error: (err) => {
+
+      this.productoEncontrado = null;
+
+      this.errorCode = err?.errorCode || 'ERR_UNKNOWN';
+      this.errorMessage = err?.message || 'Producto no encontrado';
+
+      // ensure success is cleared on failure
+      this.successMessage = null;
+    }
+  });
+}
 
   // =========================
   // DISCOUNT SIMULATION
@@ -294,15 +316,17 @@ onDetalleCantidadChange(detalle: any, value: number) {
 
 async finalizarVenta() {
 
-  if (!this.metodoPago) {
-    alert('Seleccione método de pago');
-    return;
-  }
+if (!this.metodoPago) {
+  this.errorCode = 'ERR_VALIDATION';
+  this.errorMessage = 'Seleccione método de pago';
+  return;
+}
 
-  if (this.detalles.length === 0) {
-    alert('No hay productos');
-    return;
-  }
+if (this.detalles.length === 0) {
+  this.errorCode = 'ERR_VALIDATION';
+  this.errorMessage = 'No hay productos';
+  return;
+}
 
   // =========================
   // 💳 TARJETA FLOW (SIMULATED)
@@ -341,14 +365,14 @@ async finalizarVenta() {
 
   try {
 
-    // 🔹 1. Crear movimiento + detalles (backend handles everything)
+    // 🔹 1. Create movimiento + detalles (atomic backend)
     const mov: any = await this.ventasService
       .createMovimiento(payload)
       .toPromise();
 
     const movimientoId = mov.movimientoId;
 
-    // 🔹 2. Confirmar movimiento
+    // 🔹 2. Confirm movimiento
     await this.ventasService
       .confirmarMovimiento(movimientoId)
       .toPromise();
@@ -384,7 +408,12 @@ async finalizarVenta() {
     // 🔹 3. Print boleta
     this.boletaService.print(boleta);
 
-    alert('Venta registrada correctamente');
+    this.errorMessage = null;
+    this.errorCode = null;
+
+    this.successMessage = 'Venta registrada correctamente';
+    this.errorMessage = null;
+    this.errorCode = null;
 
     // 🔹 4. Reset UI
     this.detalles = [];
@@ -395,10 +424,43 @@ async finalizarVenta() {
 
     this.router.navigate(['/ventas']);
 
-  } catch (err) {
-    console.error(err);
-    alert('Error procesando venta');
+} catch (err: any) {
+
+  console.error(err);
+
+  // store error for UI
+  this.errorMessage = err?.message || null;
+  this.errorCode = err?.errorCode || null;
+
+  switch (err.errorCode) {
+
+    case 'ERR_STOCK_NEGATIVE':
+      this.errorMessage = 'No hay suficiente stock para completar la operación';
+      break;
+
+    case 'ERR_DUPLICATE':
+      this.errorMessage = 'Registro duplicado';
+      break;
+
+    case 'ERR_FK_CONSTRAINT':
+    case 'ERR_FK_MOVIMIENTO_DETALLE':
+    case 'ERR_FK_PRODUCTO':
+      this.errorMessage = 'Error de referencia (producto o movimiento inválido)';
+      break;
+
+    case 'ERR_MOVIMIENTO_ESTADO_INVALID':
+      this.errorMessage = 'Estado de movimiento inválido';
+      break;
+
+    case 'ERR_INTERNAL':
+      this.errorMessage = 'Error interno del sistema';
+      break;
+
+    default:
+      this.errorMessage = err?.message || 'Error inesperado';
+      break;
   }
+}
 }
 
 

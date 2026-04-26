@@ -79,8 +79,6 @@ BEGIN
     SET NEW.ConfiguracionId = 1;
 END;
 
-
-
 -- =========================
 -- STOCK STATE CONTROL
 -- =========================
@@ -117,7 +115,6 @@ BEGIN
     DECLARE digit INT;
     DECLARE mod11 INT;
 
-    -- OPTIONAL FIELD HANDLING
     IF NEW.UsuarioRun IS NULL OR TRIM(NEW.UsuarioRun) = '' THEN
 
         IF NEW.UsuarioDV IS NOT NULL AND TRIM(NEW.UsuarioDV) <> '' THEN
@@ -130,19 +127,16 @@ BEGIN
         SET body = TRIM(NEW.UsuarioRun);
         SET dv_input = UPPER(TRIM(NEW.UsuarioDV));
 
-        -- DV required
         IF dv_input IS NULL OR dv_input = '' THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ERR_RUT_MISSING_DV';
         END IF;
 
-        -- NUMERIC VALIDATION
         IF body REGEXP '[^0-9]' THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ERR_RUT_NON_NUMERIC';
         END IF;
 
-        -- CALCULATION
         SET i = CHAR_LENGTH(body);
         SET sum = 0;
         SET mult = 2;
@@ -165,7 +159,6 @@ BEGIN
             SET dv_calc = CAST(mod11 AS CHAR);
         END IF;
 
-        -- FINAL VALIDATION
         IF dv_calc <> dv_input THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ERR_RUT_DV_MISMATCH';
@@ -175,7 +168,6 @@ BEGIN
 
 END;
 
-
 -- =========================================
 -- MOVIMIENTO DETALLE CALCULATION (INSERT)
 -- =========================================
@@ -184,83 +176,53 @@ BEFORE INSERT ON MovimientoDetalle
 FOR EACH ROW
 BEGIN
     DECLARE v_tipo_mov VARCHAR(50);
-
     DECLARE v_precio_base DECIMAL(12,2);
     DECLARE v_descuento_total DECIMAL(12,2);
     DECLARE v_cantidad_real INT;
     DECLARE v_total_final DECIMAL(12,2);
 
-    -- =========================
-    -- GET MOVIMIENTO TYPE (GATE)
-    -- =========================
     SELECT MovimientoTipo
     INTO v_tipo_mov
     FROM Movimiento
     WHERE MovimientoId = NEW.MovimientoId;
 
-    -- =========================
-    -- IF NOT SALIDA → SKIP LOGIC
-    -- =========================
     IF v_tipo_mov <> 'SALIDA' THEN
-
-        SET NEW.MovimientoDetallePrecioBase = NULL;
-        SET NEW.MovimientoDetalleDescuentoAplicado = NULL;
-        SET NEW.MovimientoDetallePrecioUnitario = NULL;
-        SET NEW.MovimientoDetallePrecioTotal = NULL;
+        SET NEW.MovimientoDetallePrecioBase = IFNULL(NEW.MovimientoDetallePrecioBase, 0);
+        SET NEW.MovimientoDetalleDescuentoAplicado = IFNULL(NEW.MovimientoDetalleDescuentoAplicado, 0);
+        SET NEW.MovimientoDetallePrecioUnitario = IFNULL(NEW.MovimientoDetallePrecioUnitario, 0);
+        SET NEW.MovimientoDetallePrecioTotal = IFNULL(NEW.MovimientoDetallePrecioTotal, 0);
 
     ELSE
 
-        -- real units
         SET v_cantidad_real =
             NEW.MovimientoDetalleCantidad *
             IFNULL(NULLIF(NEW.MovimientoDetalleUnidadesPorPaquete, 0), 1);
 
-        -- snapshot price (IVA INCLUDED already in your model)
-        SELECT ProductoPrecio
-        INTO v_precio_base
+        SELECT ProductoPrecio INTO v_precio_base
         FROM productos
         WHERE ProductoId = NEW.ProductoId;
 
-        -- discount engine (returns total discount for whole line)
         CALL sp_calcular_descuento_producto(
-            NEW.ProductoId,
-            v_precio_base,
-            v_cantidad_real,
-            v_descuento_total
+            NEW.ProductoId, v_precio_base, v_cantidad_real, v_descuento_total
         );
 
-        -- safety
         SET v_descuento_total = IFNULL(v_descuento_total, 0);
 
-        -- total after discount (still IVA-included model)
         SET v_total_final =
-            (v_precio_base * v_cantidad_real) - v_descuento_total;
+            GREATEST(0, (v_precio_base * v_cantidad_real) - v_descuento_total);
 
-        -- prevent negatives
-        SET v_total_final = GREATEST(0, v_total_final);
-
-        -- persist base price snapshot
         SET NEW.MovimientoDetallePrecioBase = v_precio_base;
 
-        -- per-unit discount
         SET NEW.MovimientoDetalleDescuentoAplicado =
-            CASE
-                WHEN v_cantidad_real = 0 THEN 0
-                ELSE v_descuento_total / v_cantidad_real
-            END;
+            CASE WHEN v_cantidad_real = 0 THEN 0
+                 ELSE v_descuento_total / v_cantidad_real END;
 
-        -- final unit price (after discount, still IVA-included system)
         SET NEW.MovimientoDetallePrecioUnitario =
-            CASE
-                WHEN v_cantidad_real = 0 THEN 0
-                ELSE v_total_final / v_cantidad_real
-            END;
+            CASE WHEN v_cantidad_real = 0 THEN 0
+                 ELSE v_total_final / v_cantidad_real END;
 
-        -- row total
         SET NEW.MovimientoDetallePrecioTotal = v_total_final;
-
     END IF;
-
 END;
 
 -- =========================================
@@ -271,81 +233,52 @@ BEFORE UPDATE ON MovimientoDetalle
 FOR EACH ROW
 BEGIN
     DECLARE v_tipo_mov VARCHAR(50);
-
     DECLARE v_precio_base DECIMAL(12,2);
     DECLARE v_descuento_total DECIMAL(12,2);
     DECLARE v_cantidad_real INT;
     DECLARE v_total_final DECIMAL(12,2);
 
-    -- =========================
-    -- GET MOVIMIENTO TYPE
-    -- =========================
     SELECT MovimientoTipo
     INTO v_tipo_mov
     FROM Movimiento
     WHERE MovimientoId = NEW.MovimientoId;
 
-    -- =========================
-    -- NON-SALIDA GATE
-    -- =========================
     IF v_tipo_mov <> 'SALIDA' THEN
 
-        SET NEW.MovimientoDetallePrecioBase = NULL;
-        SET NEW.MovimientoDetalleDescuentoAplicado = NULL;
-        SET NEW.MovimientoDetallePrecioUnitario = NULL;
-        SET NEW.MovimientoDetallePrecioTotal = NULL;
+        SET NEW.MovimientoDetallePrecioBase = IFNULL(NEW.MovimientoDetallePrecioBase, 0);
+        SET NEW.MovimientoDetalleDescuentoAplicado = IFNULL(NEW.MovimientoDetalleDescuentoAplicado, 0);
+        SET NEW.MovimientoDetallePrecioUnitario = IFNULL(NEW.MovimientoDetallePrecioUnitario, 0);
+        SET NEW.MovimientoDetallePrecioTotal = IFNULL(NEW.MovimientoDetallePrecioTotal, 0);
 
     ELSE
 
-        -- real units
         SET v_cantidad_real =
             NEW.MovimientoDetalleCantidad *
             IFNULL(NULLIF(NEW.MovimientoDetalleUnidadesPorPaquete, 0), 1);
 
-        -- base price snapshot
-        SELECT ProductoPrecio
-        INTO v_precio_base
+        SELECT ProductoPrecio INTO v_precio_base
         FROM productos
         WHERE ProductoId = NEW.ProductoId;
 
-        -- discount engine
         CALL sp_calcular_descuento_producto(
-            NEW.ProductoId,
-            v_precio_base,
-            v_cantidad_real,
-            v_descuento_total
+            NEW.ProductoId, v_precio_base, v_cantidad_real, v_descuento_total
         );
 
-        -- safety
         SET v_descuento_total = IFNULL(v_descuento_total, 0);
 
-        -- final row total
         SET v_total_final =
-            (v_precio_base * v_cantidad_real) - v_descuento_total;
+            GREATEST(0, (v_precio_base * v_cantidad_real) - v_descuento_total);
 
-        SET v_total_final = GREATEST(0, v_total_final);
-
-        -- persist base
         SET NEW.MovimientoDetallePrecioBase = v_precio_base;
 
-        -- per-unit discount
         SET NEW.MovimientoDetalleDescuentoAplicado =
-            CASE
-                WHEN v_cantidad_real = 0 THEN 0
-                ELSE v_descuento_total / v_cantidad_real
-            END;
+            CASE WHEN v_cantidad_real = 0 THEN 0
+                 ELSE v_descuento_total / v_cantidad_real END;
 
-        -- unit price after discount
         SET NEW.MovimientoDetallePrecioUnitario =
-            CASE
-                WHEN v_cantidad_real = 0 THEN 0
-                ELSE v_total_final / v_cantidad_real
-            END;
+            CASE WHEN v_cantidad_real = 0 THEN 0
+                 ELSE v_total_final / v_cantidad_real END;
 
-        -- total
         SET NEW.MovimientoDetallePrecioTotal = v_total_final;
-
     END IF;
-
 END;
-
