@@ -4,12 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BrowserMultiFormatReader } from '@zxing/browser'; // CAMARA 
 
+//Angular Materials
+import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { MatButtonModule } from '@angular/material/button';
+
 import { ProductoService, Producto } from '../../services/producto/producto';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatExpansionModule, MatExpansionPanel, MatIconModule, MatButtonModule],
   templateUrl: './productos.html',
   styleUrls: ['./productos.css']
 })
@@ -20,6 +26,7 @@ export class ProductosComponent implements OnInit {
   productos: Producto[] = [];
   categorias: any[] = [];
   descuentos: any[] = [];
+  rolUsuario = localStorage.getItem('rol_ims') ?? 'Invitado';
 
   mostrarFormulario = false;
 
@@ -32,6 +39,18 @@ export class ProductosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatos();
+  }
+
+  // Función rápida para chequear si es admin
+  esAdmin(): boolean {
+    return this.rolUsuario === 'ADMIN'; // Ajusta según el string exacto que envíe tu backend
+  }
+  
+  // Para las otras pantallas mantienes tu lógica de permisos si prefieres
+  tienePermiso(permiso: string): boolean {
+    const stored = localStorage.getItem('permisos_ims');
+    const permisos = stored ? JSON.parse(stored) : [];
+    return permisos.includes(permiso);
   }
 
   // CARGA DE DATOS

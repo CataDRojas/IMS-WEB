@@ -1,68 +1,68 @@
-<div class="dashboard-container">
-  <header class="dashboard-header">
-    <h1>Bienvenido a IMS-Web 👋</h1>
-    <p>Hola, {{ nombreUsuario }}</p>
+<div class="home-mobile-wrapper">
+  
+  <header class="user-profile-nav">
+    <div class="user-details">
+      <span class="welcome-text">Bienvenido,</span>
+      <h2 class="user-name">{{ nombreUsuario }}</h2>
+      <span class="user-role">{{ rolUsuario }}</span>
+    </div>
+
+    <button mat-icon-button [matMenuTriggerFor]="menuConfig" class="settings-btn">
+      <mat-icon>settings</mat-icon>
+    </button>
+
+    <mat-menu #menuConfig="matMenu" xPosition="before" class="custom-menu">
+      <button mat-menu-item routerLink="/usuarios" *ngIf="tienePermiso('USUARIOS_MANAGE')">
+        <mat-icon class="menu-icon">group</mat-icon>
+        <span>Configuración de Usuarios</span>
+      </button>
+      <button mat-menu-item routerLink="/roles" *ngIf="tienePermiso('ROLES_MANAGE')">
+        <mat-icon class="menu-icon">admin_panel_settings</mat-icon>
+        <span>Gestión de Roles</span>
+      </button>
+      <button mat-menu-item routerLink="/categorias" *ngIf="tienePermiso('CATEGORIA_READ')">
+        <mat-icon class="menu-icon">category</mat-icon>
+        <span>Categorías</span>
+      </button>
+      <button mat-menu-item routerLink="/descuentos" *ngIf="tienePermiso('DESCUENTO_READ')">
+        <mat-icon class="menu-icon">sell</mat-icon>
+        <span>Descuentos</span>
+      </button>
+      <button mat-menu-item routerLink="/lugares" *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')">
+        <mat-icon class="menu-icon">location_on</mat-icon>
+        <span>Áreas de Almacenaje</span>
+      </button>
+      <mat-divider></mat-divider>
+
+      <button mat-menu-item (click)="logout()" class="logout-item">
+        <mat-icon>logout</mat-icon>
+        <span>Cerrar Sesión</span>
+      </button>
+    </mat-menu>
   </header>
 
-  <div class="quick-actions">
-    <h2>Acciones Rápidas</h2>
+  <main class="action-grid">
+    
+    <button class="btn-main btn-sale" routerLink="/ventas" 
+            *ngIf="tienePermiso('MOVIMIENTO_READ') || tienePermiso('MOVIMIENTO_MANAGE')">
+      <mat-icon class="giant-icon">point_of_sale</mat-icon>
+      <div class="btn-text">
+        <span class="title">INICIAR VENTA</span>
+        <span class="subtitle">Registrar nuevo movimiento</span>
+      </div>
+    </button>
 
-    <div class="action-buttons">
-      <button *ngIf="tienePermiso('USUARIOS_MANAGE')" routerLink="/usuarios" class="btn-action">
-        Configuración de Usuarios
+    <div class="secondary-row">
+      <button class="btn-main btn-inventory" routerLink="/productos" *ngIf="tienePermiso('PRODUCTO_READ')">
+        <mat-icon>inventory_2</mat-icon>
+        <span>Catálogo</span>
       </button>
 
-      <button *ngIf="tienePermiso('ROLES_MANAGE')" routerLink="/roles" class="btn-action">
-        Gestión de Roles
-      </button>
-
-      <button
-        *ngIf="tienePermiso('PRODUCTO_READ')"
-        routerLink="/productos"
-        class="btn-action"
-      >
-        🛒 Productos
-      </button>
-
-      <button
-        *ngIf="tienePermiso('MOVIMIENTO_READ') || tienePermiso('MOVIMIENTO_MANAGE')"
-        routerLink="/ventas"
-        class="btn-action"
-      >
-        💸 Ventas / Movimientos
-      </button>
-
-      <button
-        *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')"
-        routerLink="/inventario"
-        class="btn-action"
-      >
-        📋 Inventario
-      </button>
-
-      <button
-        *ngIf="tienePermiso('CATEGORIA_READ')"
-        routerLink="/categorias"
-        class="btn-action"
-      >
-        📂 Categorías
-      </button>
-
-      <button
-        *ngIf="tienePermiso('DESCUENTO_READ')"
-        routerLink="/descuentos"
-        class="btn-action"
-      >
-        💰 Descuentos
-      </button>
-
-      <button
-        *ngIf="tienePermiso('MOVIMIENTO_LUGAR_MANAGE')"
-        routerLink="/lugares"
-        class="btn-action"
-      >
-        🏢 Gestión de Áreas de almacenaje
+      <button class="btn-main btn-inventory" routerLink="/inventario" *ngIf="tienePermiso('MOVIMIENTO_MANAGE')">
+        <mat-icon>assignment</mat-icon>
+        <span>Inventario</span>
       </button>
     </div>
-  </div>
+
+  </main>
 </div>

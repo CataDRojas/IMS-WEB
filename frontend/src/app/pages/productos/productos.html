@@ -1,203 +1,245 @@
-<div class="productos-container" style="padding: 20px;">
-  <button (click)="goHome()">Go home</button>
-  
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2>📦 Catálogo de Productos</h2>
-    
-    <div style="display: flex; gap: 10px;">
-      <input type="file" #fileInput (change)="subirExcel($event)" accept=".xlsx, .xls" style="display: none;">
-      
-      <button (click)="activarSubidaExcel()" style="background-color: #17a2b8; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-        ⬆️ Importar Excel
-      </button>
-
-      <button (click)="descargarExcel()" style="background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-        ⬇️ Exportar Excel
-      </button>
-      
-      <button *ngIf="categorias.length > 0" (click)="abrirNuevo()" style="background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-        + Nuevo Producto
-      </button>
+<div class="productos-container">
+  <header class="header-section">
+    <div class="header-title-container">
+      <h2>📦 Catálogo de Productos</h2>
     </div>
-  </div>
 
-  <div *ngIf="categorias.length === 0" style="background-color: #fff3cd; color: #856404; padding: 15px; border-left: 5px solid #ffeeba; margin-bottom: 20px;">
-    <strong>⚠️ Atención:</strong> No puedes crear productos porque no hay categorías registradas.
-  </div>
+    <div class="header-actions-container">
+      <input
+          type="file"
+          #fileInput
+          (change)="subirExcel($event)"
+          accept=".xlsx, .xls"
+          style="display: none"
+        />
 
-  <div *ngIf="mensajeError" style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px;">
-    {{ mensajeError }}
-  </div>
-
-  <div *ngIf="mensajeExito" style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px;">
-    {{ mensajeExito }}
-  </div>
-
-  <table style="width: 100%; border-collapse: collapse; text-align: left; background: white;">
-    <thead>
-      <tr style="background-color: #f4f4f4; border-bottom: 2px solid #ddd;">
-        <th style="padding: 12px;">Código</th>
-        <th style="padding: 12px;">Nombre</th>
-        <th style="padding: 12px;">Categoría</th>
-        <th style="padding: 12px;">Precio</th>
-        <th style="padding: 12px;">Stock</th>
-        <th style="padding: 12px;">Estado</th>
-        <th style="padding: 12px;">Acciones</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <tr *ngFor="let prod of productos" style="border-bottom: 1px solid #eee;">
+      <div class="actions-group" *ngIf="esAdmin()">
         
-        <td style="padding: 12px; font-family: monospace;">
-          {{ prod.productoCodigo }}
-        </td>
+        <button class="btn-base btn-import" (click)="activarSubidaExcel()">
+          <mat-icon>upload</mat-icon> Importar
+        </button>
+        <button class="btn-base btn-export" (click)="descargarExcel()">
+          <mat-icon>download</mat-icon> Exportar
+        </button>
+        <button
+          class="btn-base btn-new"
+          *ngIf="categorias.length > 0" (click)="abrirNuevo()"
+        >
+          <mat-icon>add</mat-icon> Nuevo
+        </button>
+      </div>
+    </div>
+  </header>
 
-        <td style="padding: 12px;">
-          <strong>{{ prod.productoNombre }}</strong>
-        </td>
+  <!-- VISTA TELEFONO -->
+  <div class="mobile-list">
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let prod of productos">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="product-title">
+            {{ prod.productoNombre }}
+          </mat-panel-title>
+          <mat-panel-description>
+            <span class="product-price-tag">${{ prod.productoPrecio }}</span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
-        <td style="padding: 12px;">
-          {{ prod.categoria?.categoriaNombre || '—' }}
-        </td>
+        <div class="product-details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Código</span>
+            <span class="detail-value">{{ prod.productoCodigo }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Stock</span>
+            <span
+              class="detail-value"
+              [class.stock-alert]="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
+            >
+              {{ prod.productoStock }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Descuento</span>
+            <span class="detail-value"
+              >{{ prod.descuento?.descuentoNombre || '—' }}</span
+            >
+          </div>
 
-        <td style="padding: 12px;">
-          ${{ prod.productoPrecio }}
-        </td>
+          <ng-container *ngIf="esAdmin()">
+            <p>
+              <strong>Estado:</strong> {{ prod.productoActivo ? 'Activo' :
+              'Inactivo' }}
+            </p>
+            <div class="mobile-actions">
+              <button (click)="editarProducto(prod)" class="btn-edit-small">
+                Editar
+              </button>
+              <button
+                (click)="cambiarEstado(prod)"
+                [class.btn-deactivate]="prod.productoActivo"
+                [class.btn-activate]="!prod.productoActivo"
+              >
+                {{ prod.productoActivo ? 'Desactivar' : 'Activar' }}
+              </button>
+            </div>
+          </ng-container>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
 
-        <td style="padding: 12px;">
-          <span *ngIf="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
-                style="color: red; font-weight: bold;">
-            ⚠️ {{ prod.productoStock }}
-          </span>
+  <!-- VISTA ESCRITORIO -->
+  <div class="desktop-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Descuento</th>
+          <th>Stock</th>
+          <th *ngIf="esAdmin()">Estado</th>
+          <th *ngIf="esAdmin()">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let prod of productos">
+          <td>{{ prod.productoCodigo }}</td>
+          <td>{{ prod.productoNombre }}</td>
+          <td>{{ prod.categoria?.categoriaNombre }}</td>
+          <td>${{ prod.productoPrecio }}</td>
+          <td>{{ prod.descuento?.descuentoNombre || '—' }}</td>
+          <td>{{ prod.productoStock }}</td>
 
-          <span *ngIf="!prod.productoStockCritico || prod.productoStock > prod.productoCriticoNumero">
-            {{ prod.productoStock }}
-          </span>
-        </td>
-
-        <td style="padding: 12px;">
-          <span [ngStyle]="{'color': prod.productoActivo ? 'green' : 'gray', 'font-weight': 'bold'}">
+          <td *ngIf="esAdmin()">
             {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
-          </span>
-        </td>
+          </td>
+          <td *ngIf="esAdmin()">
+            <div class="table-actions">
+              <button
+                (click)="editarProducto(prod)"
+                class="btn-icon edit"
+                title="Editar Producto"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
 
-        <td style="padding: 12px;">
-          <button (click)="editarProducto(prod)" 
-                  style="background: #007bff; color: white; border: none; padding: 5px 10px; margin-right: 5px; cursor: pointer;">
-            ✎ Editar
-          </button>
-
-          <button (click)="cambiarEstado(prod)"
-                  [style.background]="prod.productoActivo ? '#dc3545' : '#28a745'"
-                  style="color: white; border: none; padding: 5px 10px; cursor: pointer;">
-            {{ prod.productoActivo ? 'Desactivar' : 'Activar' }}
-          </button>
-        </td>
-
-      </tr>
-    </tbody>
-  </table>
+              <button
+                (click)="cambiarEstado(prod)"
+                class="btn-icon"
+                [class.deactivate]="prod.productoActivo"
+                [class.activate]="!prod.productoActivo"
+                [title]="prod.productoActivo ? 'Desactivar' : 'Activar'"
+              >
+                <mat-icon
+                  >{{ prod.productoActivo ? 'block' : 'check_circle'
+                  }}</mat-icon
+                >
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- FORM MODAL -->
-  <div *ngIf="mostrarFormulario" 
-       style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; overflow-y: auto;">
+  <div *ngIf="mostrarFormulario" class="modal-overlay">
+  <div class="modal-card">
     
-    <div style="background: white; padding: 30px; border-radius: 8px; width: 600px; max-height: 90vh; overflow-y: auto;">
-      
+    <header class="modal-header">
       <h3>
+        <mat-icon>{{ productoActual.productoId ? 'edit' : 'add_circle' }}</mat-icon>
         {{ productoActual.productoId ? 'Editar' : 'Nuevo' }} Producto
       </h3>
+      <button class="btn-close-x" (click)="cancelar()">×</button>
+    </header>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-
-        <div>
-          <label><strong>Código / SKU:</strong></label>
-          <div style="display: flex; gap: 5px;">
-            <input type="text" [(ngModel)]="productoActual.productoCodigo" style="width: 100%; padding: 8px;" placeholder="Tipea o escanea...">
-            
-            <button (click)="abrirEscaner()" title="Escanear Código" style="background: #17a2b8; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-              📷
+    <div class="modal-body">
+      <div class="form-grid">
+        
+        <div class="form-group full-width-mobile">
+          <label>Código / SKU</label>
+          <div class="input-with-action">
+            <input type="text" [(ngModel)]="productoActual.productoCodigo" placeholder="Tipea o escanea...">
+            <button class="btn-scan" (click)="abrirEscaner()" title="Escanear">
+              <mat-icon>photo_camera</mat-icon>
             </button>
           </div>
 
-          <div *ngIf="escanerAbierto" style="margin-top: 10px; border: 2px dashed #17a2b8; padding: 10px; border-radius: 5px; text-align: center; background: #f8f9fa;">
-            <p style="margin-top: 0; font-size: 0.9em; font-weight: bold; color: #17a2b8;">Apunta el código a la cámara</p>
-            
-            <video #videoElement style="width: 100%; max-height: 200px; border-radius: 5px;"></video>
-            
-            <button (click)="cerrarEscaner()" style="margin-top: 10px; background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-              Cancelar Escaneo
-            </button>
+          <div *ngIf="escanerAbierto" class="scanner-container">
+            <p>Apunta al código de barras</p>
+            <video #videoElement></video>
+            <button class="btn-cancel-scan" (click)="cerrarEscaner()">Detener</button>
           </div>
         </div>
 
-        <div>
-          <label><strong>Nombre:</strong></label>
-          <input type="text" [(ngModel)]="productoActual.productoNombre" style="width: 100%; padding: 8px;">
+        <div class="form-group">
+          <label>Nombre del Producto</label>
+          <input type="text" [(ngModel)]="productoActual.productoNombre" placeholder="Ej: Crema de Manos">
         </div>
 
-        <div>
-          <label><strong>Categoría:</strong></label>
-          <select [(ngModel)]="productoActual.categoriaId" style="width: 100%; padding: 8px;">
-            <option [ngValue]="null">-- Seleccione --</option>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select [(ngModel)]="productoActual.categoriaId">
+            <option [ngValue]="null">Seleccione una categoría</option>
             <option *ngFor="let cat of categorias" [ngValue]="cat.categoriaId">
               {{ cat.categoriaNombre }}
             </option>
           </select>
         </div>
 
-        <div>
-          <label><strong>Precio:</strong></label>
-          <input type="number" [(ngModel)]="productoActual.productoPrecio" style="width: 100%; padding: 8px;">
+        <div class="form-group">
+          <label>Precio de Venta</label>
+          <div class="price-input">
+            <span class="currency">$</span>
+            <input type="number" [(ngModel)]="productoActual.productoPrecio">
+          </div>
         </div>
 
-        <div>
-          <label><strong>Stock:</strong></label>
-          <input type="number" [(ngModel)]="productoActual.productoStock" style="width: 100%; padding: 8px;">
+        <div class="form-group">
+          <label>Stock Actual</label>
+          <input type="number" [(ngModel)]="productoActual.productoStock">
         </div>
 
-        <div>
-          <label><strong>Lote:</strong></label>
-          <input type="number" [(ngModel)]="productoActual.productoCantidadLote" style="width: 100%; padding: 8px;">
+        <div class="form-group">
+          <label>Cantidad por Lote</label>
+          <input type="number" [(ngModel)]="productoActual.productoCantidadLote">
         </div>
 
-        <div>
-          <label><strong>Descuento:</strong></label>
-          <select [(ngModel)]="productoActual.descuentoId" style="width: 100%; padding: 8px;">
-            <option [ngValue]="null">-- Sin descuento --</option>
+        <div class="form-group">
+          <label>Descuento Aplicable</label>
+          <select [(ngModel)]="productoActual.descuentoId">
+            <option [ngValue]="null">Sin descuento</option>
             <option *ngFor="let desc of descuentos" [ngValue]="desc.descuentoId">
               {{ desc.descuentoNombre }}
             </option>
           </select>
         </div>
-
       </div>
 
-      <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 5px;">
-        <label><strong>🚨 Nivel de Stock Crítico:</strong></label>
-        <p style="font-size: 0.85em; color: #666; margin-top: 2px;">
-          ¿A las cuántas unidades el sistema debe arrojar una alerta en color rojo? <br>
-          <em>(Déjalo en 0 si no quieres que este producto tenga alertas).</em>
-        </p>
-        <input type="number" [(ngModel)]="productoActual.productoCriticoNumero" min="0" style="width: 100%; padding: 8px;">
+      <div class="critical-stock-box">
+        <div class="critical-header">
+          <mat-icon>notifications_active</mat-icon>
+          <label>Nivel de Stock Crítico</label>
+        </div>
+        <p>¿A las cuántas unidades debemos avisarte en rojo?</p>
+        <input type="number" [(ngModel)]="productoActual.productoCriticoNumero" min="0">
       </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
-        
-        <button (click)="cancelar()" style="padding: 10px 15px; background: #6c757d; color: white;">
-          Cancelar
-        </button>
-
-        <button (click)="guardarProducto()"
-                [disabled]="!productoActual.productoCodigo || !productoActual.productoNombre || !productoActual.categoriaId"
-                style="padding: 10px 15px; background: #28a745; color: white;">
-          Guardar
-        </button>
-
-      </div>
-
     </div>
-  </div>
 
+    <footer class="modal-footer">
+      <button class="btn-modal btn-modal-cancel" (click)="cancelar()">
+        Cancelar
+      </button>
+      <button class="btn-modal btn-modal-save" 
+              (click)="guardarProducto()"
+              [disabled]="!productoActual.productoCodigo || !productoActual.productoNombre || !productoActual.categoriaId">
+        <mat-icon>save</mat-icon>
+        {{ productoActual.productoId ? 'Actualizar' : 'Guardar' }}
+      </button>
+    </footer>
+  </div>
+</div>
 </div>

@@ -130,19 +130,19 @@ export const routes: Routes = [
     path: 'inventario', 
     component: InventarioHomeComponent, 
     canActivate: [authGuard, permisosGuard], 
-    data: { requiredPermisos: ['MOVIMIENTO_LUGAR_MANAGE', 'INVENTARIO_READ'] }
+    data: { requiredPermisos: ['MOVIMIENTO_MANAGE', 'MOVIMIENTO_READ'] }
   },
   { 
     path: 'inventario/nuevo', 
     component: InventarioForm, 
     canActivate: [authGuard, permisosGuard], 
-    data: { requiredPermisos: ['MOVIMIENTO_LUGAR_MANAGE', 'INVENTARIO_MANAGE'] }
+    data: { requiredPermisos: ['MOVIMIENTO_MANAGE', 'MOVIMIENTO_READ'] }
   },
   { 
     path: 'inventario/historial', 
     component: InventarioHistorial, 
     canActivate: [authGuard, permisosGuard], 
-    data: { requiredPermisos: ['MOVIMIENTO_LUGAR_MANAGE', 'INVENTARIO_READ'] }
+    data: { requiredPermisos: ['MOVIMIENTO_MANAGE', 'MOVIMIENTO_READ'] }
   },
 
   // =========================

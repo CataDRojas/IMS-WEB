@@ -77,6 +77,7 @@ export class Auth {
     localStorage.removeItem('token_ims');
     localStorage.removeItem('rol_ims');
     localStorage.removeItem('nombre_ims');
+    localStorage.removeItem('rol_id_ims');
     localStorage.removeItem('permisos_ims');
     localStorage.removeItem(this.permisosTsKey);
     this.router.navigate(['/login']);

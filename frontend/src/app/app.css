@@ -1,0 +1,67 @@
+/* DISEÑO EN SI DE LA PANTALLA */
+.app-layout-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Obliga a que mida al menos el alto de la pantalla */
+}
+
+/* NAVBAR*/
+.main-nav {
+  flex-shrink: 0; /* No deja que el nav se aplaste */
+  background-color: #52b3ac;
+  color: white;
+  padding: 0 20px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  height: 40px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* CONTENIDO */
+.content-area {
+  flex: 1 0 auto; /* Crece (1), no se encoge (0), base automática */
+  display: flex;
+  flex-direction: column;
+  background-color: #EAECF0;
+}
+
+/* FOOTER */
+.main-footer {
+  flex-shrink: 0; /* Asegura que el footer no se aplaste */
+  background-color: #FEFEFE;
+  color: #64748b;
+  text-align: center;
+  /* padding: 15px; */
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.9rem;
+}
+
+/* Ya no necesitas el min-height con calculos manuales de 120px */
+
+.btn-base {
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-go-home {
+  background: #f1f5f9;
+  padding: 5px;
+  color: #64748b;
+}
