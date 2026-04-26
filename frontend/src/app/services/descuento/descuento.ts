@@ -7,6 +7,10 @@ export interface Descuento {
   descuentoNombre: string;
   descuentoTipo: 'FLAT' | 'PORCENTAJE' | 'MULTIPLICATIVO';
   descuentoValor: number;
+
+  // NEW FIELD (backend aligned)
+  descuentoValorSecundario?: number;
+
   descuentoActivo: boolean;
 }
 
@@ -21,6 +25,7 @@ export class DescuentosService {
 
   private getHeaders(): HttpHeaders {
     const usuarioActual = localStorage.getItem('usuario_email') || 'admin@ims.cl';
+
     return new HttpHeaders().set('X-User', usuarioActual);
   }
 

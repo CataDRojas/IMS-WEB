@@ -31,6 +31,11 @@ public class Descuento implements Auditable {
     @Column(name = "DescuentoValor", nullable = false, precision = 12, scale = 2)
     private BigDecimal descuentoValor;
 
+    // NEW FIELD
+    @Setter
+    @Column(name = "DescuentoValorSecundario", precision = 12, scale = 2)
+    private BigDecimal descuentoValorSecundario;
+
     @Setter
     @Column(name = "DescuentoActivo", nullable = false)
     private Boolean descuentoActivo = true;
@@ -49,10 +54,13 @@ public class Descuento implements Auditable {
 
     @Override
     public void setUsuarioCreacion(String usuario) { this.descuentoUsuarioCreacion = usuario; }
+
     @Override
     public void setFechaCreacion(LocalDateTime fecha) { this.descuentoFechaCreacion = fecha; }
+
     @Override
     public void setUsuarioModif(String usuario) { this.descuentoUsuarioModif = usuario; }
+
     @Override
     public void setFechaModif(LocalDateTime fecha) { this.descuentoFechaModif = fecha; }
 }

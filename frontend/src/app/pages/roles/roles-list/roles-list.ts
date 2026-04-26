@@ -15,8 +15,10 @@ export const PERMISSION_LABELS: Record<string, string> = {
   USUARIOS_MANAGE: 'Gestionar usuarios',
   PRODUCTO_READ: 'Ver productos',
   PRODUCTO_MANAGE: 'Gestionar productos',
-  MOVIMIENTO_READ: 'Ver movimientos',
-  MOVIMIENTO_MANAGE: 'Gestionar movimientos'
+  INVENTARIO_READ: 'Ver Inventario',
+  INVENTARIO_MANAGE: 'Gestionar Inventario',
+  VENTA_READ: 'Ver Venta',
+  VENTA_MANAGE: 'Gestionar Venta'
 };
 
 export const ALL_PERMISSIONS: string[] = Object.keys(PERMISSION_LABELS);

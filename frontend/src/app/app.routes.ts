@@ -9,7 +9,8 @@ import { RolesForm } from './pages/roles/roles-form/roles-form';
 import { authGuard } from './guards/auth-guard';
 import { permisosGuard } from './guards/permisos-guard';
 
-import { Ventas } from './pages/ventas/ventas';
+import { VentasHistorial } from './pages/ventas/ventas-historial/ventas-historial';
+import { VentasForm } from './pages/ventas/ventas-form/ventas-form';
 import { NOT_FOUND } from '@angular/core/primitives/di';
 
 import { NotFound } from './pages/not-found/not-found';
@@ -70,15 +71,24 @@ export const routes: Routes = [
     data: { requiredPermisos: ['ROLES_MANAGE'] }
   },
 
-  // =========================
-  // VENTAS / MOVIMIENTOS
-  // =========================
-  {
-    path: 'ventas',
-    component: Ventas,
-    canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['MOVIMIENTO_READ', 'MOVIMIENTO_MANAGE'] }
-  },
+// =========================
+// VENTAS / MOVIMIENTOS
+// =========================
+{
+  path: 'ventas',
+  canActivate: [authGuard, permisosGuard],
+  data: { requiredPermisos: ['MOVIMIENTO_READ', 'MOVIMIENTO_MANAGE'] },
+  children: [
+    {
+      path: 'form',
+      component: VentasForm
+    },
+    {
+      path: 'historial',
+      component: VentasHistorial
+    }
+  ]
+},
 
   // =========================
   // PRODUCTOS

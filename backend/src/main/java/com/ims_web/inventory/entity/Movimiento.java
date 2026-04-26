@@ -4,7 +4,6 @@ import com.ims_web.inventory.util.Auditable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.AccessLevel;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -24,29 +23,25 @@ public class Movimiento implements Auditable {
     @Column(name = "MovimientoDescripcion")
     private String movimientoDescripcion;
 
-    @Column(name = "MovimientoEstado", nullable = false)
-    private String movimientoEstado = "PENDIENTE"; // PENDIENTE, CONFIRMADO, ANULADO
+    @Column(name = "MovimientoEstado")
+    private String movimientoEstado; // DB default: PENDIENTE
 
-    @Column(name = "MovimientoTipo", nullable = false)
-    private String movimientoTipo; // ENTRADA, SALIDA, AJUSTE
+    @Column(name = "MovimientoTipo")
+    private String movimientoTipo;
 
     @Column(name = "MovimientoMetodoPago")
     private String movimientoMetodoPago;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoStock", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoStock")
     private Integer movimientoStock;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoPrecioBase", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoPrecioBase")
     private BigDecimal movimientoPrecioBase;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoPrecioNeto", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoPrecioNeto")
     private BigDecimal movimientoPrecioNeto;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoPrecioTotal", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoPrecioTotal")
     private BigDecimal movimientoPrecioTotal;
 
     @Column(name = "MovimientoDescuento")
@@ -55,10 +50,10 @@ public class Movimiento implements Auditable {
     @Column(name = "MovimientoReferenciaExterna", unique = true)
     private String movimientoReferenciaExterna;
 
-    @Column(name = "MovimientoUsuarioCreacion", nullable = false)
+    @Column(name = "MovimientoUsuarioCreacion")
     private String movimientoUsuarioCreacion;
 
-    @Column(name = "MovimientoFechaCreacion", nullable = false)
+    @Column(name = "MovimientoFechaCreacion")
     private LocalDateTime movimientoFechaCreacion;
 
     @Column(name = "MovimientoUsuarioModif")
@@ -69,7 +64,6 @@ public class Movimiento implements Auditable {
 
     @OneToMany(mappedBy = "movimiento", cascade = CascadeType.ALL)
     private List<MovimientoDetalle> detalles;
-
 
     @Override
     public void setUsuarioCreacion(String usuario) {

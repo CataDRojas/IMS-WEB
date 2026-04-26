@@ -1,0 +1,187 @@
+<mat-toolbar color="primary">
+  <span style="flex: 1">VENTAS</span>
+</mat-toolbar>
+
+<div style="padding: 20px; max-width: 600px; margin: auto">
+
+  <!-- ========================= -->
+  <!-- BUSQUEDA -->
+  <!-- ========================= -->
+  <mat-card style="padding: 15px; margin-bottom: 20px; display: flex; gap: 10px">
+
+    <input
+      [(ngModel)]="codigo"
+      placeholder="Código producto"
+      (keyup.enter)="buscarProducto()"
+      style="flex: 1; padding: 10px"
+    />
+
+    <button mat-raised-button color="primary" (click)="buscarProducto()">
+      🔍
+    </button>
+
+    <button mat-raised-button color="accent" (click)="abrirEscaner()">
+      📷
+    </button>
+
+  </mat-card>
+
+  <!-- ========================= -->
+  <!-- CAMARA -->
+  <!-- ========================= -->
+  <div *ngIf="escanerAbierto" style="margin-bottom: 20px; text-align: center; background: black">
+    <video #videoElement style="width: 100%; max-height: 200px"></video>
+    <button mat-button color="warn" (click)="cerrarEscaner()">Cerrar</button>
+  </div>
+
+  <!-- ========================= -->
+  <!-- PRODUCTO ENCONTRADO -->
+  <!-- ========================= -->
+  <mat-card *ngIf="productoEncontrado" style="padding: 15px; margin-bottom: 20px">
+
+    <h3>{{productoEncontrado.productoNombre}}</h3>
+
+    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px">
+
+      <button mat-mini-fab color="primary" (click)="disminuir()">-</button>
+
+      <input
+        type="number"
+        [(ngModel)]="cantidad"
+        style="width: 80px; text-align: center; font-size: 1.2em"
+      />
+
+      <button mat-mini-fab color="primary" (click)="aumentar()">+</button>
+
+    </div>
+
+  </mat-card>
+
+  <!-- ========================= -->
+  <!-- HEADER DISCOUNT (NEW) -->
+  <!-- ========================= -->
+  <mat-card style="padding: 15px; margin-bottom: 20px">
+
+    <div style="display:flex; justify-content: space-between; align-items:center">
+
+      <strong>Descuento global</strong>
+
+      <input
+        type="number"
+        [(ngModel)]="descuentoHeader"
+        (ngModelChange)="recalcularTotales()"
+        placeholder="0"
+        style="width: 120px; padding: 6px; text-align:right"
+      />
+
+    </div>
+
+  </mat-card>
+
+  <!-- ========================= -->
+  <!-- DETALLES -->
+  <!-- ========================= -->
+  <mat-card *ngFor="let d of detalles" style="margin-bottom: 10px; padding: 12px">
+
+    <div style="display:flex; align-items:center; justify-content: space-between">
+
+      <!-- LEFT -->
+      <div style="flex: 1">
+
+        <strong>{{d.productoNombre || ('Producto #' + d.productoId)}}</strong>
+
+        <div style="margin-top:5px">
+
+          <!-- PRICE WITH DISCOUNT -->
+          <ng-container *ngIf="d.movimientoDetalleDescuentoAplicado > 0; else normalPrice">
+
+            <span style="text-decoration: line-through; color: gray; font-size: 0.9em;">
+              {{d.movimientoDetallePrecioBase | number:'1.0-0'}}
+            </span>
+
+            <span style="margin-left: 8px; font-weight: bold; color: #2e7d32;">
+              {{d.movimientoDetallePrecioUnitario | number:'1.0-0'}}
+            </span>
+
+          </ng-container>
+
+          <!-- NO DISCOUNT -->
+          <ng-template #normalPrice>
+            <span style="font-weight: bold;">
+              {{d.movimientoDetallePrecioBase | number:'1.0-0'}}
+            </span>
+          </ng-template>
+
+        </div>
+
+      </div>
+
+      <!-- RIGHT -->
+      <div style="display:flex; align-items:center; gap:10px">
+
+        <div style="display:flex; align-items:center; gap:6px">
+
+          <button mat-mini-fab color="primary" (click)="disminuirDetalle(d)">
+            -
+          </button>
+
+          <span style="min-width: 30px; text-align:center; font-weight: bold;">
+            {{d.movimientoDetalleCantidad}}
+          </span>
+
+          <button mat-mini-fab color="primary" (click)="aumentarDetalle(d)">
+            +
+          </button>
+
+        </div>
+
+        <button mat-button color="warn" (click)="eliminarDetalle(d)">
+          ❌
+        </button>
+
+      </div>
+
+    </div>
+
+  </mat-card>
+
+  <!-- ========================= -->
+  <!-- TOTALES -->
+  <!-- ========================= -->
+  <mat-card style="padding: 15px; margin-top: 20px">
+
+    <div style="margin-bottom: 8px">
+      IVA ({{ivaPct}}%):
+      {{iva | number:'1.0-0'}}
+    </div>
+
+    <div style="margin-bottom: 8px">
+      Subtotal:
+      {{total | number:'1.0-0'}}
+    </div>
+
+    <div *ngIf="descuentoHeader > 0" style="margin-bottom: 8px; color: #c62828">
+      Descuento:
+      -{{descuentoHeader | number:'1.0-0'}}
+    </div>
+
+    <h2>
+      Total:
+      {{totalFinal | number:'1.0-0'}}
+    </h2>
+
+  </mat-card>
+
+  <!-- ========================= -->
+  <!-- FINALIZAR -->
+  <!-- ========================= -->
+  <button
+    mat-raised-button
+    color="primary"
+    style="width: 100%; margin-top: 20px; height: 50px; font-weight: bold"
+    (click)="finalizarVenta()"
+  >
+    💳 FINALIZAR VENTA
+  </button>
+
+</div>
