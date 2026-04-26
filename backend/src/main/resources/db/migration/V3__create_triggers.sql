@@ -26,9 +26,9 @@ BEGIN
     FROM Movimiento
     WHERE MovimientoId = OLD.MovimientoId;
 
-    IF v_estado = 'CONFIRMADO' THEN
+    IF v_estado IN ('CONFIRMADO', 'ANULADO') THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'ERR_DETALLE_CONFIRMED_UPDATE|Cannot modify detail of a confirmed movimiento';
+        SET MESSAGE_TEXT = 'ERR_DETALLE_LOCKED_STATE|Cannot modify detail of a confirmed or annulled movimiento';
     END IF;
 END;
 
@@ -42,9 +42,9 @@ BEGIN
     FROM Movimiento
     WHERE MovimientoId = OLD.MovimientoId;
 
-    IF v_estado = 'CONFIRMADO' THEN
+    IF v_estado IN ('CONFIRMADO', 'ANULADO') THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'ERR_DETALLE_CONFIRMED_DELETE|Cannot delete detail of a confirmed movimiento';
+        SET MESSAGE_TEXT = 'ERR_DETALLE_LOCKED_STATE|Cannot delete detail of a confirmed or annulled movimiento';
     END IF;
 END;
 
