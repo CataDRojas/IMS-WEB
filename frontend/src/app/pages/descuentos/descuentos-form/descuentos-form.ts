@@ -32,6 +32,10 @@ export class DescuentosFormComponent implements OnInit {
       descuentoNombre: [''],
       descuentoTipo: ['PORCENTAJE'],
       descuentoValor: [0],
+
+      // NEW FIELD (multiplicativo support)
+      descuentoValorSecundario: [null],
+
       descuentoActivo: [true]
     });
 
@@ -51,6 +55,13 @@ export class DescuentosFormComponent implements OnInit {
         }
       });
     }
+
+    // optional UX hook (keeps form clean)
+    this.form.get('descuentoTipo')?.valueChanges.subscribe(tipo => {
+      if (tipo !== 'MULTIPLICATIVO') {
+        this.form.patchValue({ descuentoValorSecundario: null });
+      }
+    });
   }
 
   save(): void {
@@ -64,6 +75,7 @@ export class DescuentosFormComponent implements OnInit {
     request$.subscribe({
       next: () => this.router.navigate(['/descuentos']),
       error: () => {
+        // silent fail for now (unchanged behavior)
       }
     });
   }

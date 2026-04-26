@@ -1,104 +1,177 @@
 <mat-toolbar color="primary">
   <button mat-button (click)="volver()">⬅ Volver</button>
-  <span style="flex: 1; text-align: center">INVENTARIO</span>
-  <span>📤</span>
+  <span style="flex: 1; text-align: center">INVENTARIO IMS</span>
 </mat-toolbar>
 
-<div class="container" style="padding: 20px;">
+<div class="container" style="padding: 20px; max-width: 600px; margin: auto">
+  <div *ngIf="estado === 'inicio'">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="iniciarNuevo()"
+      style="width: 100%; height: 60px; margin-bottom: 20px"
+    >
+      ➕ NUEVO INVENTARIO
+    </button>
 
-  <div *ngIf="estado === 'inicio' || estado === 'agregar'">
-    
-    <mat-card style="margin-bottom: 20px; padding: 20px;">
-      <label style="font-size: 1.1em; color: #333;"><strong>Código del Producto:</strong></label>
-      
-      <div style="display: flex; gap: 10px; margin-top: 8px;">
-        <input type="text" [(ngModel)]="codigo" 
-               placeholder="Tipea o escanea el código..." 
-               style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1em;"
-               (keyup.enter)="buscarProducto()">
-        
-        <button mat-raised-button color="primary" (click)="buscarProducto()" style="padding: 0 20px;">
-          Buscar
-        </button>
-        
-        <button (click)="abrirEscaner()" title="Escanear Código" 
-                style="background: #17a2b8; color: white; border: none; padding: 0 15px; border-radius: 4px; cursor: pointer; font-size: 1.2em;">
-          📷
-        </button>
-      </div>
-
-      <div *ngIf="escanerAbierto" style="margin-top: 15px; border: 2px dashed #17a2b8; padding: 15px; border-radius: 5px; text-align: center; background: #f8f9fa;">
-        <p style="margin-top: 0; font-size: 0.9em; font-weight: bold; color: #17a2b8;">Apunta el código de barras a la cámara</p>
-        <video #videoElement style="width: 100%; max-height: 250px; border-radius: 5px; background: #000;"></video>
-        <br>
-        <button mat-button color="warn" (click)="cerrarEscaner()" style="margin-top: 10px;">
-          Cancelar Escaneo
+    <h3 *ngIf="inventariosPendientes.length > 0">Inventarios Pendientes:</h3>
+    <mat-card
+      *ngFor="let inv of inventariosPendientes"
+      style="margin-bottom: 10px; cursor: pointer"
+      (click)="seleccionarInventario(inv)"
+    >
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; padding: 10px"
+      >
+        <span><strong>{{inv.nombre}}</strong> ({{inv.lista.length}} productos)</span>
+        <button
+          mat-icon-button
+          color="warn"
+          (click)="$event.stopPropagation(); eliminarInventarioCompleto(inv)"
+        >
+          🗑️
         </button>
       </div>
     </mat-card>
 
-    <mat-card *ngIf="productoEncontrado" style="padding: 20px; text-align: center;">
-      <h2>{{productoEncontrado.productoNombre}}</h2>
-      <p style="color: gray;">{{productoEncontrado.categoria?.categoriaNombre}}</p>
-      <p><strong>Stock actual en BD:</strong> {{productoEncontrado.productoStock}}</p>
+    <button mat-stroked-button (click)="irAHistorial()" style="width: 100%; margin-top: 20px">
+      📜 VER HISTORIAL
+    </button>
+  </div>
 
-      <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
-        <button mat-stroked-button (click)="disminuir()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">-</button>
-        <span style="margin: 0 25px; font-size: 1.8rem; font-weight: bold;">{{cantidad}}</span>
-        <button mat-stroked-button (click)="aumentar()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">+</button>
+  <div *ngIf="estado === 'agregar'">
+    <mat-card style="margin-bottom: 20px; padding: 20px">
+      <h3>Sesión: {{inventarioActual.nombre}}</h3>
+      <div *ngIf="!productoEditando" style="display: flex; gap: 10px">
+        <input
+          type="text"
+          [(ngModel)]="codigo"
+          placeholder="Código..."
+          style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc"
+          (keyup.enter)="buscarProducto()"
+        />
+        <button mat-mini-fab color="primary" (click)="buscarProducto()">🔍</button>
+        <button
+          (click)="abrirEscaner()"
+          style="background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 8px"
+        >
+          📷
+        </button>
       </div>
 
-      <div style="display: flex; justify-content: center; gap: 10px;">
-        <button mat-button color="warn" (click)="reset()">Cancelar</button>
-        <button mat-raised-button color="primary" (click)="agregarProducto()">
-          Agregar a la lista
+      <div *ngIf="escanerAbierto" style="margin-top: 15px; text-align: center; background: #000">
+        <video #videoElement style="width: 100%; max-height: 200px"></video>
+        <button mat-button color="warn" (click)="cerrarEscaner()">Cerrar Cámara</button>
+      </div>
+    </mat-card>
+
+    <mat-card *ngIf="productoEncontrado" style="padding: 20px; border-top: 5px solid #3f51b5">
+      <h2>{{productoEncontrado.productoNombre}}</h2>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px">
+        <mat-form-field appearance="outline">
+          <mat-label>Ubicación</mat-label>
+          <mat-select [(ngModel)]="lugarSeleccionado">
+            <mat-option *ngFor="let l of lugares" [value]="l"
+              >{{l.movimientoLugarDescripcion}}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cant. Lote</mat-label>
+          <input matInput type="number" [(ngModel)]="loteEditable" />
+        </mat-form-field>
+      </div>
+
+      <div style="background: #f9f9f9; padding: 15px; border-radius: 8px">
+        <label>N° de cajas:</label>
+        <input
+          type="number"
+          [(ngModel)]="cajas"
+          (input)="calcularPorCajas()"
+          style="width: 80px; margin-left: 10px"
+        />
+        <hr />
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px">
+          <button mat-mini-fab color="primary" (click)="disminuir()">-</button>
+          <input
+            type="number"
+            [(ngModel)]="cantidad"
+            style="
+              width: 100px;
+              text-align: center;
+              font-size: 2em;
+              font-weight: bold;
+              border: none;
+              background: transparent;
+            "
+          />
+          <button mat-mini-fab color="primary" (click)="aumentar()">+</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px">
+        <button mat-button color="warn" (click)="volver()" style="flex: 1">Volver</button>
+        <button mat-raised-button color="primary" (click)="agregarProducto()" style="flex: 2">
+          {{ productoEditando ? 'Actualizar' : 'Agregar' }}
         </button>
       </div>
     </mat-card>
   </div>
 
   <div *ngIf="estado === 'lista'">
-    <h2>PRODUCTOS INGRESADOS</h2>
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      "
+    >
+      <h3>📦 {{inventarioActual.nombre}}</h3>
+      <button mat-button color="warn" (click)="eliminarInventarioCompleto(inventarioActual)">
+        🗑️ Vaciar
+      </button>
+    </div>
 
     <mat-card
-      *ngFor="let item of lista"
+      *ngFor="let item of inventarioActual.lista"
       (click)="seleccionarParaEditar(item)"
-      style="margin-bottom: 10px; cursor: pointer"
+      style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #17a2b8"
     >
-      <h3>{{item.productoNombre}}</h3>
-      <p>{{item.categoria?.categoriaNombre}}</p>
-      <strong>Cantidad a ingresar: {{item.cantidadAgregada}}</strong>
+      <div style="display: flex; justify-content: space-between; padding: 10px">
+        <div>
+          <strong>{{item.productoNombre}}</strong>
+          <div style="font-size: 0.8em; color: #666">
+            📍 {{item.lugarNombre}} | Lote: {{item.productoCantidadLote}}
+          </div>
+        </div>
+        <div style="text-align: right">
+          <div style="font-size: 1.2em; font-weight: bold">{{item.cantidadAgregada}} un.</div>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="$event.stopPropagation(); eliminarIndividual(item)"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
     </mat-card>
 
-    <div class="acciones" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px">
-      <button mat-button (click)="estado='agregar'; reset()">➕ Agregar más productos</button>
-      <button mat-stroked-button (click)="guardar()">Guardar borrador</button>
-      <button mat-raised-button color="primary" (click)="finalizar()">
-        Finalizar y Enviar a BD
+    <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px">
+      <button mat-stroked-button color="primary" (click)="estado='agregar'; reset()">
+        ➕ AÑADIR OTRO
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="finalizar()"
+        style="height: 55px; font-weight: bold"
+      >
+        🚀 FINALIZAR INVENTARIO
       </button>
     </div>
   </div>
-
-  <div *ngIf="estado === 'editar'">
-    <mat-card style="padding: 20px; text-align: center;">
-      <h2>Editando: {{productoEditando.productoNombre}}</h2>
-      <p style="color: gray;">{{productoEditando.categoria?.categoriaNombre}}</p>
-
-      <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
-        <button mat-stroked-button (click)="disminuir()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">-</button>
-        <span style="margin: 0 25px; font-size: 1.8rem; font-weight: bold;">{{cantidad}}</span>
-        <button mat-stroked-button (click)="aumentar()" style="font-size: 1.5em; min-width: 40px; height: 40px; padding: 0;">+</button>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 10px;">
-        <button mat-button color="warn" (click)="eliminar(productoEditando); estado='lista'">
-          Sacar de la lista
-        </button>
-        <button mat-raised-button color="primary" (click)="modificarProducto()">
-          Modificar cantidad
-        </button>
-      </div>
-    </mat-card>
-  </div>
-
 </div>

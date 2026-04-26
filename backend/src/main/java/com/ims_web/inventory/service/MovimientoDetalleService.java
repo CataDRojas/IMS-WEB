@@ -1,5 +1,7 @@
 package com.ims_web.inventory.service;
 
+import com.ims_web.inventory.dto.MovimientoDetalleRequestDTO;
+import com.ims_web.inventory.dto.MovimientoDetalleResponseDTO;
 import com.ims_web.inventory.entity.Movimiento;
 import com.ims_web.inventory.entity.MovimientoDetalle;
 import com.ims_web.inventory.entity.Producto;
@@ -11,6 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,65 +34,181 @@ public class MovimientoDetalleService {
         this.entityManager = entityManager;
     }
 
-    public List<MovimientoDetalle> getAllDetalles() {
-        return detalleRepo.findAll();
+    // =========================================================
+    // READ
+    // =========================================================
+
+    public List<MovimientoDetalleResponseDTO> getAllDetalles() {
+        return detalleRepo.findAll()
+                .stream()
+                .map(this::toDTO)
+                .toList();
     }
 
-    public MovimientoDetalle getDetalleById(Long id) {
-        return detalleRepo.findById(id)
+    public MovimientoDetalleResponseDTO getDetalleById(Long id) {
+        MovimientoDetalle detalle = detalleRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("MovimientoDetalle not found"));
+
+        return toDTO(detalle);
     }
+
+    // =========================================================
+    // CREATE SINGLE
+    // =========================================================
 
     @Transactional
-    public MovimientoDetalle createDetalle(Long movimientoId, MovimientoDetalle detalle) {
+    public MovimientoDetalleResponseDTO createDetalle(Long movimientoId,
+                                                      MovimientoDetalleRequestDTO incoming) {
 
-        Movimiento movimiento = movimientoRepo.findById(movimientoId)
-                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+        Movimiento movimiento = getValidatedMovimiento(movimientoId);
 
-        if ("CONFIRMADO".equals(movimiento.getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot add detail to a confirmed movimiento");
-        }
-
-        Producto producto = productoRepo.findById(detalle.getProducto().getProductoId())
+        Producto producto = productoRepo.findById(incoming.getProductoId())
                 .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
-        validateDetalle(detalle);
+        validate(incoming);
 
+        MovimientoDetalle detalle = new MovimientoDetalle();
         detalle.setMovimiento(movimiento);
         detalle.setProducto(producto);
 
+        detalle.setMovimientoDetalleCantidad(incoming.getMovimientoDetalleCantidad());
+        detalle.setMovimientoDetalleUnidadesPorPaquete(
+                incoming.getMovimientoDetalleUnidadesPorPaquete() != null
+                        ? incoming.getMovimientoDetalleUnidadesPorPaquete()
+                        : 1
+        );
+        detalle.setMovimientoDetalleDescripcion(incoming.getMovimientoDetalleDescripcion());
+
+        detalle.setMovimientoDetallePrecioBase(incoming.getMovimientoDetallePrecioBase());
+        detalle.setMovimientoDetallePrecioUnitario(incoming.getMovimientoDetallePrecioUnitario());
+        detalle.setMovimientoDetallePrecioTotal(incoming.getMovimientoDetallePrecioTotal());
+        detalle.setMovimientoDetalleDescuentoAplicado(incoming.getMovimientoDetalleDescuentoAplicado());
+
+        // 🔒 STOCK VALIDATION (NEW)
+        validateStockImpact(movimiento, detalle, null);
+
         MovimientoDetalle saved = detalleRepo.save(detalle);
+
         entityManager.flush();
         entityManager.refresh(saved);
 
-        return saved;
+        entityManager.createNativeQuery("""
+            CALL sp_recalcular_movimiento(:id)
+        """)
+                .setParameter("id", movimientoId)
+                .executeUpdate();
+
+        return toDTO(saved);
     }
 
+    // =========================================================
+    // CREATE BATCH
+    // =========================================================
+
     @Transactional
-    public MovimientoDetalle updateDetalle(MovimientoDetalle detalle) {
+    public List<MovimientoDetalleResponseDTO> createDetallesBatch(
+            Long movimientoId,
+            List<MovimientoDetalleRequestDTO> detalles
+    ) {
 
-        MovimientoDetalle existing = detalleRepo.findById(detalle.getMovimientoDetalleId())
-                .orElseThrow(() -> new EntityNotFoundException("MovimientoDetalle not found"));
+        Movimiento movimiento = getValidatedMovimiento(movimientoId);
 
-        if ("CONFIRMADO".equals(existing.getMovimiento().getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot modify detail of a confirmed movimiento");
+        List<MovimientoDetalle> savedList = new ArrayList<>();
+
+        for (MovimientoDetalleRequestDTO incoming : detalles) {
+
+            Producto producto = productoRepo.findById(incoming.getProductoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
+
+            validate(incoming);
+
+            MovimientoDetalle detalle = new MovimientoDetalle();
+            detalle.setMovimiento(movimiento);
+            detalle.setProducto(producto);
+
+            detalle.setMovimientoDetalleCantidad(incoming.getMovimientoDetalleCantidad());
+            detalle.setMovimientoDetalleUnidadesPorPaquete(
+                    incoming.getMovimientoDetalleUnidadesPorPaquete() != null
+                            ? incoming.getMovimientoDetalleUnidadesPorPaquete()
+                            : 1
+            );
+            detalle.setMovimientoDetalleDescripcion(incoming.getMovimientoDetalleDescripcion());
+
+            detalle.setMovimientoDetallePrecioBase(incoming.getMovimientoDetallePrecioBase());
+            detalle.setMovimientoDetallePrecioUnitario(incoming.getMovimientoDetallePrecioUnitario());
+            detalle.setMovimientoDetallePrecioTotal(incoming.getMovimientoDetallePrecioTotal());
+            detalle.setMovimientoDetalleDescuentoAplicado(incoming.getMovimientoDetalleDescuentoAplicado());
+
+            // 🔒 STOCK VALIDATION (NEW)
+            validateStockImpact(movimiento, detalle, null);
+
+            savedList.add(detalleRepo.save(detalle));
         }
 
-        validateDetalle(detalle);
+        entityManager.flush();
 
-        existing.setMovimientoDetalleCantidad(detalle.getMovimientoDetalleCantidad());
-        existing.setMovimientoDetalleUnidadesPorPaquete(
-                detalle.getMovimientoDetalleUnidadesPorPaquete()
-        );
-        existing.setMovimientoDetalleDescripcion(detalle.getMovimientoDetalleDescripcion());
-        existing.setMovimientoLugar(detalle.getMovimientoLugar());
+        for (MovimientoDetalle d : savedList) {
+            entityManager.refresh(d);
+        }
+
+        entityManager.createNativeQuery("""
+            CALL sp_recalcular_movimiento(:id)
+        """)
+                .setParameter("id", movimientoId)
+                .executeUpdate();
+
+        return savedList.stream().map(this::toDTO).toList();
+    }
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
+    @Transactional
+    public MovimientoDetalleResponseDTO updateDetalle(Long id,
+                                                      MovimientoDetalleRequestDTO incoming) {
+
+        MovimientoDetalle existing = detalleRepo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("MovimientoDetalle not found"));
+
+        Movimiento movimiento = getValidatedMovimiento(existing.getMovimiento().getMovimientoId());
+
+        validate(incoming);
+
+        // create a copy for simulation (future state)
+        MovimientoDetalle projected = new MovimientoDetalle();
+        projected.setMovimiento(existing.getMovimiento());
+        projected.setProducto(existing.getProducto());
+        projected.setMovimientoDetalleId(existing.getMovimientoDetalleId());
+
+        projected.setMovimientoDetalleCantidad(incoming.getMovimientoDetalleCantidad());
+        projected.setMovimientoDetalleUnidadesPorPaquete(incoming.getMovimientoDetalleUnidadesPorPaquete());
+        projected.setMovimientoDetalleDescripcion(incoming.getMovimientoDetalleDescripcion());
+
+        // 🔒 STOCK VALIDATION (NEW)
+        validateStockImpact(movimiento, projected, existing);
+
+        existing.setMovimientoDetalleCantidad(incoming.getMovimientoDetalleCantidad());
+        existing.setMovimientoDetalleUnidadesPorPaquete(incoming.getMovimientoDetalleUnidadesPorPaquete());
+        existing.setMovimientoDetalleDescripcion(incoming.getMovimientoDetalleDescripcion());
 
         MovimientoDetalle updated = detalleRepo.save(existing);
+
         entityManager.flush();
         entityManager.refresh(updated);
 
-        return updated;
+        entityManager.createNativeQuery("""
+            CALL sp_recalcular_movimiento(:id)
+        """)
+                .setParameter("id", movimiento.getMovimientoId())
+                .executeUpdate();
+
+        return toDTO(updated);
     }
+
+    // =========================================================
+    // DELETE
+    // =========================================================
 
     @Transactional
     public void deleteDetalle(Long id) {
@@ -97,24 +216,119 @@ public class MovimientoDetalleService {
         MovimientoDetalle detalle = detalleRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("MovimientoDetalle not found"));
 
-        if ("CONFIRMADO".equals(detalle.getMovimiento().getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot delete detail of a confirmed movimiento");
-        }
+        Movimiento movimiento = getValidatedMovimiento(detalle.getMovimiento().getMovimientoId());
+
+        // 🔒 STOCK VALIDATION (NEW)
+        validateStockImpact(movimiento, null, detalle);
 
         detalleRepo.delete(detalle);
+
         entityManager.flush();
+
+        entityManager.createNativeQuery("""
+            CALL sp_recalcular_movimiento(:id)
+        """)
+                .setParameter("id", movimiento.getMovimientoId())
+                .executeUpdate();
     }
 
-    private void validateDetalle(MovimientoDetalle detalle) {
+    // =========================================================
+    // STOCK VALIDATION CORE (NEW)
+    // =========================================================
 
-        if (detalle.getMovimientoDetalleCantidad() == null ||
-                detalle.getMovimientoDetalleCantidad() == 0) {
-            throw new IllegalArgumentException("Cantidad cannot be zero");
+    private void validateStockImpact(Movimiento movimiento,
+                                     MovimientoDetalle newState,
+                                     MovimientoDetalle oldState) {
+
+        List<MovimientoDetalle> all = detalleRepo.findByMovimiento(movimiento);
+
+        if (oldState != null) {
+            all.removeIf(d -> d.getMovimientoDetalleId().equals(oldState.getMovimientoDetalleId()));
         }
 
-        if (detalle.getMovimientoDetalleUnidadesPorPaquete() == null ||
-                detalle.getMovimientoDetalleUnidadesPorPaquete() < 1) {
+        if (newState != null) {
+            all.add(newState);
+        }
+
+        for (MovimientoDetalle d : all) {
+
+            Producto p = productoRepo.findById(d.getProducto().getProductoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
+
+            int unidades =
+                    d.getMovimientoDetalleCantidad() *
+                            (d.getMovimientoDetalleUnidadesPorPaquete() != null
+                                    ? d.getMovimientoDetalleUnidadesPorPaquete()
+                                    : 1);
+
+            if ("SALIDA".equals(movimiento.getMovimientoTipo())) {
+
+                int projectedStock = p.getProductoStock() - unidades;
+
+                if (projectedStock < 0) {
+                    throw new IllegalStateException(
+                            "ERR_STOCK_NEGATIVE|Product " + p.getProductoId() + " would go below zero"
+                    );
+                }
+            }
+        }
+    }
+
+    // =========================================================
+    // VALIDATION
+    // =========================================================
+
+    private void validate(MovimientoDetalleRequestDTO dto) {
+
+        if (dto.getMovimientoDetalleCantidad() == null ||
+                dto.getMovimientoDetalleCantidad() <= 0) {
+            throw new IllegalArgumentException("Cantidad must be > 0");
+        }
+
+        if (dto.getMovimientoDetalleUnidadesPorPaquete() != null &&
+                dto.getMovimientoDetalleUnidadesPorPaquete() < 1) {
             throw new IllegalArgumentException("UnidadesPorPaquete must be >= 1");
         }
+    }
+
+    // =========================================================
+    // CENTRAL GUARD
+    // =========================================================
+
+    private Movimiento getValidatedMovimiento(Long movimientoId) {
+
+        Movimiento movimiento = movimientoRepo.findById(movimientoId)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+
+        if ("CONFIRMADO".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Cannot modify a confirmed movimiento");
+        }
+
+        return movimiento;
+    }
+
+    // =========================================================
+    // MAPPING
+    // =========================================================
+
+    private MovimientoDetalleResponseDTO toDTO(MovimientoDetalle d) {
+
+        MovimientoDetalleResponseDTO dto = new MovimientoDetalleResponseDTO();
+
+        dto.setMovimientoDetalleId(d.getMovimientoDetalleId());
+        dto.setMovimientoId(d.getMovimiento().getMovimientoId());
+        dto.setProductoId(d.getProducto().getProductoId());
+
+        dto.setMovimientoDetalleCantidad(d.getMovimientoDetalleCantidad());
+        dto.setMovimientoDetalleUnidadesPorPaquete(d.getMovimientoDetalleUnidadesPorPaquete());
+
+        dto.setMovimientoDetalleDescripcion(d.getMovimientoDetalleDescripcion());
+
+        dto.setMovimientoDetallePrecioBase(d.getMovimientoDetallePrecioBase());
+        dto.setMovimientoDetallePrecioUnitario(d.getMovimientoDetallePrecioUnitario());
+        dto.setMovimientoDetallePrecioTotal(d.getMovimientoDetallePrecioTotal());
+        dto.setMovimientoDetalleDescuentoAplicado(d.getMovimientoDetalleDescuentoAplicado());
+
+        return dto;
     }
 }

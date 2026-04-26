@@ -1,9 +1,9 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
 
 import { Auth } from '../services/auth';
+import { ApiError } from '../core/errors/api-error';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
@@ -20,12 +20,14 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
 
-    catchError((error: HttpErrorResponse) => {
+    catchError((error: ApiError) => {
 
+      // 🔐 UNAUTHORIZED → logout
       if (error.status === 401) {
         auth.logout();
       }
 
+      // 🔄 FORBIDDEN → try refresh permisos
       if (error.status === 403) {
 
         const refresh$ = auth.refreshMe?.();

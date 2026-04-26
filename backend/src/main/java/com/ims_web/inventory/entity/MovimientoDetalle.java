@@ -3,7 +3,6 @@ package com.ims_web.inventory.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.AccessLevel;
 
 import java.math.BigDecimal;
 
@@ -19,37 +18,33 @@ public class MovimientoDetalle {
     private Long movimientoDetalleId;
 
     @ManyToOne
-    @JoinColumn(name = "MovimientoId", nullable = false)
+    @JoinColumn(name = "MovimientoId")
     private Movimiento movimiento;
 
     @ManyToOne
-    @JoinColumn(name = "ProductoId", nullable = false)
+    @JoinColumn(name = "ProductoId")
     private Producto producto;
 
     @ManyToOne
     @JoinColumn(name = "MovimientoLugarId")
     private MovimientoLugar movimientoLugar;
 
-    @Column(name = "MovimientoDetalleCantidad", nullable = false)
+    @Column(name = "MovimientoDetalleCantidad")
     private Integer movimientoDetalleCantidad;
 
-    @Column(name = "MovimientoDetalleUnidadesPorPaquete", nullable = false)
-    private Integer movimientoDetalleUnidadesPorPaquete = 1;
+    @Column(name = "MovimientoDetalleUnidadesPorPaquete")
+    private Integer movimientoDetalleUnidadesPorPaquete;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoDetallePrecioBase", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoDetallePrecioBase")
     private BigDecimal movimientoDetallePrecioBase;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoDetalleDescuentoAplicado", insertable = false, updatable = false)
+    @Column(name = "MovimientoDetalleDescuentoAplicado")
     private BigDecimal movimientoDetalleDescuentoAplicado;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoDetallePrecioUnitario", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoDetallePrecioUnitario")
     private BigDecimal movimientoDetallePrecioUnitario;
 
-    @Setter(AccessLevel.NONE)
-    @Column(name = "MovimientoDetallePrecioTotal", nullable = false, insertable = false, updatable = false)
+    @Column(name = "MovimientoDetallePrecioTotal")
     private BigDecimal movimientoDetallePrecioTotal;
 
     @Column(name = "MovimientoDetalleDescripcion")

@@ -24,6 +24,12 @@
     <input type="number" formControlName="descuentoValor" />
   </div>
 
+  <!-- NEW FIELD (only relevant for MULTIPLICATIVO) -->
+  <div *ngIf="form.get('descuentoTipo')?.value === 'MULTIPLICATIVO'">
+    <label>Valor secundario (ej: 2x1 → 1)</label>
+    <input type="number" formControlName="descuentoValorSecundario" />
+  </div>
+
   <div>
     <label>
       <input type="checkbox" formControlName="descuentoActivo" />

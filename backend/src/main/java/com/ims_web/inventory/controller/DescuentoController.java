@@ -17,6 +17,10 @@ public class DescuentoController {
         this.service = service;
     }
 
+    // =========================
+    // READ
+    // =========================
+
     @GetMapping
     @PreAuthorize("hasAuthority('DESCUENTO_READ')")
     public List<Descuento> getAll() {
@@ -35,25 +39,60 @@ public class DescuentoController {
         return service.getById(id);
     }
 
+    // =========================
+    // CREATE
+    // =========================
+
     @PostMapping
     @PreAuthorize("hasAuthority('DESCUENTO_MANAGE')")
     public Descuento create(@RequestBody Descuento descuento,
                             @RequestHeader("X-User") String currentUser) {
+
+        normalize(descuento);
         return service.createDescuento(descuento, currentUser);
     }
+
+    // =========================
+    // UPDATE
+    // =========================
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('DESCUENTO_MANAGE')")
     public Descuento update(@PathVariable Long id,
                             @RequestBody Descuento descuento,
                             @RequestHeader("X-User") String currentUser) {
+
         descuento.setDescuentoId(id);
+        normalize(descuento);
+
         return service.updateDescuento(descuento, currentUser);
     }
+
+    // =========================
+    // DELETE
+    // =========================
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('DESCUENTO_MANAGE')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
+    }
+
+    // =========================
+    // SAFETY LAYER (NEW)
+    // =========================
+
+    private void normalize(Descuento d) {
+
+        // ensures new field is never accidentally nullified on partial updates
+        if (d.getDescuentoValorSecundario() != null &&
+                d.getDescuentoValorSecundario().doubleValue() == 0.0) {
+            d.setDescuentoValorSecundario(null);
+        }
+
+        // optional: trim name safety
+        if (d.getDescuentoNombre() != null) {
+            d.setDescuentoNombre(d.getDescuentoNombre().trim());
+        }
     }
 }

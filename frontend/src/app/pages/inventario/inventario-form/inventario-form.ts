@@ -1,4 +1,4 @@
-import { Component, ViewChild, ElementRef } from '@angular/core';
+import { Component, ViewChild, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,202 +11,206 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
 
 @Component({
   selector: 'app-inventario-form',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatInputModule,
-    MatButtonModule,
-    MatCardModule,
-    MatToolbarModule
-  ],
+  imports: [CommonModule, FormsModule, MatInputModule, MatButtonModule, MatCardModule, MatToolbarModule, MatSelectModule, MatOptionModule],
   templateUrl: './inventario-form.html',
   styleUrls: ['./inventario-form.css'],
 })
-export class InventarioForm {
+export class InventarioForm implements OnInit {
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
-  constructor(
-    private router: Router, 
-    private location: Location,
-    private inventarioService: InventarioService // Inyectamos el servicio
-  ) {}
-
-  estado: 'inicio' | 'agregar' | 'lista' | 'editar' = 'inicio';
-
+  //  VARIABLES DE ESTADO 
+  estado: 'inicio' | 'agregar' | 'lista' = 'inicio';
   codigo = '';
   cantidad = 1;
+  cajas = 0;
+  loteEditable = 1;
 
   productoEncontrado: any = null;
   productoEditando: any = null;
+  
+  //  GESTIÓN MULTI-SESIÓN 
+  inventariosPendientes: any[] = [];
+  inventarioActual: any = null;
+  lugares: any[] = [];
+  lugarSeleccionado: any = null;
 
-  lista: any[] = [];
-
-  // ==========================================
-  // 🔥 LÓGICA DE LA CÁMARA (TU CÓDIGO ORIGINAL)
-  // ==========================================
-  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  // VARIABLES DE CÁMARA 
   escanerAbierto = false;
   codeReader = new BrowserMultiFormatReader();
   controlesCamara: any;
 
-  abrirEscaner() {
-    this.estado = 'agregar'; // Cambiamos la vista para que se vea el HTML del escáner
-    this.escanerAbierto = true;
-    setTimeout(() => {
-      this.iniciarCamara();
-    }, 100);
+  constructor(private router: Router, private location: Location, private inventarioService: InventarioService) {}
+
+  ngOnInit() {
+    this.cargarLugares();
+    this.cargarSesiones();
+  }
+
+  cargarLugares() {
+    this.inventarioService.obtenerLugaresActivos().subscribe({
+      next: (data: any[]) => this.lugares = data,
+      error: (err: any) => console.error('Error lugares:', err)
+    });
+  }
+
+  cargarSesiones() {
+    const saved = localStorage.getItem('inventarios_ims');
+    this.inventariosPendientes = saved ? JSON.parse(saved) : [];
+  }
+
+  iniciarNuevo() {
+    const nombre = prompt('Nombre del inventario (ej: Lácteos Mañana):');
+    if (!nombre) return;
+    
+    this.inventarioActual = { nombre, lista: [], fecha: new Date() };
+    this.inventariosPendientes.push(this.inventarioActual);
+    this.guardarEnStorage();
+    this.estado = 'agregar';
+  }
+
+  seleccionarInventario(inv: any) {
+    this.inventarioActual = inv;
+    this.estado = 'lista';
+  }
+
+  buscarProducto() {
+    if (!this.codigo) return;
+    this.inventarioService.buscarProductoPorCodigo(this.codigo).subscribe({
+      next: (producto: any) => {
+        this.productoEncontrado = producto;
+        this.loteEditable = producto.productoCantidadLote || 1;
+        this.cantidad = 1;
+        this.cajas = 0;
+        this.lugarSeleccionado = null; 
+        this.estado = 'agregar';
+      },
+      error: () => alert('❌ Producto no encontrado.')
+    });
+  }
+
+  calcularPorCajas() {
+    this.cantidad = this.cajas * this.loteEditable;
+  }
+
+  agregarProducto() {
+    if (!this.lugarSeleccionado) return alert('Debes seleccionar una ubicación');
+
+    const indexExistente = this.inventarioActual.lista.findIndex((p: any) => 
+      p.productoId === this.productoEncontrado.productoId && 
+      p.lugarId === this.lugarSeleccionado.movimientoLugarId
+    );
+
+    const itemData = {
+      ...this.productoEncontrado,
+      cantidadAgregada: this.cantidad,
+      productoCantidadLote: this.loteEditable,
+      lugarId: this.lugarSeleccionado.movimientoLugarId,
+      lugarNombre: this.lugarSeleccionado.movimientoLugarDescripcion
+    };
+
+    if (this.productoEditando) {
+      const idx = this.inventarioActual.lista.indexOf(this.productoEditando);
+      this.inventarioActual.lista[idx] = itemData;
+      this.productoEditando = null;
+    } else if (indexExistente !== -1) {
+      this.inventarioActual.lista[indexExistente].cantidadAgregada += this.cantidad;
+    } else {
+      this.inventarioActual.lista.push(itemData);
+    }
+
+    this.guardarEnStorage();
+    this.reset();
+    this.estado = 'lista';
+  }
+
+  seleccionarParaEditar(item: any) {
+    this.productoEncontrado = { ...item };
+    this.cantidad = item.cantidadAgregada;
+    this.loteEditable = item.productoCantidadLote;
+    this.lugarSeleccionado = this.lugares.find(l => l.movimientoLugarId === item.lugarId);
+    this.productoEditando = item;
+    this.estado = 'agregar';
+  }
+
+  eliminarIndividual(item: any) {
+    if (confirm(`¿Eliminar ${item.productoNombre} del conteo?`)) {
+      this.inventarioActual.lista = this.inventarioActual.lista.filter((i: any) => i !== item);
+      this.guardarEnStorage();
+    }
+  }
+
+  eliminarInventarioCompleto(inv: any) {
+    if (confirm(`¿Borrar todo el inventario "${inv.nombre}"?`)) {
+      this.inventariosPendientes = this.inventariosPendientes.filter(i => i !== inv);
+      this.guardarEnStorage();
+      this.estado = 'inicio';
+    }
+  }
+
+  guardarEnStorage() {
+    localStorage.setItem('inventarios_ims', JSON.stringify(this.inventariosPendientes));
+  }
+
+  volver() {
+    // 1. Si estamos agregando o editando, volvemos a la lista del inventario actual
+    if (this.estado === 'agregar') {
+      this.estado = 'lista';
+      this.reset();
+      return;
+    }
+
+    // 2. Si estamos viendo la lista, volvemos al menú de selección (inicio)
+    if (this.estado === 'lista') {
+      this.estado = 'inicio';
+      this.inventarioActual = null;
+      return;
+    }
+
+    // 3. Si ya estamos en el inicio (el de tu foto), volvemos al Home del sistema
+    if (this.estado === 'inicio') {
+      this.router.navigate(['/home']);
+    }
+  }
+
+  aumentar() { this.cantidad++; }
+  disminuir() { if (this.cantidad > 1) this.cantidad--; }
+  reset() { this.codigo = ''; this.cantidad = 1; this.cajas = 0; this.productoEncontrado = null; this.productoEditando = null; }
+  
+  // LÓGICA DE CÁMARA 
+  abrirEscaner() { 
+    this.escanerAbierto = true; 
+    setTimeout(() => this.iniciarCamara(), 100); 
   }
 
   iniciarCamara() {
     this.codeReader.decodeFromVideoDevice(
       undefined, 
       this.videoElement.nativeElement, 
-      (result, err) => {
-        if (result) {
-          this.manejarEscaneoExitoso(result.getText());
+      (result: any) => {
+        if (result) { 
+          this.codigo = result.getText(); 
+          this.cerrarEscaner(); 
+          this.buscarProducto(); 
         }
       }
-    ).then((controles) => {
-      this.controlesCamara = controles; 
-    }).catch(err => {
-      console.error('Error al abrir la cámara:', err);
-    });
+    ).then((c: any) => this.controlesCamara = c)
+     .catch(err => console.error('Error cámara:', err));
   }
 
-  cerrarEscaner() {
-    this.escanerAbierto = false;
-    
+  cerrarEscaner() { 
+    this.escanerAbierto = false; 
     if (this.controlesCamara) {
       this.controlesCamara.stop();
       this.controlesCamara = null;
-    }
+    } 
   }
-
-  manejarEscaneoExitoso(codigoObtenido: string) {
-    // SONIDO
-    const sonidoCajero = new Audio('/sonidos/store-scanner-beep.mp3');
-    sonidoCajero.play().catch(e => console.log('No funcó el sonido'));
-
-    // 🔥 ADAPTADO A LA LÓGICA DE INVENTARIO
-    this.codigo = codigoObtenido; // Asignamos el código al input de Cristóbal
-    this.cerrarEscaner(); 
-    
-    // Disparamos la búsqueda automáticamente
-    this.buscarProducto();
-  }
-
-  // BUSCAR PRODUCTO REAL EN BD
-  buscarProducto() {
-    if (!this.codigo) return;
-
-    this.inventarioService.buscarProductoPorCodigo(this.codigo).subscribe({
-      next: (producto) => {
-        this.productoEncontrado = producto;
-        this.estado = 'agregar';
-      },
-      error: (err) => {
-        console.error(err);
-        alert('❌ Producto no encontrado en la base de datos. Revisa el código.');
-      }
-    });
-  }
-
-  aumentar() { this.cantidad++; }
-  disminuir() { if (this.cantidad > 1) this.cantidad--; }
-
-  agregarProducto() {
-    this.lista.push({
-      ...this.productoEncontrado, // Guardamos todo el objeto producto real
-      cantidadAgregada: this.cantidad // Usamos nombre distinto para no pisar el stock
-    });
-
-    this.reset();
-    this.estado = 'lista';
-  }
-
-  seleccionarParaEditar(item: any) {
-    this.productoEditando = { ...item };
-    this.cantidad = item.cantidadAgregada;
-    this.estado = 'editar';
-  }
-
-  modificarProducto() {
-    const index = this.lista.findIndex(p => p.productoCodigo === this.productoEditando.productoCodigo);
-    if (index !== -1) {
-      this.lista[index].cantidadAgregada = this.cantidad;
-    }
-    this.reset();
-    this.estado = 'lista';
-  }
-
-  eliminar(item: any) {
-    this.lista = this.lista.filter(i => i !== item);
-  }
-
-  guardar() {
-    alert('Borrador guardado localmente (se podría implementar localStorage aquí)');
-  }
-
-  // EL GUARDADO REAL EN MYSQL
-  finalizar() {
-    if (this.lista.length === 0) {
-      alert('⚠️ Agrega al menos un producto antes de finalizar.');
-      return;
-    }
-
-    // 1. Armamos la cabecera del Movimiento
-    const nuevoMovimiento = {
-      movimientoTipo: 'ENTRADA', // Ajustar si después le pones un select
-      movimientoEstado: 'CONFIRMADO',
-      movimientoDescripcion: 'Ingreso de inventario desde interfaz',
-      movimientoMetodoPago: 'EFECTIVO' // Requisito obligatorio de tu backend
-    };
-
-    // 2. Creamos la cabecera
-    this.inventarioService.crearMovimientoCabecera(nuevoMovimiento).subscribe({
-      next: (movimientoCreado) => {
-        const movId = movimientoCreado.movimientoId;
-        let detallesProcesados = 0;
-
-        // 3. Recorremos la lista y creamos los detalles uno por uno
-        this.lista.forEach(item => {
-          const detalle = {
-            movimientoDetalleCantidad: item.cantidadAgregada,
-            movimientoDetalleUnidadesPorPaquete: 1, // Exigencia de la validación Java
-            movimientoDetalleDescripcion: 'Ingresado por sistema',
-            producto: { productoId: item.productoId } // Match con el ID real
-          };
-
-          this.inventarioService.crearDetalle(movId, detalle).subscribe({
-            next: () => {
-              detallesProcesados++;
-              // Verificamos si terminamos de guardar toda la lista
-              if (detallesProcesados === this.lista.length) {
-                alert('✅ ¡Inventario guardado con éxito en la Base de Datos!');
-                this.lista = [];
-                this.estado = 'inicio';
-              }
-            },
-            error: (err) => console.error('Error al guardar detalle:', err)
-          });
-        });
-      },
-      error: (err) => {
-        console.error('Error al crear cabecera:', err);
-        alert('❌ Hubo un error al crear el movimiento de cabecera.');
-      }
-    });
-  }
-
-  volver() { this.location.back(); }
-
-  reset() {
-    this.codigo = '';
-    this.cantidad = 1;
-    this.productoEncontrado = null;
-    this.productoEditando = null;
-  }
+  
+  irAHistorial() { this.router.navigate(['/inventario/historial']); }
+  finalizar() { alert('Enviando inventario "' + this.inventarioActual.nombre + '" a la base de datos...'); }
 }

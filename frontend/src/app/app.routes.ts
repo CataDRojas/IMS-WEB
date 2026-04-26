@@ -9,7 +9,8 @@ import { RolesForm } from './pages/roles/roles-form/roles-form';
 import { authGuard } from './guards/auth-guard';
 import { permisosGuard } from './guards/permisos-guard';
 
-import { Ventas } from './pages/ventas/ventas';
+import { VentasHistorial } from './pages/ventas/ventas-historial/ventas-historial';
+import { VentasForm } from './pages/ventas/ventas-form/ventas-form';
 import { NOT_FOUND } from '@angular/core/primitives/di';
 
 import { NotFound } from './pages/not-found/not-found';
@@ -21,12 +22,11 @@ import { ProductosComponent } from './pages/productos/productos';
 import { DescuentosListComponent } from './pages/descuentos/descuentos-list/descuentos-list';
 import { DescuentosFormComponent } from './pages/descuentos/descuentos-form/descuentos-form';
 
-// IMPORTS DEL INVENTARIO (TOBAL)
-import { InventarioHomeComponent } from './pages/inventario/inventario-home/inventario-home';
+// IMPORTS DEL INVENTARIO
 import { InventarioForm } from './pages/inventario/inventario-form/inventario-form';
 import { InventarioHistorial } from './pages/inventario/inventario-historial/inventario-historial';
 
-// IMPORTS DE LUGARES (TOBAL)
+// IMPORTS DE LUGARES 
 import { LugaresList } from './pages/lugares/lugares-list/lugares-list';
 import { LugaresForm } from './pages/lugares/lugares-form/lugares-form';
 
@@ -71,15 +71,29 @@ export const routes: Routes = [
     data: { requiredPermisos: ['ROLES_MANAGE'] }
   },
 
-  // =========================
-  // VENTAS / MOVIMIENTOS
-  // =========================
-  {
-    path: 'ventas',
-    component: Ventas,
-    canActivate: [authGuard, permisosGuard],
-    data: { requiredPermisos: ['MOVIMIENTO_READ', 'MOVIMIENTO_MANAGE'] }
-  },
+// =========================
+// VENTAS / MOVIMIENTOS
+// =========================
+{
+  path: 'ventas',
+  canActivate: [authGuard, permisosGuard],
+  data: { requiredPermisos: ['VENTA_READ', 'VENTA_MANAGE'] },
+  children: [
+    {
+      path: '',
+      component: VentasHistorial // 🔥 hub is now default
+    },
+    {
+      path: 'form',
+      component: VentasForm
+    },
+    {
+      path: 'historial',
+      redirectTo: '',
+      pathMatch: 'full'
+    }
+  ]
+},
 
   // =========================
   // PRODUCTOS
@@ -124,14 +138,8 @@ export const routes: Routes = [
   },
 
   // =========================
-  // INVENTARIO (TOBAL)
+  // INVENTARIO
   // =========================
-  { 
-    path: 'inventario', 
-    component: InventarioHomeComponent, 
-    canActivate: [authGuard, permisosGuard], 
-    data: { requiredPermisos: ['MOVIMIENTO_MANAGE', 'MOVIMIENTO_READ'] }
-  },
   { 
     path: 'inventario/nuevo', 
     component: InventarioForm, 
@@ -146,7 +154,7 @@ export const routes: Routes = [
   },
 
   // =========================
-  // LUGARES (TOBAL)
+  // LUGARES
   // =========================
   {
     path: 'lugares',
