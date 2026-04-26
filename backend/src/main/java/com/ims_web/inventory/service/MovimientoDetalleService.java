@@ -34,9 +34,9 @@ public class MovimientoDetalleService {
         this.entityManager = entityManager;
     }
 
-    // =========================
+    // =========================================================
     // READ
-    // =========================
+    // =========================================================
 
     public List<MovimientoDetalleResponseDTO> getAllDetalles() {
         return detalleRepo.findAll()
@@ -52,19 +52,15 @@ public class MovimientoDetalleService {
         return toDTO(detalle);
     }
 
-    // =========================
-    // CREATE (SINGLE)
-    // =========================
+    // =========================================================
+    // CREATE SINGLE
+    // =========================================================
 
     @Transactional
-    public MovimientoDetalleResponseDTO createDetalle(Long movimientoId, MovimientoDetalleRequestDTO incoming) {
+    public MovimientoDetalleResponseDTO createDetalle(Long movimientoId,
+                                                      MovimientoDetalleRequestDTO incoming) {
 
-        Movimiento movimiento = movimientoRepo.findById(movimientoId)
-                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
-
-        if ("CONFIRMADO".equals(movimiento.getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot add detail to a confirmed movimiento");
-        }
+        Movimiento movimiento = getValidatedMovimiento(movimientoId);
 
         Producto producto = productoRepo.findById(incoming.getProductoId())
                 .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
@@ -88,12 +84,14 @@ public class MovimientoDetalleService {
         detalle.setMovimientoDetallePrecioTotal(incoming.getMovimientoDetallePrecioTotal());
         detalle.setMovimientoDetalleDescuentoAplicado(incoming.getMovimientoDetalleDescuentoAplicado());
 
+        // 🔒 STOCK VALIDATION (NEW)
+        validateStockImpact(movimiento, detalle, null);
+
         MovimientoDetalle saved = detalleRepo.save(detalle);
 
         entityManager.flush();
         entityManager.refresh(saved);
 
-        // 🔥 ALWAYS RECALCULATE AFTER SINGLE INSERT
         entityManager.createNativeQuery("""
             CALL sp_recalcular_movimiento(:id)
         """)
@@ -103,9 +101,9 @@ public class MovimientoDetalleService {
         return toDTO(saved);
     }
 
-    // =========================
-    // CREATE (BATCH)
-    // =========================
+    // =========================================================
+    // CREATE BATCH
+    // =========================================================
 
     @Transactional
     public List<MovimientoDetalleResponseDTO> createDetallesBatch(
@@ -113,12 +111,7 @@ public class MovimientoDetalleService {
             List<MovimientoDetalleRequestDTO> detalles
     ) {
 
-        Movimiento movimiento = movimientoRepo.findById(movimientoId)
-                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
-
-        if ("CONFIRMADO".equals(movimiento.getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot add details to a confirmed movimiento");
-        }
+        Movimiento movimiento = getValidatedMovimiento(movimientoId);
 
         List<MovimientoDetalle> savedList = new ArrayList<>();
 
@@ -146,6 +139,9 @@ public class MovimientoDetalleService {
             detalle.setMovimientoDetallePrecioTotal(incoming.getMovimientoDetallePrecioTotal());
             detalle.setMovimientoDetalleDescuentoAplicado(incoming.getMovimientoDetalleDescuentoAplicado());
 
+            // 🔒 STOCK VALIDATION (NEW)
+            validateStockImpact(movimiento, detalle, null);
+
             savedList.add(detalleRepo.save(detalle));
         }
 
@@ -155,7 +151,6 @@ public class MovimientoDetalleService {
             entityManager.refresh(d);
         }
 
-        // 🔥 ALWAYS RECALCULATE AFTER BATCH INSERT
         entityManager.createNativeQuery("""
             CALL sp_recalcular_movimiento(:id)
         """)
@@ -165,21 +160,33 @@ public class MovimientoDetalleService {
         return savedList.stream().map(this::toDTO).toList();
     }
 
-    // =========================
+    // =========================================================
     // UPDATE
-    // =========================
+    // =========================================================
 
     @Transactional
-    public MovimientoDetalleResponseDTO updateDetalle(Long id, MovimientoDetalleRequestDTO incoming) {
+    public MovimientoDetalleResponseDTO updateDetalle(Long id,
+                                                      MovimientoDetalleRequestDTO incoming) {
 
         MovimientoDetalle existing = detalleRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("MovimientoDetalle not found"));
 
-        if ("CONFIRMADO".equals(existing.getMovimiento().getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot modify detail of a confirmed movimiento");
-        }
+        Movimiento movimiento = getValidatedMovimiento(existing.getMovimiento().getMovimientoId());
 
         validate(incoming);
+
+        // create a copy for simulation (future state)
+        MovimientoDetalle projected = new MovimientoDetalle();
+        projected.setMovimiento(existing.getMovimiento());
+        projected.setProducto(existing.getProducto());
+        projected.setMovimientoDetalleId(existing.getMovimientoDetalleId());
+
+        projected.setMovimientoDetalleCantidad(incoming.getMovimientoDetalleCantidad());
+        projected.setMovimientoDetalleUnidadesPorPaquete(incoming.getMovimientoDetalleUnidadesPorPaquete());
+        projected.setMovimientoDetalleDescripcion(incoming.getMovimientoDetalleDescripcion());
+
+        // 🔒 STOCK VALIDATION (NEW)
+        validateStockImpact(movimiento, projected, existing);
 
         existing.setMovimientoDetalleCantidad(incoming.getMovimientoDetalleCantidad());
         existing.setMovimientoDetalleUnidadesPorPaquete(incoming.getMovimientoDetalleUnidadesPorPaquete());
@@ -190,21 +197,18 @@ public class MovimientoDetalleService {
         entityManager.flush();
         entityManager.refresh(updated);
 
-        // 🔥 RECALCULATE AFTER UPDATE TOO
-        Long movimientoId = existing.getMovimiento().getMovimientoId();
-
         entityManager.createNativeQuery("""
             CALL sp_recalcular_movimiento(:id)
         """)
-                .setParameter("id", movimientoId)
+                .setParameter("id", movimiento.getMovimientoId())
                 .executeUpdate();
 
         return toDTO(updated);
     }
 
-    // =========================
+    // =========================================================
     // DELETE
-    // =========================
+    // =========================================================
 
     @Transactional
     public void deleteDetalle(Long id) {
@@ -212,27 +216,67 @@ public class MovimientoDetalleService {
         MovimientoDetalle detalle = detalleRepo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("MovimientoDetalle not found"));
 
-        if ("CONFIRMADO".equals(detalle.getMovimiento().getMovimientoEstado())) {
-            throw new IllegalStateException("Cannot delete detail of a confirmed movimiento");
-        }
+        Movimiento movimiento = getValidatedMovimiento(detalle.getMovimiento().getMovimientoId());
 
-        Long movimientoId = detalle.getMovimiento().getMovimientoId();
+        // 🔒 STOCK VALIDATION (NEW)
+        validateStockImpact(movimiento, null, detalle);
 
         detalleRepo.delete(detalle);
 
         entityManager.flush();
 
-        // 🔥 RECALCULATE AFTER DELETE TOO
         entityManager.createNativeQuery("""
             CALL sp_recalcular_movimiento(:id)
         """)
-                .setParameter("id", movimientoId)
+                .setParameter("id", movimiento.getMovimientoId())
                 .executeUpdate();
     }
 
-    // =========================
+    // =========================================================
+    // STOCK VALIDATION CORE (NEW)
+    // =========================================================
+
+    private void validateStockImpact(Movimiento movimiento,
+                                     MovimientoDetalle newState,
+                                     MovimientoDetalle oldState) {
+
+        List<MovimientoDetalle> all = detalleRepo.findByMovimiento(movimiento);
+
+        if (oldState != null) {
+            all.removeIf(d -> d.getMovimientoDetalleId().equals(oldState.getMovimientoDetalleId()));
+        }
+
+        if (newState != null) {
+            all.add(newState);
+        }
+
+        for (MovimientoDetalle d : all) {
+
+            Producto p = productoRepo.findById(d.getProducto().getProductoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
+
+            int unidades =
+                    d.getMovimientoDetalleCantidad() *
+                            (d.getMovimientoDetalleUnidadesPorPaquete() != null
+                                    ? d.getMovimientoDetalleUnidadesPorPaquete()
+                                    : 1);
+
+            if ("SALIDA".equals(movimiento.getMovimientoTipo())) {
+
+                int projectedStock = p.getProductoStock() - unidades;
+
+                if (projectedStock < 0) {
+                    throw new IllegalStateException(
+                            "ERR_STOCK_NEGATIVE|Product " + p.getProductoId() + " would go below zero"
+                    );
+                }
+            }
+        }
+    }
+
+    // =========================================================
     // VALIDATION
-    // =========================
+    // =========================================================
 
     private void validate(MovimientoDetalleRequestDTO dto) {
 
@@ -247,9 +291,25 @@ public class MovimientoDetalleService {
         }
     }
 
-    // =========================
+    // =========================================================
+    // CENTRAL GUARD
+    // =========================================================
+
+    private Movimiento getValidatedMovimiento(Long movimientoId) {
+
+        Movimiento movimiento = movimientoRepo.findById(movimientoId)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+
+        if ("CONFIRMADO".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Cannot modify a confirmed movimiento");
+        }
+
+        return movimiento;
+    }
+
+    // =========================================================
     // MAPPING
-    // =========================
+    // =========================================================
 
     private MovimientoDetalleResponseDTO toDTO(MovimientoDetalle d) {
 

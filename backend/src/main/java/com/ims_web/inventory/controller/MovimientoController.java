@@ -1,7 +1,9 @@
 package com.ims_web.inventory.controller;
 
+import com.ims_web.inventory.dto.MovimientoDetalleRequestDTO;
 import com.ims_web.inventory.dto.MovimientoResponseDTO;
 import com.ims_web.inventory.entity.Configuracion;
+import com.ims_web.inventory.entity.Movimiento;
 import com.ims_web.inventory.entity.Producto;
 import com.ims_web.inventory.service.ConfiguracionService;
 import com.ims_web.inventory.service.MovimientoService;
@@ -33,49 +35,70 @@ public class MovimientoController {
     // MOVIMIENTOS
     // =========================
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping
     public List<MovimientoResponseDTO> getAll() {
         return movimientoService.getAll();
     }
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/{id}")
     public MovimientoResponseDTO getById(@PathVariable Long id) {
         return movimientoService.getById(id);
     }
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
-    @PostMapping
-    public MovimientoResponseDTO create(
-            @RequestBody com.ims_web.inventory.entity.Movimiento movimiento,
-            @RequestHeader("X-User") String currentUser
-    ) {
-        return movimientoService.create(movimiento, currentUser);
+    // =========================================================
+    // CREATE (HEADER + DETALLES ATOMIC)
+    // =========================================================
+
+    public static class MovimientoCreateRequest {
+        public Movimiento movimiento;
+        public List<MovimientoDetalleRequestDTO> detalles;
     }
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
+    @PostMapping
+    public MovimientoResponseDTO create(
+            @RequestBody MovimientoCreateRequest request,
+            @RequestHeader("X-User") String currentUser
+    ) {
+        return movimientoService.create(
+                request.movimiento,
+                request.detalles,
+                currentUser
+        );
+    }
+
+    // =========================
+    // UPDATE
+    // =========================
+
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
     @PutMapping("/{id}")
     public MovimientoResponseDTO update(
             @PathVariable Long id,
-            @RequestBody com.ims_web.inventory.entity.Movimiento movimiento,
+            @RequestBody Movimiento movimiento,
             @RequestHeader("X-User") String currentUser
     ) {
         movimiento.setMovimientoId(id);
         return movimientoService.update(movimiento, currentUser);
     }
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
+    // =========================
+    // DELETE
+    // =========================
+
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         movimientoService.delete(id);
     }
 
     // =========================
-    // CONFIRMAR MOVIMIENTO
+    // CONFIRMAR
     // =========================
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
     @PostMapping("/{id}/confirmar")
     public MovimientoResponseDTO confirmar(
             @PathVariable Long id,
@@ -88,7 +111,7 @@ public class MovimientoController {
     // CONFIGURACION
     // =========================
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/configuracion")
     public Configuracion getConfiguracionForMovimientos() {
         return configuracionService.getConfiguracion();
@@ -98,19 +121,19 @@ public class MovimientoController {
     // PRODUCTOS
     // =========================
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/productos")
     public List<Producto> getAllProductos() {
         return productoService.getAllProductos();
     }
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/productos/{id}")
     public Producto getProductoById(@PathVariable Long id) {
         return productoService.getProductoById(id);
     }
 
-    @PreAuthorize("hasAuthority('MOVIMIENTO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/productos/codigo/{codigo}")
     public Producto getProductoByCodigo(@PathVariable String codigo) {
         return productoService.getProductoByCodigo(codigo);

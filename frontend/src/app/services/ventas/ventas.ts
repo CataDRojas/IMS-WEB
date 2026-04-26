@@ -15,39 +15,53 @@ export class VentasService {
   constructor(private http: HttpClient) {}
 
   // =========================
-  // CONFIGURACION (NOW FROM DETALLES)
+  // CONFIGURACION (FIXED)
   // =========================
 
   getConfiguracion(): Observable<any> {
-    return this.http.get(`${this.baseDetalles}/configuracion`);
+    return this.http.get(`${this.baseMovimientos}/configuracion`);
   }
 
   // =========================
-  // PRODUCTOS (NOW FROM DETALLES)
+  // PRODUCTOS (FIXED ROUTE SOURCE)
   // =========================
 
   getProductoByCodigo(codigo: string): Observable<any> {
-    return this.http.get(`${this.baseDetalles}/productos/codigo/${codigo}`);
+    return this.http.get(`${this.baseMovimientos}/productos/codigo/${codigo}`);
   }
 
   getProductoById(id: number): Observable<any> {
-    return this.http.get(`${this.baseDetalles}/productos/${id}`);
+    return this.http.get(`${this.baseMovimientos}/productos/${id}`);
   }
 
   getAllProductos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseDetalles}/productos`);
+    return this.http.get<any[]>(`${this.baseMovimientos}/productos`);
   }
 
   // =========================
-  // MOVIMIENTO (HEADER - STILL OWNED BY MOVIMIENTOS)
+  // MOVIMIENTO (UNCHANGED CONTRACT)
   // =========================
 
   createMovimiento(payload: {
-    movimientoTipo: string;
-    movimientoEstado: string;
-    movimientoMetodoPago?: string;
-    movimientoDescripcion?: string;
-    movimientoDescuento?: number;
+    movimiento: {
+      movimientoTipo: string;
+      movimientoEstado: string;
+      movimientoMetodoPago?: string;
+      movimientoDescripcion?: string;
+      movimientoDescuento?: number;
+    };
+    detalles: Array<{
+      productoId: number;
+      movimientoDetalleCantidad: number;
+      movimientoDetalleUnidadesPorPaquete?: number;
+      movimientoDetalleDescripcion?: string;
+
+      movimientoDetallePrecioBase: number;
+      movimientoDetallePrecioUnitario: number;
+      movimientoDetallePrecioTotal: number;
+
+      movimientoDetalleDescuentoAplicado?: number;
+    }>;
   }): Observable<any> {
 
     const user = localStorage.getItem('user') || 'system';
@@ -59,6 +73,10 @@ export class VentasService {
 
   getMovimientoById(id: number): Observable<any> {
     return this.http.get(`${this.baseMovimientos}/${id}`);
+  }
+
+  getMovimientos(): Observable<any[]> {
+    return this.http.get<any[]>(this.baseMovimientos);
   }
 
   confirmarMovimiento(id: number): Observable<any> {
@@ -73,91 +91,32 @@ export class VentasService {
   }
 
   // =========================
-  // DETALLES (SINGLE)
+  // DETALLES SINGLE (OK)
   // =========================
 
-  createDetalle(
-    movimientoId: number,
-    detalle: {
-      productoId: number;
-      movimientoDetalleCantidad: number;
-      movimientoDetalleUnidadesPorPaquete?: number;
-      movimientoDetalleDescripcion?: string;
-
-      movimientoDetallePrecioBase: number;
-      movimientoDetallePrecioUnitario: number;
-      movimientoDetallePrecioTotal: number;
-
-      movimientoDetalleDescuentoAplicado?: number;
-    }
-  ): Observable<any> {
-
+  createDetalle(movimientoId: number, detalle: any): Observable<any> {
     return this.http.post(
       `${this.baseDetalles}/movimiento/${movimientoId}`,
       detalle
     );
   }
 
-  // =========================
-  // DETALLES (BATCH)
-  // =========================
-
-  createDetallesBatch(
-    movimientoId: number,
-    detalles: Array<{
-      productoId: number;
-      movimientoDetalleCantidad: number;
-      movimientoDetalleUnidadesPorPaquete?: number;
-      movimientoDetalleDescripcion?: string;
-
-      movimientoDetallePrecioBase: number;
-      movimientoDetallePrecioUnitario: number;
-      movimientoDetallePrecioTotal: number;
-
-      movimientoDetalleDescuentoAplicado?: number;
-    }>
-  ): Observable<any> {
-
-    return this.http.post(
-      `${this.baseDetalles}/movimiento/${movimientoId}/batch`,
-      detalles
-    );
+  updateDetalle(id: number, detalle: any): Observable<any> {
+    return this.http.put(`${this.baseDetalles}/${id}`, detalle);
   }
-
-  // =========================
-  // UPDATE DETALLE
-  // =========================
-
-  updateDetalle(
-    id: number,
-    detalle: {
-      movimientoDetalleCantidad: number;
-      movimientoDetalleUnidadesPorPaquete?: number;
-      movimientoDetalleDescripcion?: string;
-    }
-  ): Observable<any> {
-
-    return this.http.put(
-      `${this.baseDetalles}/${id}`,
-      detalle
-    );
-  }
-
-  // =========================
-  // DELETE DETALLE
-  // =========================
 
   deleteDetalle(id: number): Observable<any> {
     return this.http.delete(`${this.baseDetalles}/${id}`);
   }
 
   // =========================
-  // LUGARES
+  // BATCH (OK)
   // =========================
 
-  getLugaresActivos(): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.baseDetalles}/lugares/active`
+  createDetallesBatch(movimientoId: number, detalles: any[]): Observable<any> {
+    return this.http.post(
+      `${this.baseDetalles}/movimiento/${movimientoId}`,
+      detalles
     );
   }
 }

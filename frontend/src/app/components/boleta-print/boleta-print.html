@@ -1,0 +1,39 @@
+<div class="boleta">
+
+  <h3>{{boleta.empresa.nombre}}</h3>
+  <div>RUT: {{getRut()}}</div>
+  <div>{{boleta.empresa.direccion}}</div>
+
+  <hr>
+
+  <div>Folio: {{boleta.folio}}</div>
+  <div>Fecha: {{formatFecha(boleta.fecha)}}</div>
+
+  <hr>
+
+  <div *ngFor="let item of boleta.items" class="item">
+    <div>{{item.nombre}}</div>
+    <div>{{item.cantidad}} x {{item.precioUnitario | number:'1.0-0'}}</div>
+    <div *ngIf="item.descuento > 0">
+      Desc: -{{item.descuento | number:'1.0-0'}}
+    </div>
+    <div class="total-item">
+      {{item.total | number:'1.0-0'}}
+    </div>
+  </div>
+
+  <hr>
+
+  <div>Subtotal: {{boleta.subtotal | number:'1.0-0'}}</div>
+
+  <div *ngIf="boleta.descuentoGlobal > 0">
+    Descuento: -{{boleta.descuentoGlobal | number:'1.0-0'}}
+  </div>
+
+  <div>IVA: {{boleta.iva | number:'1.0-0'}}</div>
+
+  <h2>Total: {{boleta.total | number:'1.0-0'}}</h2>
+
+  <div>Método de pago: {{boleta.metodoPago}}</div>
+
+</div>

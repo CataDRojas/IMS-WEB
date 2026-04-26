@@ -49,6 +49,10 @@ ALTER TABLE Movimiento
 ADD CONSTRAINT chk_movimiento_estado
 CHECK (MovimientoEstado IN ('PENDIENTE', 'CONFIRMADO', 'ANULADO'));
 
+ALTER TABLE Movimiento
+ADD CONSTRAINT chk_movimiento_metodo_pago
+CHECK (MovimientoMetodoPago IN ('EFECTIVO', 'TARJETA'));
+
 -- =========================
 -- MOVIMIENTO DETALLE RULES
 -- =========================

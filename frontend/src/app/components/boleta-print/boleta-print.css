@@ -1,0 +1,26 @@
+.boleta {
+  width: 80mm;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+hr {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 6px 0;
+}
+
+.item {
+  margin-bottom: 6px;
+}
+
+.total-item {
+  text-align: right;
+  font-weight: bold;
+}
+
+@media print {
+  body {
+    margin: 0;
+  }
+}

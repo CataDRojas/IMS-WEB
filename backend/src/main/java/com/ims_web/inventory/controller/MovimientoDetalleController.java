@@ -36,74 +36,74 @@ public class MovimientoDetalleController {
     }
 
     // =========================
-    // CONFIGURACION (READ)
+    // CONFIGURACION
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/configuracion")
     public Configuracion getConfiguracion() {
         return configuracionService.getConfiguracion();
     }
 
     // =========================
-    // DESCUENTO (SIMULATION READ)
+    // DESCUENTOS
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/descuentos")
     public List<Descuento> getDescuentosActivos() {
         return descuentoService.getActive();
     }
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/descuentos/{id}")
     public Descuento getDescuentoById(@PathVariable Long id) {
         return descuentoService.getById(id);
     }
 
     // =========================
-    // PRODUCTO (SIMULATION READ)
+    // PRODUCTOS
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/productos")
     public List<Producto> getProductos() {
         return productoService.getAllProductos();
     }
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/productos/{id}")
     public Producto getProductoById(@PathVariable Long id) {
         return productoService.getProductoById(id);
     }
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/productos/codigo/{codigo}")
     public Producto getProductoByCodigo(@PathVariable String codigo) {
         return productoService.getProductoByCodigo(codigo);
     }
 
     // =========================
-    // READ
+    // READ DETALLES
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping
     public List<MovimientoDetalleResponseDTO> getAll() {
         return service.getAllDetalles();
     }
 
-    @PreAuthorize("hasAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/{id}")
     public MovimientoDetalleResponseDTO getById(@PathVariable Long id) {
         return service.getDetalleById(id);
     }
 
     // =========================
-    // CREATE
+    // CREATE DETAIL (STOCK-SAFE)
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_MANAGE','INVENTARIO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE','INVENTARIO_MANAGE')")
     @PostMapping("/movimiento/{movimientoId}")
     public MovimientoDetalleResponseDTO create(
             @PathVariable Long movimientoId,
@@ -113,10 +113,10 @@ public class MovimientoDetalleController {
     }
 
     // =========================
-    // UPDATE
+    // UPDATE DETAIL (STOCK VALIDATED)
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_MANAGE','INVENTARIO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE','INVENTARIO_MANAGE')")
     @PutMapping("/{id}")
     public MovimientoDetalleResponseDTO update(
             @PathVariable Long id,
@@ -126,10 +126,10 @@ public class MovimientoDetalleController {
     }
 
     // =========================
-    // DELETE
+    // DELETE DETAIL (STOCK VALIDATED)
     // =========================
 
-    @PreAuthorize("hasAuthority('VENTA_MANAGE','INVENTARIO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE','INVENTARIO_MANAGE')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.deleteDetalle(id);

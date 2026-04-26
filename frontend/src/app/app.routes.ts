@@ -77,15 +77,20 @@ export const routes: Routes = [
 {
   path: 'ventas',
   canActivate: [authGuard, permisosGuard],
-  data: { requiredPermisos: ['MOVIMIENTO_READ', 'MOVIMIENTO_MANAGE'] },
+  data: { requiredPermisos: ['VENTA_READ', 'VENTA_MANAGE'] },
   children: [
+    {
+      path: '',
+      component: VentasHistorial // 🔥 hub is now default
+    },
     {
       path: 'form',
       component: VentasForm
     },
     {
       path: 'historial',
-      component: VentasHistorial
+      redirectTo: '',
+      pathMatch: 'full'
     }
   ]
 },

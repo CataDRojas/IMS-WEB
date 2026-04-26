@@ -8,6 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Location } from '@angular/common';
+import { PagoTarjeta } from '../../../services/pago-tarjeta';
+import { BoletaService } from '../../../services/boleta';
 
 import { VentasService } from '../../../services/ventas/ventas';
 
@@ -29,8 +32,11 @@ export class VentasForm implements OnInit {
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
+  metodoPago: 'EFECTIVO' | 'TARJETA' = 'EFECTIVO';
   codigo = '';
   cantidad = 1;
+
+  config: any = null;
 
   productoEncontrado: any = null;
   detalles: any[] = [];
@@ -44,10 +50,15 @@ export class VentasForm implements OnInit {
   codeReader = new BrowserMultiFormatReader();
   controlesCamara: any;
   descuentoHeader: number = 0;
-  
+
+
+
   constructor(
     private router: Router,
-    private ventasService: VentasService
+    private ventasService: VentasService,
+    private location: Location,
+    private pagoTarjetaService: PagoTarjeta,
+    private boletaService: BoletaService
   ) {}
 
   ngOnInit() {
@@ -61,8 +72,9 @@ export class VentasForm implements OnInit {
   cargarConfiguracion() {
     this.ventasService.getConfiguracion().subscribe({
       next: (config: any) => {
-        this.ivaPct = config?.iva ?? 0;
-      },
+          this.config = config;
+          this.ivaPct = config?.iva ?? 0;
+        },
       error: () => {
         this.ivaPct = 0;
       }
@@ -92,7 +104,7 @@ export class VentasForm implements OnInit {
   }
 
   // =========================
-  // DISCOUNT SIMULATION (FRONTEND MIRROR)
+  // DISCOUNT SIMULATION
   // =========================
 
   private simularDescuento(base: number, cantidad: number): number {
@@ -107,19 +119,13 @@ export class VentasForm implements OnInit {
 
     const total = base * cantidad;
 
-    // FLAT = fixed per unit
     if (tipo === 'FLAT') {
       return v1 * cantidad;
     }
 
-    // PORCENTAJE = % over total
     if (tipo === 'PORCENTAJE') {
       return total * (v1 / 100);
     }
-
-    // MULTIPLICATIVO = buy X get Y free style
-    // v1 = threshold (e.g. 2, 4, 10)
-    // v2 = paid units per group (e.g. 1 in 2x1, or 3 in 4x3)
 
     if (tipo === 'MULTIPLICATIVO') {
 
@@ -179,15 +185,10 @@ export class VentasForm implements OnInit {
       this.detalles.push({
         productoId: this.productoEncontrado.productoId,
         productoNombre: this.productoEncontrado.productoNombre,
-
         movimientoDetalleCantidad: qty,
-
         movimientoDetallePrecioBase: base,
-
         movimientoDetalleDescuentoAplicado: descuentoTotal / qty,
-
         movimientoDetallePrecioUnitario: unitario,
-
         movimientoDetallePrecioTotal: unitario * qty
       });
     }
@@ -196,6 +197,27 @@ export class VentasForm implements OnInit {
     this.resetProducto();
   }
 
+  // =========================
+  // 🔥 FIX: RECALCULAR LÍNEA
+  // =========================
+
+  private recalcularLinea(detalle: any) {
+
+    const base = detalle.movimientoDetallePrecioBase;
+    const qty = detalle.movimientoDetalleCantidad;
+
+    const descuentoTotal = this.simularDescuento(base, qty);
+
+    detalle.movimientoDetalleDescuentoAplicado = descuentoTotal / qty;
+    detalle.movimientoDetallePrecioUnitario = base - (descuentoTotal / qty);
+    detalle.movimientoDetallePrecioTotal =
+      detalle.movimientoDetallePrecioUnitario * qty;
+  }
+
+  // =========================
+  // UI ACTIONS
+  // =========================
+
   resetProducto() {
     this.codigo = '';
     this.cantidad = 1;
@@ -203,93 +225,189 @@ export class VentasForm implements OnInit {
   }
 
   aumentar() { this.cantidad++; }
-  disminuir() { if (this.cantidad > 1) this.cantidad--; }
+
+  disminuir() {
+    if (this.cantidad > 1) this.cantidad--;
+  }
+
+onDetalleCantidadChange(detalle: any, value: number) {
+  const qty = Number(value);
+
+  if (!qty || qty < 1) {
+    detalle.movimientoDetalleCantidad = 1;
+  } else {
+    detalle.movimientoDetalleCantidad = Math.floor(qty);
+  }
+
+  this.recalcularLinea(detalle);
+  this.recalcularTotales();
+}
 
   eliminarDetalle(detalle: any) {
     this.detalles = this.detalles.filter(d => d !== detalle);
     this.recalcularTotales();
   }
 
-  // =========================
-  // TOTALS (MATCH BACKEND LOGIC)
-  // =========================
+  aumentarDetalle(detalle: any) {
+    detalle.movimientoDetalleCantidad++;
+    this.recalcularLinea(detalle);
+    this.recalcularTotales();
+  }
 
-recalcularTotales() {
+  disminuirDetalle(detalle: any) {
 
-  const subtotal = this.detalles.reduce(
-    (sum, d) => sum + d.movimientoDetallePrecioTotal,
-    0
-  );
-
-  const conDescuento = Math.max(0, subtotal - (this.descuentoHeader || 0));
-
-  this.total = subtotal;
-  this.totalFinal = conDescuento;
-
-  const divisor = 1 + (this.ivaPct / 100);
-  const neto = conDescuento / divisor;
-
-  this.iva = conDescuento - neto;
-}
-
-  // =========================
-  // FINALIZE (UNCHANGED FLOW)
-  // =========================
-
-  async finalizarVenta() {
-
-    if (this.detalles.length === 0) {
-      alert('No hay productos');
+    if (detalle.movimientoDetalleCantidad <= 1) {
+      this.eliminarDetalle(detalle);
       return;
     }
 
-    const payload = {
-      movimientoTipo: 'SALIDA',
-      movimientoEstado: 'PENDIENTE',
-      movimientoMetodoPago: 'EFECTIVO'
-    };
-
-    try {
-
-      const mov: any = await this.ventasService
-        .createMovimiento(payload)
-        .toPromise();
-
-      const movimientoId = mov.movimientoId;
-
-      for (const d of this.detalles) {
-
-        await this.ventasService.createDetalle(movimientoId, {
-          productoId: d.productoId,
-          movimientoDetalleCantidad: d.movimientoDetalleCantidad,
-          movimientoDetalleUnidadesPorPaquete: 1,
-          movimientoDetalleDescripcion: d.movimientoDetalleDescripcion || null,
-          movimientoDetallePrecioBase: d.movimientoDetallePrecioBase,
-          movimientoDetallePrecioUnitario: d.movimientoDetallePrecioUnitario,
-          movimientoDetallePrecioTotal: d.movimientoDetallePrecioTotal,
-          movimientoDetalleDescuentoAplicado: d.movimientoDetalleDescuentoAplicado ?? 0
-        }).toPromise();
-      }
-
-      await this.ventasService
-        .confirmarMovimiento(movimientoId)
-        .toPromise();
-
-      alert('Venta registrada correctamente');
-      this.router.navigate(['/ventas']);
-
-    } catch (err) {
-      console.error(err);
-      alert('Error procesando venta');
-    }
-  }
-
-  volver() {
-    this.router.navigate(['/ventas']);
+    detalle.movimientoDetalleCantidad--;
+    this.recalcularLinea(detalle);
+    this.recalcularTotales();
   }
 
   // =========================
-  // CAMERA (UNCHANGED)
+  // TOTALS
+  // =========================
+
+  recalcularTotales() {
+
+    const subtotal = this.detalles.reduce(
+      (sum, d) => sum + d.movimientoDetallePrecioTotal,
+      0
+    );
+
+    const conDescuento = Math.max(0, subtotal - (this.descuentoHeader || 0));
+
+    this.total = subtotal;
+    this.totalFinal = conDescuento;
+
+    const divisor = 1 + (this.ivaPct / 100);
+    const neto = conDescuento / divisor;
+
+    this.iva = conDescuento - neto;
+  }
+
+  // =========================
+  // FINALIZE
+  // =========================
+
+async finalizarVenta() {
+
+  if (!this.metodoPago) {
+    alert('Seleccione método de pago');
+    return;
+  }
+
+  if (this.detalles.length === 0) {
+    alert('No hay productos');
+    return;
+  }
+
+  // =========================
+  // 💳 TARJETA FLOW (SIMULATED)
+  // =========================
+  if (this.metodoPago === 'TARJETA') {
+
+    this.pagoTarjetaService.procesarPago({
+      detalles: this.detalles,
+      totalFinal: this.totalFinal,
+      metodoPago: this.metodoPago
+    });
+
+    return;
+  }
+
+  // =========================
+  // CREATE MOVIMIENTO (FULL ATOMIC PAYLOAD)
+  // =========================
+  const payload = {
+    movimiento: {
+      movimientoTipo: 'SALIDA',
+      movimientoEstado: 'PENDIENTE',
+      movimientoMetodoPago: this.metodoPago
+    },
+    detalles: this.detalles.map(d => ({
+      productoId: d.productoId,
+      movimientoDetalleCantidad: d.movimientoDetalleCantidad,
+      movimientoDetalleUnidadesPorPaquete: 1,
+      movimientoDetalleDescripcion: d.movimientoDetalleDescripcion || null,
+      movimientoDetallePrecioBase: d.movimientoDetallePrecioBase,
+      movimientoDetallePrecioUnitario: d.movimientoDetallePrecioUnitario,
+      movimientoDetallePrecioTotal: d.movimientoDetallePrecioTotal,
+      movimientoDetalleDescuentoAplicado: d.movimientoDetalleDescuentoAplicado ?? 0
+    }))
+  };
+
+  try {
+
+    // 🔹 1. Crear movimiento + detalles (backend handles everything)
+    const mov: any = await this.ventasService
+      .createMovimiento(payload)
+      .toPromise();
+
+    const movimientoId = mov.movimientoId;
+
+    // 🔹 2. Confirmar movimiento
+    await this.ventasService
+      .confirmarMovimiento(movimientoId)
+      .toPromise();
+
+    // =========================
+    // 🧾 BUILD BOLETA
+    // =========================
+    const boleta = {
+      movimientoId: movimientoId,
+      fecha: new Date(),
+      metodoPago: this.metodoPago,
+
+      empresa: {
+        nombre: this.config?.empresaNombre || '',
+        run: `${this.config?.empresaRun || ''}-${this.config?.empresaDV || ''}`,
+        direccion: this.config?.empresaDireccion || ''
+      },
+
+      detalles: this.detalles.map(d => ({
+        nombre: d.productoNombre,
+        cantidad: d.movimientoDetalleCantidad,
+        precioUnitario: d.movimientoDetallePrecioUnitario,
+        descuento: d.movimientoDetalleDescuentoAplicado,
+        total: d.movimientoDetallePrecioTotal
+      })),
+
+      subtotal: this.total,
+      descuentoGlobal: this.descuentoHeader || 0,
+      iva: this.iva,
+      total: this.totalFinal
+    };
+
+    // 🔹 3. Print boleta
+    this.boletaService.print(boleta);
+
+    alert('Venta registrada correctamente');
+
+    // 🔹 4. Reset UI
+    this.detalles = [];
+    this.total = 0;
+    this.iva = 0;
+    this.totalFinal = 0;
+    this.descuentoHeader = 0;
+
+    this.router.navigate(['/ventas']);
+
+  } catch (err) {
+    console.error(err);
+    alert('Error procesando venta');
+  }
+}
+
+
+volver() {
+  this.location.back();
+}
+
+  // =========================
+  // CAMERA
   // =========================
 
   abrirEscaner() {
@@ -326,18 +444,4 @@ recalcularTotales() {
     }
   }
 
-  aumentarDetalle(detalle: any) {
-    detalle.movimientoDetalleCantidad++;
-    this.recalcularTotales();
-  }
-
-  disminuirDetalle(detalle: any) {
-    if (detalle.movimientoDetalleCantidad <= 1) {
-      this.eliminarDetalle(detalle);
-      return;
-    }
-
-    detalle.movimientoDetalleCantidad--;
-    this.recalcularTotales();
-  }
 }

@@ -4,27 +4,6 @@
 -- =========================================
 
 -- =========================
--- PRODUCT SAFETY
--- =========================
-CREATE TRIGGER trg_no_negative_stock
-BEFORE UPDATE ON productos
-FOR EACH ROW
-BEGIN
-    IF NEW.ProductoStock < 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'ERR_PRODUCTO_STOCK_NEGATIVE|Stock cannot be negative';
-    END IF;
-END;
-
-CREATE TRIGGER trg_producto_stockcritico_update
-BEFORE UPDATE ON productos
-FOR EACH ROW
-BEGIN
-    SET NEW.ProductoStockCritico =
-        (NEW.ProductoStock <= NEW.ProductoCriticoNumero);
-END;
-
--- =========================
 -- MOVIMIENTO DETAIL SAFETY
 -- =========================
 CREATE TRIGGER trg_detalle_before_insert

@@ -1,5 +1,6 @@
 <mat-toolbar color="primary">
-  <span style="flex: 1">VENTAS</span>
+  <button mat-button (click)="volver()">⬅ Volver</button>
+  <span style="flex: 1; text-align: center">VENTAS</span>
 </mat-toolbar>
 
 <div style="padding: 20px; max-width: 600px; margin: auto">
@@ -125,9 +126,12 @@
             -
           </button>
 
-          <span style="min-width: 30px; text-align:center; font-weight: bold;">
-            {{d.movimientoDetalleCantidad}}
-          </span>
+          <input
+  type="number"
+  [(ngModel)]="d.movimientoDetalleCantidad"
+  (ngModelChange)="onDetalleCantidadChange(d, $event)"
+  style="width: 60px; text-align: center;"
+/>
 
           <button mat-mini-fab color="primary" (click)="aumentarDetalle(d)">
             +
@@ -171,7 +175,38 @@
     </h2>
 
   </mat-card>
+<!-- ========================= -->
+<!-- METODO DE PAGO -->
+<!-- ========================= -->
+<mat-card style="padding: 15px; margin-top: 20px">
 
+  <strong>Método de Pago</strong>
+
+  <div style="display: flex; gap: 10px; margin-top: 10px">
+
+    <button
+      mat-raised-button
+      class="metodo-btn"
+      [class.selected]="metodoPago === 'EFECTIVO'"
+      (click)="metodoPago = 'EFECTIVO'"
+      style="flex: 1"
+    >
+      💵 EFECTIVO
+    </button>
+
+    <button
+      mat-raised-button
+      class="metodo-btn"
+      [class.selected]="metodoPago === 'TARJETA'"
+      (click)="metodoPago = 'TARJETA'"
+      style="flex: 1"
+    >
+      💳 TARJETA
+    </button>
+
+  </div>
+
+</mat-card>
   <!-- ========================= -->
   <!-- FINALIZAR -->
   <!-- ========================= -->
