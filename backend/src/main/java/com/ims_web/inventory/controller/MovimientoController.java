@@ -8,6 +8,7 @@ import com.ims_web.inventory.entity.Producto;
 import com.ims_web.inventory.service.ConfiguracionService;
 import com.ims_web.inventory.service.MovimientoService;
 import com.ims_web.inventory.service.ProductoService;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,7 +43,6 @@ public class MovimientoController {
         return movimientoService.getById(id);
     }
 
-    // Inventarios pendientes de entrada
     @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/pendientes")
     public List<MovimientoResponseDTO> getPendientesEntrada() {
@@ -54,7 +54,6 @@ public class MovimientoController {
         public List<MovimientoDetalleRequestDTO> detalles;
     }
 
-    // Guardar borrador (PENDIENTE, no confirma)
     @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
     @PostMapping("/borrador")
     public MovimientoResponseDTO guardarBorrador(
@@ -64,7 +63,6 @@ public class MovimientoController {
                 request.movimiento, request.detalles, currentUser);
     }
 
-    // Para ventas (atomic)
     @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
     @PostMapping
     public MovimientoResponseDTO create(
@@ -83,7 +81,7 @@ public class MovimientoController {
         return movimientoService.update(movimiento, currentUser);
     }
 
-    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE', 'INVENTARIO_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE', 'INVENTARIO_MANAGE', 'INVENTARIO_READ')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         movimientoService.delete(id);
@@ -96,6 +94,37 @@ public class MovimientoController {
             @RequestHeader("X-User") String currentUser) {
         return movimientoService.confirmarMovimiento(id, currentUser);
     }
+
+    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
+    @PostMapping("/{id}/anular")
+    public MovimientoResponseDTO anular(
+            @PathVariable Long id,
+            @RequestHeader("X-User") String currentUser) {
+        return movimientoService.anularMovimiento(id, currentUser);
+    }
+
+    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
+    @PostMapping("/{id}/reactivar")
+    public MovimientoResponseDTO reactivar(
+            @PathVariable Long id,
+            @RequestHeader("X-User") String currentUser) {
+        return movimientoService.reactivarMovimiento(id, currentUser);
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
+    public Page<MovimientoResponseDTO> search(
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String usuario,
+            @RequestParam(required = false) String desde,
+            @RequestParam(required = false) String hasta,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return movimientoService.search(tipo, estado, usuario, desde, hasta, page, size);
+    }
+
+    
 
     @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/configuracion")
@@ -119,21 +148,5 @@ public class MovimientoController {
     @GetMapping("/productos/codigo/{codigo}")
     public Producto getProductoByCodigo(@PathVariable String codigo) {
         return productoService.getProductoByCodigo(codigo);
-    }
-
-    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
-    @PostMapping("/{id}/anular")
-    public MovimientoResponseDTO anular(
-            @PathVariable Long id,
-            @RequestHeader("X-User") String currentUser) {
-        return movimientoService.anularMovimiento(id, currentUser);
-    }
-
-    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
-    @PostMapping("/{id}/reactivar")
-    public MovimientoResponseDTO reactivar(
-            @PathVariable Long id,
-            @RequestHeader("X-User") String currentUser) {
-        return movimientoService.reactivarMovimiento(id, currentUser);
     }
 }

@@ -11,6 +11,9 @@ public class ProductoExcelDTO {
     private String categoria;
     private Integer cantidadLote;
 
+    private Boolean activo;
+    private Integer criticoNumero;
+
     public String getCodigo() {
         return codigo;
     }
@@ -57,5 +60,21 @@ public class ProductoExcelDTO {
 
     public void setCantidadLote(Integer cantidadLote) {
         this.cantidadLote = cantidadLote;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
+    public Integer getCriticoNumero() {
+        return criticoNumero;
+    }
+
+    public void setCriticoNumero(Integer criticoNumero) {
+        this.criticoNumero = criticoNumero;
     }
 }

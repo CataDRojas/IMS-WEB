@@ -13,9 +13,15 @@ import com.ims_web.inventory.repository.ProductoRepository;
 import com.ims_web.inventory.util.AuditHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -61,7 +67,7 @@ public class MovimientoService {
     }
 
     // =========================================================
-    // GUARDAR BORRADOR (cabecera + detalles, estado PENDIENTE)
+    // GUARDAR BORRADOR
     // =========================================================
 
     @Transactional
@@ -74,7 +80,6 @@ public class MovimientoService {
         }
 
         movimiento.setMovimientoEstado("PENDIENTE");
-
         AuditHelper.setCreationAudit(movimiento, currentUser);
         Movimiento savedMovimiento = repo.save(movimiento);
 
@@ -161,7 +166,6 @@ public class MovimientoService {
         }
 
         entityManager.flush();
-
         entityManager.createNativeQuery("CALL sp_recalcular_movimiento(:id)")
                 .setParameter("id", savedMovimiento.getMovimientoId())
                 .executeUpdate();
@@ -292,7 +296,6 @@ public class MovimientoService {
         dto.setMovimientoDetalleDescuentoAplicado(d.getMovimientoDetalleDescuentoAplicado());
         dto.setMovimientoDetalleDescripcion(d.getMovimientoDetalleDescripcion());
 
-        // LUGAR
         if (d.getMovimientoLugar() != null) {
             dto.setMovimientoLugarId(d.getMovimientoLugar().getMovimientoLugarId());
             dto.setMovimientoLugarNombre(d.getMovimientoLugar().getMovimientoLugarDescripcion());
@@ -301,23 +304,31 @@ public class MovimientoService {
         return dto;
     }
 
+    // =========================================================
+    // ANULAR
+    // =========================================================
+
     @Transactional
     public MovimientoResponseDTO anularMovimiento(Long id, String currentUser) {
         Movimiento movimiento = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
 
         if ("ANULADO".equals(movimiento.getMovimientoEstado())) {
-            throw new IllegalStateException("Movimiento ya ha sido anulado");
+            throw new IllegalStateException("Movimiento already anulado");
         }
 
         if ("PENDIENTE".equals(movimiento.getMovimientoEstado())) {
-            throw new IllegalStateException("Imposible anular a un movimiento PENDIENTE");
+            throw new IllegalStateException("Cannot anular a PENDIENTE movimiento");
         }
 
         movimiento.setMovimientoEstado("ANULADO");
         AuditHelper.setModificationAudit(movimiento, currentUser);
         return toDTO(repo.save(movimiento));
     }
+
+    // =========================================================
+    // REACTIVAR
+    // =========================================================
 
     @Transactional
     public MovimientoResponseDTO reactivarMovimiento(Long id, String currentUser) {
@@ -331,5 +342,53 @@ public class MovimientoService {
         movimiento.setMovimientoEstado("CONFIRMADO");
         AuditHelper.setModificationAudit(movimiento, currentUser);
         return toDTO(repo.save(movimiento));
+    }
+
+    // =========================================================
+    // SEARCH (de Javier)
+    // =========================================================
+
+    public Page<MovimientoResponseDTO> search(
+            String tipo,
+            String estado,
+            String usuario,
+            String desde,
+            String hasta,
+            int page,
+            int size) {
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "movimientoFechaCreacion"));
+
+        Specification<Movimiento> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (tipo != null && !tipo.isBlank()) {
+                predicates.add(cb.equal(root.get("movimientoTipo"), tipo));
+            }
+            if (estado != null && !estado.isBlank()) {
+                predicates.add(cb.equal(root.get("movimientoEstado"), estado));
+            }
+            if (usuario != null && !usuario.isBlank()) {
+                predicates.add(cb.equal(root.get("movimientoUsuarioCreacion"), usuario));
+            }
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+            if (desde != null && !desde.isBlank()) {
+                LocalDateTime d = LocalDateTime.parse(desde, fmt);
+                predicates.add(cb.greaterThanOrEqualTo(
+                        root.get("movimientoFechaCreacion"), d));
+            }
+            if (hasta != null && !hasta.isBlank()) {
+                LocalDateTime h = LocalDateTime.parse(hasta, fmt);
+                predicates.add(cb.lessThanOrEqualTo(
+                        root.get("movimientoFechaCreacion"), h));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        return repo.findAll(spec, pageable).map(this::toDTO);
     }
 }

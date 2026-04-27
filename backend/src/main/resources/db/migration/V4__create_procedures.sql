@@ -106,10 +106,6 @@ proc: BEGIN
     FROM Movimiento
     WHERE MovimientoId = p_movimiento_id;
 
-    IF v_tipo <> 'SALIDA' THEN
-        LEAVE proc;
-    END IF;
-
     -- =========================
     -- BASE VALUE (matches detail model)
     -- =========================
@@ -182,18 +178,26 @@ BEGIN
 
     IF v_tipo = 'ENTRADA' THEN
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock +
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock + resumen.total;
     ELSE
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock -
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock - resumen.total;
     END IF;
 END$$
 
@@ -211,18 +215,26 @@ BEGIN
 
     IF v_tipo = 'ENTRADA' THEN
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock -
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock - resumen.total;
     ELSE
         UPDATE productos p
-        JOIN MovimientoDetalle d ON p.ProductoId = d.ProductoId
-        SET p.ProductoStock = p.ProductoStock +
-            (d.MovimientoDetalleCantidad *
-             IFNULL(NULLIF(d.MovimientoDetalleUnidadesPorPaquete, 0), 1))
-        WHERE d.MovimientoId = p_movimiento_id;
+        JOIN (
+            SELECT ProductoId,
+                   SUM(MovimientoDetalleCantidad *
+                       IFNULL(NULLIF(MovimientoDetalleUnidadesPorPaquete, 0), 1)) AS total
+            FROM MovimientoDetalle
+            WHERE MovimientoId = p_movimiento_id
+            GROUP BY ProductoId
+        ) resumen ON p.ProductoId = resumen.ProductoId
+        SET p.ProductoStock = p.ProductoStock + resumen.total;
     END IF;
 END$$
 
