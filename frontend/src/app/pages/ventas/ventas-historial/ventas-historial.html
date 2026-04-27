@@ -33,31 +33,103 @@
 
     <h3>Historial de Ventas</h3>
 
-    <div *ngIf="cargando">Cargando...</div>
+    <!-- =========================
+         FILTERS (STATE HIDDEN)
+    ========================== -->
+    <div style="display:grid; gap:10px; margin-bottom:15px">
 
+      <input
+        placeholder="Usuario"
+        [(ngModel)]="filtros.usuario"
+        (input)="onUsuarioChange(filtros.usuario)"
+        [disabled]="cargando"
+      />
+
+      <input
+        type="date"
+        [(ngModel)]="filtros.desde"
+        [disabled]="cargando"
+      />
+
+      <input
+        type="date"
+        [(ngModel)]="filtros.hasta"
+        [disabled]="cargando"
+      />
+
+      <!-- estado filter removed intentionally -->
+
+      <div style="display:flex; gap:10px">
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="aplicarFiltros()"
+          [disabled]="cargando"
+        >
+          Filtrar
+        </button>
+
+        <button
+          mat-stroked-button
+          (click)="limpiarFiltros()"
+          [disabled]="cargando"
+        >
+          Reset
+        </button>
+
+      </div>
+    </div>
+
+    <!-- LOADING -->
+    <div *ngIf="cargando" style="padding:10px; opacity:0.7">
+      Cargando ventas...
+    </div>
+
+    <!-- EMPTY -->
     <div *ngIf="!cargando && ventas.length === 0">
       No hay ventas
     </div>
 
+    <!-- LIST -->
     <mat-card
       *ngFor="let v of ventas"
       style="margin-bottom: 10px; cursor: pointer"
+      (click)="toggleExpand(v)"
     >
 
       <!-- HEADER -->
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; padding: 10px"
-        (click)="toggleExpand(v)"
-      >
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px">
 
+        <!-- LEFT -->
         <div>
           <div><strong>Venta #{{v.movimientoId}}</strong></div>
-          <div style="font-size: 12px">{{v.movimientoFecha | date:'short'}}</div>
+
+          <div style="font-size: 12px">
+            {{v.movimientoFechaCreacion | date:'short'}}
+          </div>
+
+          <div style="font-size: 11px; color: gray">
+            Creado por: {{v.usuarioCreacion}}
+          </div>
         </div>
 
+        <!-- RIGHT -->
         <div style="text-align: right">
+
           <div><strong>{{v.totalFinal | currency}}</strong></div>
-          <div style="font-size: 12px">{{v.movimientoMetodoPago}}</div>
+
+          <div style="font-size: 12px">
+            {{v.movimientoMetodoPago}}
+          </div>
+
+          <div
+            style="font-size: 11px; color: gray"
+            *ngIf="v.usuarioModificacion"
+          >
+            Mod: {{v.usuarioModificacion}}
+          </div>
+
         </div>
 
         <div style="margin-left: 10px">
@@ -66,13 +138,14 @@
 
       </div>
 
-      <!-- EXPANDED DETAILS -->
+      <!-- DETAILS -->
       <div *ngIf="v.expandido" style="padding: 10px; border-top: 1px solid #ddd">
 
         <div style="margin-bottom: 10px">
           <strong>Total:</strong> {{v.totalFinal | currency}} <br>
           <strong>Descuento:</strong> {{v.movimientoDescuento || 0 | currency}} <br>
-          <strong>Neto:</strong> {{(v.totalFinal - (v.movimientoDescuento || 0)) | currency}}
+          <strong>Neto:</strong>
+          {{(v.totalFinal - (v.movimientoDescuento || 0)) | currency}}
         </div>
 
         <div *ngFor="let d of v.detalles" style="padding: 8px; border-bottom: 1px solid #eee">
@@ -93,6 +166,31 @@
       </div>
 
     </mat-card>
+
+    <!-- PAGINATION -->
+    <div style="display:flex; justify-content:center; gap:10px; margin-top:15px">
+
+      <button
+        mat-button
+        (click)="cambiarPagina(-1)"
+        [disabled]="paginaActual <= 1 || cargando"
+      >
+        ◀ Prev
+      </button>
+
+      <div style="padding: 8px 12px">
+        Página {{paginaActual}} / {{totalPaginas || 1}}
+      </div>
+
+      <button
+        mat-button
+        (click)="cambiarPagina(1)"
+        [disabled]="paginaActual >= totalPaginas || cargando"
+      >
+        Next ▶
+      </button>
+
+    </div>
 
   </div>
 

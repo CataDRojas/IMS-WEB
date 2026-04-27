@@ -14,9 +14,17 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.*;
+import org.springframework.data.jpa.domain.Specification;
 
-import java.math.BigDecimal;
+import jakarta.persistence.criteria.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
+import jakarta.persistence.criteria.Predicate;
+import java.math.BigDecimal;
+
 
 @Service
 public class MovimientoService {
@@ -251,5 +259,53 @@ public class MovimientoService {
         dto.setMovimientoDetalleDescripcion(d.getMovimientoDetalleDescripcion());
 
         return dto;
+    }
+
+    public Page<MovimientoResponseDTO> search(
+            String tipo,
+            String estado,
+            String usuario,
+            String desde,
+            String hasta,
+            int page,
+            int size
+    ) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movimientoFechaCreacion"));
+
+        Specification<Movimiento> spec = (root, query, cb) -> {
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (tipo != null && !tipo.isBlank()) {
+                predicates.add(cb.equal(root.get("movimientoTipo"), tipo));
+            }
+
+            if (estado != null && !estado.isBlank()) {
+                predicates.add(cb.equal(root.get("movimientoEstado"), estado));
+            }
+
+            if (usuario != null && !usuario.isBlank()) {
+                predicates.add(cb.equal(root.get("movimientoUsuarioCreacion"), usuario));
+            }
+
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+            if (desde != null && !desde.isBlank()) {
+                LocalDateTime d = LocalDateTime.parse(desde, fmt);
+                predicates.add(cb.greaterThanOrEqualTo(root.get("movimientoFechaCreacion"), d));
+            }
+
+            if (hasta != null && !hasta.isBlank()) {
+                LocalDateTime h = LocalDateTime.parse(hasta, fmt);
+                predicates.add(cb.lessThanOrEqualTo(root.get("movimientoFechaCreacion"), h));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<Movimiento> pageResult = repo.findAll(spec, pageable);
+
+        return pageResult.map(this::toDTO);
     }
 }

@@ -10,6 +10,7 @@ import com.ims_web.inventory.service.MovimientoService;
 import com.ims_web.inventory.service.ProductoService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -137,5 +138,20 @@ public class MovimientoController {
     @GetMapping("/productos/codigo/{codigo}")
     public Producto getProductoByCodigo(@PathVariable String codigo) {
         return productoService.getProductoByCodigo(codigo);
+    }
+
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
+    public Page<MovimientoResponseDTO> search(
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String usuario,
+            @RequestParam(required = false) String desde,
+            @RequestParam(required = false) String hasta,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return movimientoService.search(tipo, estado, usuario, desde, hasta, page, size);
     }
 }

@@ -89,7 +89,33 @@ export class VentasService {
       { headers: { 'X-User': user } }
     );
   }
+// =========================
+// SEARCH / FILTER + PAGINATION (NEW)
+// =========================
 
+getMovimientosPaginados(filtros: {
+  tipo?: string;
+  estado?: string;
+  usuario?: string;
+  desde?: string;
+  hasta?: string;
+  page?: number;
+  size?: number;
+}): Observable<any> {
+
+  const params: any = {
+    page: filtros.page ?? 0,
+    size: filtros.size ?? 10
+  };
+
+  if (filtros.tipo) params.tipo = filtros.tipo;
+  if (filtros.estado) params.estado = filtros.estado;
+  if (filtros.usuario) params.usuario = filtros.usuario;
+  if (filtros.desde) params.desde = filtros.desde;
+  if (filtros.hasta) params.hasta = filtros.hasta;
+
+  return this.http.get(`${this.baseMovimientos}/search`, { params });
+}
   // =========================
   // DETALLES SINGLE (OK)
   // =========================
