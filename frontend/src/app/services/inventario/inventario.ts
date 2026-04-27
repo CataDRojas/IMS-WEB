@@ -8,32 +8,118 @@ import { Observable } from 'rxjs';
 export class InventarioService {
   private apiMovimientos = 'http://localhost:8080/api/movimientos';
   private apiDetalles = 'http://localhost:8080/api/movimiento-detalles';
-  private apiLugares = 'http://localhost:8080/api/movimiento-lugares'; // Nueva ruta real
+  private apiLugares = 'http://localhost:8080/api/movimiento-lugares';
 
   constructor(private http: HttpClient) { }
 
   private getHeaders() {
-    const currentUser = localStorage.getItem('nombre_ims'); 
+    const currentUser = localStorage.getItem('nombre_ims');
     return new HttpHeaders().set('X-User', currentUser ? currentUser : 'USUARIO_NO_AUTENTICADO');
   }
 
-  // 1. Buscar producto real por código (Usa el controller de detalles que tiene el buscar)
   buscarProductoPorCodigo(codigo: string): Observable<any> {
-    return this.http.get<any>(`${this.apiDetalles}/productos/codigo/${codigo}`, { headers: this.getHeaders() });
+    return this.http.get<any>(
+      `${this.apiDetalles}/productos/codigo/${codigo}`,
+      { headers: this.getHeaders() }
+    );
   }
 
-  // 2. Traer los lugares de almacenamiento reales de la BD
   obtenerLugaresActivos(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiLugares}/active`, { headers: this.getHeaders() });
+    return this.http.get<any[]>(
+      `${this.apiLugares}/active`,
+      { headers: this.getHeaders() }
+    );
   }
 
-  // 3. Crear la cabecera del Movimiento
-  crearMovimientoCabecera(movimiento: any): Observable<any> {
-    return this.http.post<any>(this.apiMovimientos, movimiento, { headers: this.getHeaders() });
+  // ✅ Listar borradores pendientes desde BD
+  obtenerBorradores(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiMovimientos}/pendientes`,
+      { headers: this.getHeaders() }
+    );
   }
 
-  // 4. Crear el detalle asociado
-  crearDetalle(movimientoId: number, detalle: any): Observable<any> {
-    return this.http.post<any>(`${this.apiDetalles}/movimiento/${movimientoId}`, detalle, { headers: this.getHeaders() });
+  // ✅ Guardar borrador en BD (PENDIENTE, no suma stock)
+  guardarBorrador(nombre: string, items: any[]): Observable<any> {
+    const movimiento = {
+      movimientoTipo: 'ENTRADA',
+      movimientoEstado: 'PENDIENTE',
+      movimientoMetodoPago: null,
+      movimientoDescripcion: `Inventario: ${nombre}`
+    };
+
+    const detalles = items.map((item: any) => {
+      const precioReal = Number(item.productoPrecio || 0);
+      const cajas = Number(item.cajasAgregadas || 1);
+      const lote = Number(item.productoCantidadLote || 1);
+      const unidades = cajas * lote;
+      return {
+        productoId: Number(item.productoId),
+        movimientoLugarId: Number(item.lugarId),
+        movimientoDetalleCantidad: cajas,
+        movimientoDetalleUnidadesPorPaquete: lote,
+        movimientoDetallePrecioBase: precioReal,
+        movimientoDetallePrecioUnitario: precioReal,
+        movimientoDetallePrecioTotal: precioReal * unidades,
+        movimientoDetalleDescuentoAplicado: 0,
+        movimientoDetalleDescripcion: `Borrador: ${nombre}`
+      };
+    });
+
+    return this.http.post<any>(
+      `${this.apiMovimientos}/borrador`,
+      { movimiento, detalles },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // ✅ Finalizar = crear + confirmar
+  finalizarInventario(nombre: string, items: any[]): Observable<any> {
+    const movimiento = {
+      movimientoTipo: 'ENTRADA',
+      movimientoEstado: 'PENDIENTE',
+      movimientoMetodoPago: null,
+      movimientoDescripcion: `Inventario: ${nombre}`
+    };
+
+    const detalles = items.map((item: any) => {
+      const precioReal = Number(item.productoPrecio || 0);
+      const cajas = Number(item.cajasAgregadas || 1);
+      const lote = Number(item.productoCantidadLote || 1);
+      const unidades = cajas * lote;
+      return {
+        productoId: Number(item.productoId),
+        movimientoLugarId: Number(item.lugarId),
+        movimientoDetalleCantidad: cajas,
+        movimientoDetalleUnidadesPorPaquete: lote,
+        movimientoDetallePrecioBase: precioReal,
+        movimientoDetallePrecioUnitario: precioReal,
+        movimientoDetallePrecioTotal: precioReal * unidades,
+        movimientoDetalleDescuentoAplicado: 0,
+        movimientoDetalleDescripcion: `Carga stock: ${nombre}`
+      };
+    });
+
+    return this.http.post<any>(
+      this.apiMovimientos,
+      { movimiento, detalles },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  confirmarMovimiento(movimientoId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiMovimientos}/${movimientoId}/confirmar`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // ✅ Eliminar borrador desde BD
+  eliminarMovimiento(movimientoId: number): Observable<any> {
+    return this.http.delete<any>(
+      `${this.apiMovimientos}/${movimientoId}`,
+      { headers: this.getHeaders() }
+    );
   }
 }

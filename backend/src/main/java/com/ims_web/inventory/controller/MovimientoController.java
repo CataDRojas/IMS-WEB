@@ -24,102 +24,84 @@ public class MovimientoController {
     public MovimientoController(
             MovimientoService movimientoService,
             ConfiguracionService configuracionService,
-            ProductoService productoService
-    ) {
+            ProductoService productoService) {
         this.movimientoService = movimientoService;
         this.configuracionService = configuracionService;
         this.productoService = productoService;
     }
 
-    // =========================
-    // MOVIMIENTOS
-    // =========================
-
-    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping
     public List<MovimientoResponseDTO> getAll() {
         return movimientoService.getAll();
     }
 
-    @PreAuthorize("hasAnyAuthority('VENTA_READ')")
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/{id}")
     public MovimientoResponseDTO getById(@PathVariable Long id) {
         return movimientoService.getById(id);
     }
 
-    // =========================================================
-    // CREATE (HEADER + DETALLES ATOMIC)
-    // =========================================================
+    // ✅ Inventarios pendientes de entrada
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @GetMapping("/pendientes")
+    public List<MovimientoResponseDTO> getPendientesEntrada() {
+        return movimientoService.getPendientesEntrada();
+    }
 
     public static class MovimientoCreateRequest {
         public Movimiento movimiento;
         public List<MovimientoDetalleRequestDTO> detalles;
     }
 
+    // ✅ NUEVO - Guardar borrador (PENDIENTE, no confirma)
+    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
+    @PostMapping("/borrador")
+    public MovimientoResponseDTO guardarBorrador(
+            @RequestBody MovimientoCreateRequest request,
+            @RequestHeader("X-User") String currentUser) {
+        return movimientoService.guardarBorrador(
+                request.movimiento, request.detalles, currentUser);
+    }
+
+    // Para ventas (atomic)
     @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
     @PostMapping
     public MovimientoResponseDTO create(
             @RequestBody MovimientoCreateRequest request,
-            @RequestHeader("X-User") String currentUser
-    ) {
-        return movimientoService.create(
-                request.movimiento,
-                request.detalles,
-                currentUser
-        );
+            @RequestHeader("X-User") String currentUser) {
+        return movimientoService.create(request.movimiento, request.detalles, currentUser);
     }
-
-    // =========================
-    // UPDATE
-    // =========================
 
     @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
     @PutMapping("/{id}")
     public MovimientoResponseDTO update(
             @PathVariable Long id,
             @RequestBody Movimiento movimiento,
-            @RequestHeader("X-User") String currentUser
-    ) {
+            @RequestHeader("X-User") String currentUser) {
         movimiento.setMovimientoId(id);
         return movimientoService.update(movimiento, currentUser);
     }
 
-    // =========================
-    // DELETE
-    // =========================
-
-    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE', 'INVENTARIO_MANAGE')")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         movimientoService.delete(id);
     }
 
-    // =========================
-    // CONFIRMAR
-    // =========================
-
-    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE')")
+    @PreAuthorize("hasAnyAuthority('VENTA_MANAGE', 'INVENTARIO_MANAGE')")
     @PostMapping("/{id}/confirmar")
     public MovimientoResponseDTO confirmar(
             @PathVariable Long id,
-            @RequestHeader("X-User") String currentUser
-    ) {
+            @RequestHeader("X-User") String currentUser) {
         return movimientoService.confirmarMovimiento(id, currentUser);
     }
-
-    // =========================
-    // CONFIGURACION
-    // =========================
 
     @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/configuracion")
     public Configuracion getConfiguracionForMovimientos() {
         return configuracionService.getConfiguracion();
     }
-
-    // =========================
-    // PRODUCTOS
-    // =========================
 
     @PreAuthorize("hasAnyAuthority('VENTA_READ')")
     @GetMapping("/productos")
