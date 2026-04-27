@@ -7,6 +7,7 @@ import com.ims_web.inventory.entity.Movimiento;
 import com.ims_web.inventory.entity.MovimientoDetalle;
 import com.ims_web.inventory.entity.Producto;
 import com.ims_web.inventory.repository.MovimientoDetalleRepository;
+import com.ims_web.inventory.repository.MovimientoLugarRepository;
 import com.ims_web.inventory.repository.MovimientoRepository;
 import com.ims_web.inventory.repository.ProductoRepository;
 import com.ims_web.inventory.util.AuditHelper;
@@ -23,15 +24,18 @@ public class MovimientoService {
     private final MovimientoRepository repo;
     private final MovimientoDetalleRepository detalleRepo;
     private final ProductoRepository productoRepo;
+    private final MovimientoLugarRepository lugarRepo;
     private final EntityManager entityManager;
 
     public MovimientoService(MovimientoRepository repo,
             MovimientoDetalleRepository detalleRepo,
             ProductoRepository productoRepo,
+            MovimientoLugarRepository lugarRepo,
             EntityManager entityManager) {
         this.repo = repo;
         this.detalleRepo = detalleRepo;
         this.productoRepo = productoRepo;
+        this.lugarRepo = lugarRepo;
         this.entityManager = entityManager;
     }
 
@@ -91,6 +95,12 @@ public class MovimientoService {
             detalle.setMovimientoDetallePrecioUnitario(dto.getMovimientoDetallePrecioUnitario());
             detalle.setMovimientoDetallePrecioTotal(dto.getMovimientoDetallePrecioTotal());
             detalle.setMovimientoDetalleDescuentoAplicado(dto.getMovimientoDetalleDescuentoAplicado());
+
+            if (dto.getMovimientoLugarId() != null) {
+                lugarRepo.findById(dto.getMovimientoLugarId())
+                        .ifPresent(detalle::setMovimientoLugar);
+            }
+
             detalleRepo.save(detalle);
         }
 
@@ -141,6 +151,12 @@ public class MovimientoService {
             detalle.setMovimientoDetallePrecioUnitario(dto.getMovimientoDetallePrecioUnitario());
             detalle.setMovimientoDetallePrecioTotal(dto.getMovimientoDetallePrecioTotal());
             detalle.setMovimientoDetalleDescuentoAplicado(dto.getMovimientoDetalleDescuentoAplicado());
+
+            if (dto.getMovimientoLugarId() != null) {
+                lugarRepo.findById(dto.getMovimientoLugarId())
+                        .ifPresent(detalle::setMovimientoLugar);
+            }
+
             detalleRepo.save(detalle);
         }
 
@@ -276,12 +292,44 @@ public class MovimientoService {
         dto.setMovimientoDetalleDescuentoAplicado(d.getMovimientoDetalleDescuentoAplicado());
         dto.setMovimientoDetalleDescripcion(d.getMovimientoDetalleDescripcion());
 
-        // ✅ LUGAR
+        // LUGAR
         if (d.getMovimientoLugar() != null) {
             dto.setMovimientoLugarId(d.getMovimientoLugar().getMovimientoLugarId());
             dto.setMovimientoLugarNombre(d.getMovimientoLugar().getMovimientoLugarDescripcion());
         }
 
         return dto;
+    }
+
+    @Transactional
+    public MovimientoResponseDTO anularMovimiento(Long id, String currentUser) {
+        Movimiento movimiento = repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+
+        if ("ANULADO".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Movimiento ya ha sido anulado");
+        }
+
+        if ("PENDIENTE".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Imposible anular a un movimiento PENDIENTE");
+        }
+
+        movimiento.setMovimientoEstado("ANULADO");
+        AuditHelper.setModificationAudit(movimiento, currentUser);
+        return toDTO(repo.save(movimiento));
+    }
+
+    @Transactional
+    public MovimientoResponseDTO reactivarMovimiento(Long id, String currentUser) {
+        Movimiento movimiento = repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+
+        if (!"ANULADO".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Solo se puede reactivar un movimiento ANULADO");
+        }
+
+        movimiento.setMovimientoEstado("CONFIRMADO");
+        AuditHelper.setModificationAudit(movimiento, currentUser);
+        return toDTO(repo.save(movimiento));
     }
 }

@@ -42,7 +42,7 @@ public class MovimientoController {
         return movimientoService.getById(id);
     }
 
-    // ✅ Inventarios pendientes de entrada
+    // Inventarios pendientes de entrada
     @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
     @GetMapping("/pendientes")
     public List<MovimientoResponseDTO> getPendientesEntrada() {
@@ -54,7 +54,7 @@ public class MovimientoController {
         public List<MovimientoDetalleRequestDTO> detalles;
     }
 
-    // ✅ NUEVO - Guardar borrador (PENDIENTE, no confirma)
+    // Guardar borrador (PENDIENTE, no confirma)
     @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
     @PostMapping("/borrador")
     public MovimientoResponseDTO guardarBorrador(
@@ -119,5 +119,21 @@ public class MovimientoController {
     @GetMapping("/productos/codigo/{codigo}")
     public Producto getProductoByCodigo(@PathVariable String codigo) {
         return productoService.getProductoByCodigo(codigo);
+    }
+
+    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
+    @PostMapping("/{id}/anular")
+    public MovimientoResponseDTO anular(
+            @PathVariable Long id,
+            @RequestHeader("X-User") String currentUser) {
+        return movimientoService.anularMovimiento(id, currentUser);
+    }
+
+    @PreAuthorize("hasAnyAuthority('INVENTARIO_MANAGE')")
+    @PostMapping("/{id}/reactivar")
+    public MovimientoResponseDTO reactivar(
+            @PathVariable Long id,
+            @RequestHeader("X-User") String currentUser) {
+        return movimientoService.reactivarMovimiento(id, currentUser);
     }
 }

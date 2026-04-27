@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +31,7 @@ export class InventarioService {
     );
   }
 
-  // ✅ Listar borradores pendientes desde BD
+  // Listar borradores pendientes desde BD
   obtenerBorradores(): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiMovimientos}/pendientes`,
@@ -39,7 +39,7 @@ export class InventarioService {
     );
   }
 
-  // ✅ Guardar borrador en BD (PENDIENTE, no suma stock)
+  // Guardar borrador en BD (PENDIENTE, no suma stock)
   guardarBorrador(nombre: string, items: any[]): Observable<any> {
     const movimiento = {
       movimientoTipo: 'ENTRADA',
@@ -73,7 +73,7 @@ export class InventarioService {
     );
   }
 
-  // ✅ Finalizar = crear + confirmar
+  // Finalizar = crear + confirmar
   finalizarInventario(nombre: string, items: any[]): Observable<any> {
     const movimiento = {
       movimientoTipo: 'ENTRADA',
@@ -115,11 +115,40 @@ export class InventarioService {
     );
   }
 
-  // ✅ Eliminar borrador desde BD
+  // Eliminar borrador desde BD
   eliminarMovimiento(movimientoId: number): Observable<any> {
     return this.http.delete<any>(
       `${this.apiMovimientos}/${movimientoId}`,
       { headers: this.getHeaders() }
     );
   }
+
+  // Obtener todos los movimientos de entrada (historial)
+  obtenerTodosMovimientosEntrada(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiMovimientos}`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      map((data: any[]) => data.filter(m => m.movimientoTipo === 'ENTRADA'))
+    );
+  }
+
+// Anular movimiento
+  anularMovimiento(movimientoId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiMovimientos}/${movimientoId}/anular`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+    reactivarMovimiento(movimientoId: number): Observable<any> {
+      return this.http.post<any>(
+      `${this.apiMovimientos}/${movimientoId}/reactivar`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+
 }
