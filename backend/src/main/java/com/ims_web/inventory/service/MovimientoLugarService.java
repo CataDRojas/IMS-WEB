@@ -72,8 +72,10 @@ public class MovimientoLugarService {
         MovimientoLugar lugar = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
 
-        lugar.setMovimientoLugarActivo(false);
-        AuditHelper.setModificationAudit(lugar, currentUser); // static call
+        // TOGGLE instead of forcing false
+        lugar.setMovimientoLugarActivo(!lugar.getMovimientoLugarActivo());
+
+        AuditHelper.setModificationAudit(lugar, currentUser);
         return repo.save(lugar);
     }
 }
