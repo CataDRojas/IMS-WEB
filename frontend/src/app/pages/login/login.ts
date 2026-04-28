@@ -3,24 +3,20 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common'; // 👈 REQUIRED
 
+
 //Angular material
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-
 import { Auth } from '../../services/auth';
 import { ApiError } from '../../core/errors/api-error';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, 
-            MatCardModule, 
-            MatFormFieldModule, 
-            MatInputModule, 
-            MatButtonModule,
-            MatIconModule],
+  standalone: true,
+  imports: [FormsModule, CommonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule], // 👈 FIX
   templateUrl: './login.html',
   styleUrl: './login.css',
 })

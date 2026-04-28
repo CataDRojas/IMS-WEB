@@ -44,7 +44,7 @@
   <main class="action-grid">
     
     <button class="btn-main btn-sale" routerLink="/ventas" 
-            *ngIf="tienePermiso('MOVIMIENTO_READ') || tienePermiso('MOVIMIENTO_MANAGE')">
+            *ngIf="tienePermiso('MOVIMIENTO_READ') || tienePermiso('VENTA_MANAGE')">
       <mat-icon class="giant-icon">point_of_sale</mat-icon>
       <div class="btn-text">
         <span class="title">INICIAR VENTA</span>
@@ -58,7 +58,7 @@
         <span>Catálogo</span>
       </button>
 
-      <button class="btn-main btn-inventory" routerLink="/inventario" *ngIf="tienePermiso('MOVIMIENTO_MANAGE')">
+      <button class="btn-main btn-inventory" routerLink="/inventario" *ngIf="tienePermiso('INVENTARIO_MANAGE')">
         <mat-icon>assignment</mat-icon>
         <span>Inventario</span>
       </button>

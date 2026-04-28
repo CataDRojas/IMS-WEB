@@ -1,66 +1,126 @@
-<h2>Roles</h2>
-<button (click)="goHome()">Go home</button>
+<div class="productos-container">
+  <header class="header-section">
+    <div class="header-title-container">
+      <h2>🛡️ Gestión de Roles y Permisos</h2>
+    </div>
 
-<button (click)="crear()">Nuevo rol</button>
+    <div class="header-actions-container">
+      <div class="actions-group">
+        <button class="btn-base btn-new" (click)="abrirNuevo()">
+          <mat-icon>add_moderator</mat-icon> Nuevo Rol
+        </button>
+      </div>
+    </div>
+  </header>
 
-<hr />
+  <div class="mobile-list">
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let rol of roles">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="product-title">{{ rol.rolNombre }}</mat-panel-title>
+          <mat-panel-description>
+            ID: {{ rol.rolId }}
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
-<table border="1" width="100%">
-  <thead>
-    <tr>
-      <th></th>
-      <th>ID</th>
-      <th>Nombre</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-
-  <tbody>
-
-    <ng-container *ngFor="let rol of roles">
-
-      <tr>
-        <td>
-          <button (click)="toggleExpand(rol.rolId!)">
-            {{ expandedRoleId === rol.rolId ? '▼' : '▶' }}
-          </button>
-        </td>
-
-        <td>{{ rol.rolId }}</td>
-        <td>{{ rol.rolNombre }}</td>
-
-        <td>
-          <button (click)="editar(rol.rolId!)">Editar</button>
-          <button (click)="eliminar(rol.rolId!)">Eliminar</button>
-        </td>
-      </tr>
-
-      <tr *ngIf="expandedRoleId === rol.rolId">
-        <td colspan="4">
-
-          <div class="permissions-grid">
-
-            <div *ngFor="let perm of allPermissions">
-
-              <label>
-                <input
-                  type="checkbox"
-                  [checked]="hasPermission(rol, perm)"
-                  disabled
-                />
-
-                {{ permissionLabels[perm] }}
-
-              </label>
-
+        <div class="product-details-grid">
+          <div class="detail-item full-width">
+            <span class="detail-label">Permisos Asignados</span>
+            <div class="tags-container">
+              <span *ngFor="let p of rol.permisos" class="badge badge-info">
+                {{ permissionLabels[p.permisosNombre] || p.permisosNombre }}
+              </span>
             </div>
-
           </div>
 
-        </td>
-      </tr>
+          <div class="mobile-actions">
+            <button (click)="editar(rol)" class="btn-edit-small">
+              <mat-icon>edit</mat-icon> Editar
+            </button>
+            <button (click)="eliminar(rol.rolId!)" class="btn-deactivate">
+              <mat-icon>delete</mat-icon> Eliminar
+            </button>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
 
-    </ng-container>
+  <div class="desktop-table">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre del Rol</th>
+          <th>Permisos Principales</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let rol of roles">
+          <td>#{{ rol.rolId }}</td>
+          <td><strong>{{ rol.rolNombre }}</strong></td>
+          <td>
+            <div class="tags-truncated">
+              <span class="product-price-tag" *ngFor="let p of rol.permisos.slice(0,3)">
+                {{ permissionLabels[p.permisosNombre] || p.permisosNombre }}
+              </span>
+              <span *ngIf="rol.permisos.length > 3" class="texto-suave">
+                +{{ rol.permisos.length - 3 }} más
+              </span>
+            </div>
+          </td>
+          <td class="table-actions">
+            <button class="btn-icon edit" (click)="editar(rol)" title="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button class="btn-icon delete" (click)="eliminar(rol.rolId!)" title="Eliminar">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-  </tbody>
-</table>
+  <div *ngIf="mostrarFormulario" class="modal-overlay">
+    <div class="modal-card">
+      <header class="modal-header">
+        <h3>
+          <mat-icon>security</mat-icon>
+          {{ rolActual.rolId ? 'Editar Rol' : 'Nuevo Rol' }}
+        </h3>
+        <button class="btn-close-x" (click)="cancelar()">×</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="form-group full-width">
+          <label>Nombre del Rol</label>
+          <input type="text" [(ngModel)]="rolActual.rolNombre" placeholder="Ej: Supervisor de Ventas">
+        </div>
+
+        <label class="section-label">Configuración de Permisos</label>
+        <div class="permissions-scroll-area">
+          <div class="permissions-grid-modern">
+            <div *ngFor="let perm of permisosDisponibles" 
+                 class="perm-card" 
+                 [class.active]="tienePermiso(perm)"
+                 (click)="togglePermiso(perm)">
+              <div class="perm-info">
+                <span class="perm-name">{{ permissionLabels[perm.permisosNombre] || perm.permisosNombre }}</span>
+              </div>
+              <mat-icon>{{ tienePermiso(perm) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" (click)="cancelar()">Cancelar</button>
+        <button class="btn-modal btn-modal-save" (click)="guardar()">
+          <mat-icon>save</mat-icon> Guardar Rol
+        </button>
+      </footer>
+    </div>
+  </div>
+</div>

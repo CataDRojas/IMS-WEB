@@ -135,8 +135,9 @@
 /* --- VISTA MÓVIL (Botones en Acordeón) --- */
 .mobile-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 15px;
+  gap: 10px;
+  grid-column: span 2;
+  margin-top: 10px;
   padding-top: 15px;
   border-top: 1px dashed #e2e8f0;
 }
@@ -445,6 +446,7 @@ tr:hover td {
   cursor: pointer;
 }
 
+
 /* BODY & GRID */
 .modal-body {
   padding: 24px;
@@ -541,7 +543,7 @@ select:focus {
   font-size: 0.75rem;
 }
 
-/* BOX CRÍTICO */
+/* BOX CRÍTICO MODAL */
 .critical-stock-box {
   margin-top: 24px;
   padding: 16px;

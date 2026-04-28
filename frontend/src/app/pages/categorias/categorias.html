@@ -1,16 +1,18 @@
 <div class="categorias-container">
-  
   <header class="header-section">
-
     <div class="header-title-container">
       <h2>🏷️ Gestión de Categorías</h2>
     </div>
 
     <div class="header-actions-container">
       <div class="actions-group" *ngIf="esAdmin()">
-        <button *ngIf="esAdmin()" (click)="abrirNuevo()" class="btn-base btn-new">
-      <mat-icon>add</mat-icon> Nueva Categoría
-    </button>
+        <button
+          *ngIf="esAdmin()"
+          (click)="abrirNuevo()"
+          class="btn-base btn-new"
+        >
+          <mat-icon>add</mat-icon> Nueva Categoría
+        </button>
       </div>
     </div>
   </header>
@@ -34,21 +36,24 @@
         </mat-expansion-panel-header>
 
         <div class="details-content">
-          <p><strong>Descuento Aplicado:</strong> {{ cat.descuento ? cat.descuento.descuentoNombre : 'Ninguno' }}</p>
-          
+          <p>
+            <strong>Descuento Aplicado:</strong> {{ cat.descuento ?
+            cat.descuento.descuentoNombre : 'Ninguno' }}
+          </p>
+
           <ng-container *ngIf="esAdmin()">
             <div class="mobile-actions">
               <button (click)="editarCategoria(cat)" class="btn-edit-small">
                 <mat-icon>edit</mat-icon> Editar
               </button>
-              <button 
-                (click)="eliminarCategoria(cat.categoriaId)" class="btn-delete"
+              <button
+                (click)="eliminarCategoria(cat.categoriaId)"
+                class="btn-delete"
               >
                 <mat-icon>delete</mat-icon> Eliminar
               </button>
             </div>
           </ng-container>
-
         </div>
       </mat-expansion-panel>
     </mat-accordion>
@@ -74,10 +79,18 @@
             <span *ngIf="!cat.descuento" class="text-muted">Ninguno</span>
           </td>
           <td *ngIf="esAdmin()" class="table-actions">
-            <button class="btn-icon" (click)="editarCategoria(cat)" title="Editar">
+            <button
+              class="btn-icon"
+              (click)="editarCategoria(cat)"
+              title="Editar"
+            >
               <mat-icon>edit</mat-icon>
             </button>
-            <button class="btn-icon delete" (click)="eliminarCategoria(cat.categoriaId)" title="Eliminar">
+            <button
+              class="btn-icon delete"
+              (click)="eliminarCategoria(cat.categoriaId)"
+              title="Eliminar"
+            >
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -88,29 +101,67 @@
 
   <div *ngIf="mostrarFormulario && esAdmin()" class="modal-overlay">
     <div class="modal-card">
-      <h3>{{ categoriaActual.categoriaId ? 'Editar' : 'Nueva' }} Categoría</h3>
+      <header class="modal-header">
+        <h3>
+          <mat-icon
+            >{{ categoriaActual.categoriaId ? 'edit' : 'add_circle' }}</mat-icon
+          >
+          {{ categoriaActual.categoriaId ? 'Editar' : 'Nueva' }} Categoría
+        </h3>
+        <button class="btn-close-x" (click)="cancelar()">×</button>
+      </header>
 
-      <div class="form-group">
-        <label>Nombre de Categoría:</label>
-        <input type="text" [(ngModel)]="categoriaActual.categoriaNombre" placeholder="Ej: Lácteos">
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full-width">
+            <label>Nombre de Categoría</label>
+            <input
+              type="text"
+              [(ngModel)]="categoriaActual.categoriaNombre"
+              placeholder="Ej: Lácteos, Limpieza, etc."
+            />
+          </div>
+
+          <div class="form-group full-width">
+            <label>Descuento Asociado</label>
+            <select
+              [(ngModel)]="categoriaActual.descuento"
+              [compareWith]="compararDescuentos"
+            >
+              <option [ngValue]="null">-- Sin descuento --</option>
+              <option *ngFor="let desc of descuentos" [ngValue]="desc">
+                {{ desc.descuentoNombre }} ({{ desc.descuentoValor }}%)
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="critical-stock-box">
+          <div class="critical-header">
+            <mat-icon>info</mat-icon>
+            <label>Información de Categoría</label>
+          </div>
+          <p style="color: #0c4a6e">
+            Al asignar un descuento a la categoría, este se aplicará por defecto
+            a todos los productos nuevos creados bajo este grupo.
+          </p>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Descuento Asociado:</label>
-        <select [(ngModel)]="categoriaActual.descuento" [compareWith]="compararDescuentos">
-          <option [ngValue]="null">-- Sin descuento --</option>
-          <option *ngFor="let desc of descuentos" [ngValue]="desc">
-            {{ desc.descuentoNombre }} ({{ desc.descuentoValor }}%)
-          </option>
-        </select>
-      </div>
-
-      <div class="modal-footer">
-        <button (click)="cancelar()" class="btn-base btn-modal-cancel">Cancelar</button>
-        <button (click)="guardarCategoria()" [disabled]="!categoriaActual.categoriaNombre" class="btn-base btn-modal-save">
-          Guardar
+      <footer class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" (click)="cancelar()">
+          Cancelar
         </button>
-      </div>
+
+        <button
+          class="btn-modal btn-modal-save"
+          (click)="guardarCategoria()"
+          [disabled]="!categoriaActual.categoriaNombre"
+        >
+          <mat-icon>save</mat-icon>
+          {{ categoriaActual.categoriaId ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </footer>
     </div>
   </div>
 </div>

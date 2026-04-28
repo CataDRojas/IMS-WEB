@@ -71,3 +71,31 @@ mat-card-title {
     max-width: 250px; /* Logo un poco más pequeño en cel */
   }
 }
+
+.error-box-global {
+  background-color: #fef2f2;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #fee2e2;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Ajuste para el botón deshabilitado de Javier */
+.btn-login:disabled {
+  background-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+}
+
+/* Los mat-error ya vienen con estilo de Material, 
+   pero si quieres que se vean más grandes: */
+mat-error {
+  font-weight: 500;
+  font-size: 0.8rem;
+}
