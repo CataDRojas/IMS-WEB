@@ -10,7 +10,9 @@ import { LugarService, MovimientoLugar } from '../../../services/lugar/lugar';
   templateUrl: './lugares-list.html'
 })
 export class LugaresList implements OnInit {
+
   lugares: MovimientoLugar[] = [];
+  cargando = false;
 
   constructor(private lugarService: LugarService) {}
 
@@ -18,49 +20,63 @@ export class LugaresList implements OnInit {
     this.cargarLugares();
   }
 
+  // =========================
+  // LOAD DATA
+  // =========================
   cargarLugares(): void {
+    this.cargando = true;
+
     this.lugarService.getLugares().subscribe({
-      next: (data: MovimientoLugar[]) => this.lugares = data,
-      error: (err: any) => console.error('Error al cargar lugares', err)
+      next: (data: MovimientoLugar[]) => {
+        this.lugares = data;
+        this.cargando = false;
+      },
+      error: (err: any) => {
+        console.error('Error al cargar lugares', err);
+        this.lugares = [];
+        this.cargando = false;
+      }
     });
   }
 
+  // =========================
+  // TOGGLE STATE (NOW FULLY SYMMETRIC)
+  // =========================
   toggleEstado(lugar: MovimientoLugar): void {
     if (!lugar.movimientoLugarId) return;
 
-    if (lugar.movimientoLugarActivo) {
-      // Si está activo, llamamos al endpoint de soft-delete de Javier
-      this.lugarService.desactivarLugar(lugar.movimientoLugarId).subscribe({
-        next: () => this.cargarLugares(),
-        error: (err: any) => console.error('Error al desactivar', err)
-      });
-    } else {
-      // Si está inactivo y lo queremos reactivar, lo mandamos por el POST (actualizar) con el boolean en true
-      const lugarReactivado: MovimientoLugar = { ...lugar, movimientoLugarActivo: true };
-      this.lugarService.guardarLugar(lugarReactivado).subscribe({
-        next: () => this.cargarLugares(),
-        error: (err: any) => console.error('Error al reactivar', err)
-      });
-    }
+    this.lugarService.desactivarLugar(lugar.movimientoLugarId).subscribe({
+      next: () => {
+        // reload to sync state from backend
+        this.cargarLugares();
+      },
+      error: (err: any) => {
+        console.error('Error al cambiar estado', err);
+      }
+    });
   }
+
+  // =========================
+  // DELETE
+  // =========================
   borrarLugar(id: number | undefined): void {
     if (!id) return;
-    
-    // Ventana de confirmación
-    const confirmar = window.confirm('¿Estás seguro de que quieres eliminar este lugar para siempre?');
-    
-    if (confirmar) {
-      this.lugarService.eliminarLugar(id).subscribe({
-        next: () => {
-          alert('🗑️ Lugar eliminado con éxito');
-          this.cargarLugares(); // Recargar la tabla automáticamente
-        },
-        error: (err: any) => {
-          console.error('Error al eliminar', err);
-          // si la BD rechaza el borrado es por la FK
-          alert('❌ No se pudo eliminar. Es probable que este lugar ya tenga productos o movimientos asociados.');
-        }
-      });
-    }
+
+    const confirmar = window.confirm(
+      '¿Estás seguro de que quieres eliminar este lugar para siempre?'
+    );
+
+    if (!confirmar) return;
+
+    this.lugarService.eliminarLugar(id).subscribe({
+      next: () => {
+        alert('🗑️ Lugar eliminado con éxito');
+        this.cargarLugares();
+      },
+      error: (err: any) => {
+        console.error('Error al eliminar', err);
+        alert('❌ No se pudo eliminar. Probablemente tiene relaciones activas.');
+      }
+    });
   }
 }
