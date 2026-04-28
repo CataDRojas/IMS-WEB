@@ -17,6 +17,7 @@ export class LugaresComponent implements OnInit {
   mostrarFormulario = false;
   lugarForm: FormGroup;
   lugarActual: Partial<MovimientoLugar> = {};
+  cargando = false;
 
   constructor(
     private fb: FormBuilder,
@@ -32,7 +33,12 @@ export class LugaresComponent implements OnInit {
     this.cargarLugares();
   }
 
+  // =========================
+  // LOAD DATA
+  // =========================
   cargarLugares(): void {
+    this.cargando = true;
+
     this.lugarService.getLugares().subscribe({
       next: (data) => this.lugares = data,
       error: (err) => console.error('Error al cargar lugares', err)
@@ -75,6 +81,9 @@ export class LugaresComponent implements OnInit {
     });
   }
 
+  // =========================
+  // TOGGLE STATE (NOW FULLY SYMMETRIC)
+  // =========================
   toggleEstado(lugar: MovimientoLugar): void {
   if (!lugar.movimientoLugarId) return;
 

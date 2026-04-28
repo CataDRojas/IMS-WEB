@@ -70,6 +70,7 @@
           <th>Acciones</th>
         </tr>
       </thead>
+
       <tbody>
         <tr *ngFor="let lugar of lugares">
           <td><strong>{{ lugar.movimientoLugarDescripcion }}</strong></td>
@@ -107,10 +108,12 @@
             >
               <mat-icon>delete</mat-icon>
             </button>
+
           </td>
         </tr>
       </tbody>
     </table>
+
   </div>
 
   <div *ngIf="mostrarFormulario" class="modal-overlay">
