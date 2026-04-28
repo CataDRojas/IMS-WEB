@@ -7,24 +7,22 @@ import com.ims_web.inventory.entity.Movimiento;
 import com.ims_web.inventory.entity.MovimientoDetalle;
 import com.ims_web.inventory.entity.Producto;
 import com.ims_web.inventory.repository.MovimientoDetalleRepository;
+import com.ims_web.inventory.repository.MovimientoLugarRepository;
 import com.ims_web.inventory.repository.MovimientoRepository;
 import com.ims_web.inventory.repository.ProductoRepository;
 import com.ims_web.inventory.util.AuditHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.persistence.criteria.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.criteria.Predicate;
-import java.math.BigDecimal;
-
 
 @Service
 public class MovimientoService {
@@ -32,15 +30,18 @@ public class MovimientoService {
     private final MovimientoRepository repo;
     private final MovimientoDetalleRepository detalleRepo;
     private final ProductoRepository productoRepo;
+    private final MovimientoLugarRepository lugarRepo;
     private final EntityManager entityManager;
 
     public MovimientoService(MovimientoRepository repo,
-                             MovimientoDetalleRepository detalleRepo,
-                             ProductoRepository productoRepo,
-                             EntityManager entityManager) {
+            MovimientoDetalleRepository detalleRepo,
+            ProductoRepository productoRepo,
+            MovimientoLugarRepository lugarRepo,
+            EntityManager entityManager) {
         this.repo = repo;
         this.detalleRepo = detalleRepo;
         this.productoRepo = productoRepo;
+        this.lugarRepo = lugarRepo;
         this.entityManager = entityManager;
     }
 
@@ -58,14 +59,72 @@ public class MovimientoService {
         return toDTO(movimiento);
     }
 
+    public List<MovimientoResponseDTO> getPendientesEntrada() {
+        return repo.findByMovimientoEstadoAndMovimientoTipo("PENDIENTE", "ENTRADA")
+                .stream()
+                .map(this::toDTO)
+                .toList();
+    }
+
     // =========================================================
-    // CREATE (HEADER + SIMULATION CHECK BEFORE ANY PERSISTENCE)
+    // GUARDAR BORRADOR
+    // =========================================================
+
+    @Transactional
+    public MovimientoResponseDTO guardarBorrador(Movimiento movimiento,
+            List<MovimientoDetalleRequestDTO> detalles,
+            String currentUser) {
+
+        if (detalles == null || detalles.isEmpty()) {
+            throw new IllegalStateException("El inventario debe tener al menos un producto");
+        }
+
+        movimiento.setMovimientoEstado("PENDIENTE");
+        AuditHelper.setCreationAudit(movimiento, currentUser);
+        Movimiento savedMovimiento = repo.save(movimiento);
+
+        for (MovimientoDetalleRequestDTO dto : detalles) {
+            Producto producto = productoRepo.findById(dto.getProductoId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
+
+            MovimientoDetalle detalle = new MovimientoDetalle();
+            detalle.setMovimiento(savedMovimiento);
+            detalle.setProducto(producto);
+            detalle.setMovimientoDetalleCantidad(dto.getMovimientoDetalleCantidad());
+            detalle.setMovimientoDetalleUnidadesPorPaquete(
+                    dto.getMovimientoDetalleUnidadesPorPaquete() != null
+                            ? dto.getMovimientoDetalleUnidadesPorPaquete()
+                            : 1);
+            detalle.setMovimientoDetalleDescripcion(dto.getMovimientoDetalleDescripcion());
+            detalle.setMovimientoDetallePrecioBase(dto.getMovimientoDetallePrecioBase());
+            detalle.setMovimientoDetallePrecioUnitario(dto.getMovimientoDetallePrecioUnitario());
+            detalle.setMovimientoDetallePrecioTotal(dto.getMovimientoDetallePrecioTotal());
+            detalle.setMovimientoDetalleDescuentoAplicado(dto.getMovimientoDetalleDescuentoAplicado());
+
+            if (dto.getMovimientoLugarId() != null) {
+                lugarRepo.findById(dto.getMovimientoLugarId())
+                        .ifPresent(detalle::setMovimientoLugar);
+            }
+
+            detalleRepo.save(detalle);
+        }
+
+        entityManager.flush();
+        entityManager.createNativeQuery("CALL sp_recalcular_movimiento(:id)")
+                .setParameter("id", savedMovimiento.getMovimientoId())
+                .executeUpdate();
+
+        return toDTO(savedMovimiento);
+    }
+
+    // =========================================================
+    // CREATE ATOMIC (para ventas)
     // =========================================================
 
     @Transactional
     public MovimientoResponseDTO create(Movimiento movimiento,
-                                        List<MovimientoDetalleRequestDTO> detalles,
-                                        String currentUser) {
+            List<MovimientoDetalleRequestDTO> detalles,
+            String currentUser) {
 
         if (detalles == null || detalles.isEmpty()) {
             throw new IllegalStateException("Movimiento must contain at least one detalle");
@@ -75,69 +134,66 @@ public class MovimientoService {
             movimiento.setMovimientoEstado("PENDIENTE");
         }
 
-        // 1. SIMULATE EVERYTHING FIRST (NO DB WRITE)
         simulateStockAndRules(movimiento.getMovimientoTipo(), detalles);
 
-        // 2. ONLY AFTER VALIDATION PASSES → CREATE HEADER
         AuditHelper.setCreationAudit(movimiento, currentUser);
         Movimiento savedMovimiento = repo.save(movimiento);
 
-        // 3. CREATE DETAILS (SAFE NOW)
         for (MovimientoDetalleRequestDTO dto : detalles) {
-
             Producto producto = productoRepo.findById(dto.getProductoId())
                     .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
             MovimientoDetalle detalle = new MovimientoDetalle();
             detalle.setMovimiento(savedMovimiento);
             detalle.setProducto(producto);
-
             detalle.setMovimientoDetalleCantidad(dto.getMovimientoDetalleCantidad());
             detalle.setMovimientoDetalleUnidadesPorPaquete(
-                    dto.getMovimientoDetalleUnidadesPorPaquete() != null ? dto.getMovimientoDetalleUnidadesPorPaquete() : 1
-            );
+                    dto.getMovimientoDetalleUnidadesPorPaquete() != null
+                            ? dto.getMovimientoDetalleUnidadesPorPaquete()
+                            : 1);
             detalle.setMovimientoDetalleDescripcion(dto.getMovimientoDetalleDescripcion());
+            detalle.setMovimientoDetallePrecioBase(dto.getMovimientoDetallePrecioBase());
+            detalle.setMovimientoDetallePrecioUnitario(dto.getMovimientoDetallePrecioUnitario());
+            detalle.setMovimientoDetallePrecioTotal(dto.getMovimientoDetallePrecioTotal());
+            detalle.setMovimientoDetalleDescuentoAplicado(dto.getMovimientoDetalleDescuentoAplicado());
+
+            if (dto.getMovimientoLugarId() != null) {
+                lugarRepo.findById(dto.getMovimientoLugarId())
+                        .ifPresent(detalle::setMovimientoLugar);
+            }
 
             detalleRepo.save(detalle);
         }
 
         entityManager.flush();
-
-        // RUN FINAL RECALCULATION AFTER EVERYTHING IS PERSISTED
-                entityManager.createNativeQuery("""
-            CALL sp_recalcular_movimiento(:id)
-        """)
-                        .setParameter("id", savedMovimiento.getMovimientoId())
-                        .executeUpdate();
+        entityManager.createNativeQuery("CALL sp_recalcular_movimiento(:id)")
+                .setParameter("id", savedMovimiento.getMovimientoId())
+                .executeUpdate();
 
         return toDTO(savedMovimiento);
     }
 
     // =========================================================
-    // SIMULATION CORE (THIS IS YOUR "GUARD GATE")
+    // SIMULATION CORE
     // =========================================================
 
     private void simulateStockAndRules(String tipoMovimiento,
-                                       List<MovimientoDetalleRequestDTO> detalles) {
+            List<MovimientoDetalleRequestDTO> detalles) {
 
         for (MovimientoDetalleRequestDTO d : detalles) {
-
             Producto p = productoRepo.findById(d.getProductoId())
                     .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
-            int cantidadReal =
-                    d.getMovimientoDetalleCantidad() *
-                            (d.getMovimientoDetalleUnidadesPorPaquete() != null ? d.getMovimientoDetalleUnidadesPorPaquete() : 1);
+            int cantidadReal = d.getMovimientoDetalleCantidad() *
+                    (d.getMovimientoDetalleUnidadesPorPaquete() != null
+                            ? d.getMovimientoDetalleUnidadesPorPaquete()
+                            : 1);
 
-            // ONLY enforce negative stock rules if it's a salida-like movement
             if ("SALIDA".equals(tipoMovimiento) || "AJUSTE".equals(tipoMovimiento)) {
-
                 int projectedStock = p.getProductoStock() - cantidadReal;
-
                 if (projectedStock < 0) {
                     throw new IllegalStateException(
-                            "ERR_STOCK_NEGATIVE|Product " + p.getProductoId() + " would go below zero"
-                    );
+                            "ERR_STOCK_NEGATIVE|Product " + p.getProductoId() + " would go below zero");
                 }
             }
         }
@@ -149,7 +205,6 @@ public class MovimientoService {
 
     @Transactional
     public MovimientoResponseDTO update(Movimiento movimiento, String currentUser) {
-
         Movimiento existing = repo.findById(movimiento.getMovimientoId())
                 .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
 
@@ -163,7 +218,6 @@ public class MovimientoService {
         existing.setMovimientoMetodoPago(movimiento.getMovimientoMetodoPago());
 
         AuditHelper.setModificationAudit(existing, currentUser);
-
         return toDTO(repo.save(existing));
     }
 
@@ -173,7 +227,6 @@ public class MovimientoService {
 
     @Transactional
     public MovimientoResponseDTO confirmarMovimiento(Long id, String currentUser) {
-
         Movimiento movimiento = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
 
@@ -182,9 +235,7 @@ public class MovimientoService {
         }
 
         movimiento.setMovimientoEstado("CONFIRMADO");
-
         AuditHelper.setModificationAudit(movimiento, currentUser);
-
         return toDTO(repo.save(movimiento));
     }
 
@@ -194,7 +245,6 @@ public class MovimientoService {
 
     @Transactional
     public void delete(Long id) {
-
         Movimiento movimiento = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
 
@@ -204,7 +254,6 @@ public class MovimientoService {
 
         List<MovimientoDetalle> detalles = detalleRepo.findByMovimiento(movimiento);
         detalleRepo.deleteAll(detalles);
-
         repo.delete(movimiento);
     }
 
@@ -213,18 +262,14 @@ public class MovimientoService {
     // =========================================================
 
     private MovimientoResponseDTO toDTO(Movimiento m) {
-
         MovimientoResponseDTO dto = new MovimientoResponseDTO();
-
         dto.setMovimientoId(m.getMovimientoId());
         dto.setMovimientoDescripcion(m.getMovimientoDescripcion());
         dto.setMovimientoEstado(m.getMovimientoEstado());
         dto.setMovimientoTipo(m.getMovimientoTipo());
         dto.setMovimientoMetodoPago(m.getMovimientoMetodoPago());
-
         dto.setMovimientoFechaCreacion(m.getMovimientoFechaCreacion());
         dto.setMovimientoFechaModif(m.getMovimientoFechaModif());
-
         dto.setMovimientoUsuarioCreacion(m.getMovimientoUsuarioCreacion());
         dto.setMovimientoUsuarioModif(m.getMovimientoUsuarioModif());
 
@@ -234,32 +279,74 @@ public class MovimientoService {
                 .toList();
 
         dto.setDetalles(detalles);
-
         return dto;
     }
 
     private MovimientoDetalleResponseDTO mapDetalle(MovimientoDetalle d) {
-
         MovimientoDetalleResponseDTO dto = new MovimientoDetalleResponseDTO();
-
         dto.setMovimientoDetalleId(d.getMovimientoDetalleId());
         dto.setMovimientoId(d.getMovimiento().getMovimientoId());
-
         dto.setProductoId(d.getProducto().getProductoId());
         dto.setProductoNombre(d.getProducto().getProductoNombre());
-
         dto.setMovimientoDetalleCantidad(d.getMovimientoDetalleCantidad());
         dto.setMovimientoDetalleUnidadesPorPaquete(d.getMovimientoDetalleUnidadesPorPaquete());
-
         dto.setMovimientoDetallePrecioBase(d.getMovimientoDetallePrecioBase());
         dto.setMovimientoDetallePrecioUnitario(d.getMovimientoDetallePrecioUnitario());
         dto.setMovimientoDetallePrecioTotal(d.getMovimientoDetallePrecioTotal());
-
         dto.setMovimientoDetalleDescuentoAplicado(d.getMovimientoDetalleDescuentoAplicado());
         dto.setMovimientoDetalleDescripcion(d.getMovimientoDetalleDescripcion());
 
+        if (d.getMovimientoLugar() != null) {
+            dto.setMovimientoLugarId(d.getMovimientoLugar().getMovimientoLugarId());
+            dto.setMovimientoLugarNombre(d.getMovimientoLugar().getMovimientoLugarDescripcion());
+        }
+
         return dto;
     }
+
+    // =========================================================
+    // ANULAR
+    // =========================================================
+
+    @Transactional
+    public MovimientoResponseDTO anularMovimiento(Long id, String currentUser) {
+        Movimiento movimiento = repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+
+        if ("ANULADO".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Movimiento already anulado");
+        }
+
+        if ("PENDIENTE".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Cannot anular a PENDIENTE movimiento");
+        }
+
+        movimiento.setMovimientoEstado("ANULADO");
+        AuditHelper.setModificationAudit(movimiento, currentUser);
+        return toDTO(repo.save(movimiento));
+    }
+
+    // =========================================================
+    // REACTIVAR
+    // =========================================================
+
+    @Transactional
+    public MovimientoResponseDTO reactivarMovimiento(Long id, String currentUser) {
+        Movimiento movimiento = repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
+
+        if (!"ANULADO".equals(movimiento.getMovimientoEstado())) {
+            throw new IllegalStateException("Solo se puede reactivar un movimiento ANULADO");
+        }
+
+        movimiento.setMovimientoEstado("CONFIRMADO");
+        AuditHelper.setModificationAudit(movimiento, currentUser);
+        return toDTO(repo.save(movimiento));
+    }
+
+    // =========================================================
+    // SEARCH (de Javier)
+    // =========================================================
 
     public Page<MovimientoResponseDTO> search(
             String tipo,
@@ -268,23 +355,20 @@ public class MovimientoService {
             String desde,
             String hasta,
             int page,
-            int size
-    ) {
+            int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "movimientoFechaCreacion"));
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by(Sort.Direction.DESC, "movimientoFechaCreacion"));
 
         Specification<Movimiento> spec = (root, query, cb) -> {
-
             List<Predicate> predicates = new ArrayList<>();
 
             if (tipo != null && !tipo.isBlank()) {
                 predicates.add(cb.equal(root.get("movimientoTipo"), tipo));
             }
-
             if (estado != null && !estado.isBlank()) {
                 predicates.add(cb.equal(root.get("movimientoEstado"), estado));
             }
-
             if (usuario != null && !usuario.isBlank()) {
                 predicates.add(cb.equal(root.get("movimientoUsuarioCreacion"), usuario));
             }
@@ -293,19 +377,18 @@ public class MovimientoService {
 
             if (desde != null && !desde.isBlank()) {
                 LocalDateTime d = LocalDateTime.parse(desde, fmt);
-                predicates.add(cb.greaterThanOrEqualTo(root.get("movimientoFechaCreacion"), d));
+                predicates.add(cb.greaterThanOrEqualTo(
+                        root.get("movimientoFechaCreacion"), d));
             }
-
             if (hasta != null && !hasta.isBlank()) {
                 LocalDateTime h = LocalDateTime.parse(hasta, fmt);
-                predicates.add(cb.lessThanOrEqualTo(root.get("movimientoFechaCreacion"), h));
+                predicates.add(cb.lessThanOrEqualTo(
+                        root.get("movimientoFechaCreacion"), h));
             }
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };
 
-        Page<Movimiento> pageResult = repo.findAll(spec, pageable);
-
-        return pageResult.map(this::toDTO);
+        return repo.findAll(spec, pageable).map(this::toDTO);
     }
 }

@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 public class MovimientoDetalleRequestDTO {
 
     private Long productoId;
+    private Long movimientoLugarId;
 
     private Integer movimientoDetalleCantidad;
     private Integer movimientoDetalleUnidadesPorPaquete;

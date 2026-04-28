@@ -26,4 +26,7 @@ public class MovimientoDetalleResponseDTO {
     private BigDecimal movimientoDetalleDescuentoAplicado;
 
     private String movimientoDetalleDescripcion;
+
+    private Long movimientoLugarId;
+    private String movimientoLugarNombre;
 }
