@@ -62,7 +62,7 @@ CREATE TABLE productos (
     ProductoNombre VARCHAR(100) NOT NULL,
     ProductoDesc VARCHAR(255),
     ProductoActivo BOOLEAN NOT NULL DEFAULT TRUE,
-    ProductoStock INT NOT NULL DEFAULT 0,
+    ProductoStock INT DEFAULT 0,
     ProductoStockCritico BOOLEAN NOT NULL DEFAULT FALSE,
     ProductoCriticoNumero INT NOT NULL DEFAULT 0,
     ProductoPrecio DECIMAL(12,2) NOT NULL,
@@ -123,6 +123,8 @@ CREATE TABLE MovimientoLugar (
     MovimientoLugarDescripcion VARCHAR(100) NOT NULL,
     MovimientoLugarActivo BOOLEAN NOT NULL DEFAULT TRUE,
 
+    MovimientoLugarPrioridad BOOLEAN DEFAULT FALSE,
+
     MovimientoLugarUsuarioCreacion VARCHAR(100) NOT NULL,
     MovimientoLugarFechaCreacion DATETIME NOT NULL,
     MovimientoLugarUsuarioModif VARCHAR(100),
@@ -147,4 +149,21 @@ CREATE TABLE MovimientoDetalle (
     FOREIGN KEY (MovimientoId) REFERENCES Movimiento(MovimientoId),
     FOREIGN KEY (ProductoId) REFERENCES productos(ProductoId),
     FOREIGN KEY (MovimientoLugarId) REFERENCES MovimientoLugar(MovimientoLugarId)
+);
+
+CREATE TABLE MovimientoLugarProducto (
+    MovimientoLugarProductoId BIGINT AUTO_INCREMENT PRIMARY KEY,
+
+    MovimientoLugarId BIGINT NOT NULL,
+    ProductoId BIGINT NOT NULL,
+
+    MovimientoLugarProductoStock INT DEFAULT 0,
+
+    FOREIGN KEY (MovimientoLugarId)
+        REFERENCES MovimientoLugar(MovimientoLugarId)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (ProductoId)
+        REFERENCES productos(ProductoId)
+        ON DELETE CASCADE
 );

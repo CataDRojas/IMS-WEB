@@ -26,6 +26,10 @@ public class MovimientoLugar implements Auditable {
     @Column(name = "MovimientoLugarActivo", nullable = false)
     private Boolean movimientoLugarActivo = true;
 
+    @Setter
+    @Column(name = "MovimientoLugarPrioridad", nullable = true)
+    private Boolean movimientoLugarPrioridad = false;
+
     @Column(name = "MovimientoLugarUsuarioCreacion", nullable = false)
     private String movimientoLugarUsuarioCreacion;
 
@@ -57,5 +61,4 @@ public class MovimientoLugar implements Auditable {
     public void setFechaModif(LocalDateTime fechaModif) {
         this.movimientoLugarFechaModif = fechaModif;
     }
-
 }

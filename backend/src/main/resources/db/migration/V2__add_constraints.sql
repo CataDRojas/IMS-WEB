@@ -71,3 +71,22 @@ CHECK (MovimientoDetallePrecioUnitario >= 0);
 ALTER TABLE MovimientoDetalle
 ADD CONSTRAINT chk_det_precio_total
 CHECK (MovimientoDetallePrecioTotal >= 0);
+
+-- =========================
+-- MOVIMIENTO LUGAR RULES
+-- =========================
+ALTER TABLE MovimientoLugar
+ADD COLUMN MovimientoLugarPrioridadUnica TINYINT
+    GENERATED ALWAYS AS (
+        CASE
+            WHEN MovimientoLugarPrioridad = TRUE THEN 1
+            ELSE NULL
+        END
+    ) UNIQUE;
+
+-- =========================
+-- MOVIMIENTO LUGAR PRODUCTO RULES
+-- =========================
+ALTER TABLE MovimientoLugarProducto
+ADD CONSTRAINT uq_mlp_lugar_producto
+UNIQUE (MovimientoLugarId, ProductoId);

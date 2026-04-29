@@ -1,10 +1,10 @@
 package com.ims_web.inventory.service;
 
+import com.ims_web.inventory.dto.ProductoDetalleDTO;
 import com.ims_web.inventory.dto.ProductoExcelDTO;
-import com.ims_web.inventory.entity.Categoria;
-import com.ims_web.inventory.entity.Producto;
-import com.ims_web.inventory.repository.CategoriaRepository;
-import com.ims_web.inventory.repository.ProductoRepository;
+import com.ims_web.inventory.dto.ProductoStockLugarDTO;
+import com.ims_web.inventory.entity.*;
+import com.ims_web.inventory.repository.*;
 import com.ims_web.inventory.util.AuditHelper;
 import com.ims_web.inventory.util.excel.ProductoExcelExporter;
 import com.ims_web.inventory.util.excel.ProductoExcelImporter;
@@ -25,17 +25,23 @@ public class ProductoService {
     private final ProductoExcelImporter excelImporter;
     private final ProductoExcelExporter excelExporter;
     private final CategoriaRepository categoriaRepo;
+    private final MovimientoLugarRepository movimientoLugarRepo;
+    private final MovimientoLugarProductoRepository mlpRepo;
 
     public ProductoService(
             ProductoRepository repo,
             ProductoExcelImporter excelImporter,
             ProductoExcelExporter excelExporter,
-            CategoriaRepository categoriaRepo
+            CategoriaRepository categoriaRepo,
+            MovimientoLugarRepository movimientoLugarRepo,
+            MovimientoLugarProductoRepository mlpRepo
     ) {
         this.repo = repo;
         this.excelImporter = excelImporter;
         this.excelExporter = excelExporter;
         this.categoriaRepo = categoriaRepo;
+        this.movimientoLugarRepo = movimientoLugarRepo;
+        this.mlpRepo = mlpRepo;
     }
 
     public List<Producto> getAllProductos() {
@@ -71,8 +77,16 @@ public class ProductoService {
 
         AuditHelper.setCreationAudit(producto, currentUser);
 
-        return repo.save(producto);
+        Producto saved = repo.save(producto);
+
+        ensureProductoInAllLugares(saved);
+
+        return saved;
     }
+
+    // =========================
+    // UPDATE
+    // =========================
 
     @Transactional
     public Producto updateProducto(Producto producto, String currentUser) {
@@ -95,7 +109,6 @@ public class ProductoService {
         existing.setProductoNombre(producto.getProductoNombre());
         existing.setProductoDesc(producto.getProductoDesc());
         existing.setProductoActivo(producto.getProductoActivo());
-
         existing.setProductoCriticoNumero(producto.getProductoCriticoNumero());
         existing.setProductoPrecio(producto.getProductoPrecio());
         existing.setProductoCantidadLote(producto.getProductoCantidadLote());
@@ -109,7 +122,6 @@ public class ProductoService {
     }
 
     private void validateProducto(Producto producto) {
-
         if (producto.getProductoPrecio() == null ||
                 producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Precio cannot be negative");
@@ -129,7 +141,6 @@ public class ProductoService {
 
             for (ProductoExcelDTO dto : productos) {
 
-                // 🔥 ESCUDOS ANTI-CAÍDAS (Evitan el Error 500 por filas vacías)
                 if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty()) continue;
                 if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) continue;
                 if (dto.getPrecio() == null) continue;
@@ -160,11 +171,6 @@ public class ProductoService {
                     existing.setProductoNombre(dto.getNombre());
                     existing.setProductoPrecio(dto.getPrecio());
                     existing.setProductoCodigo(dto.getCodigo());
-
-                    if (dto.getStock() != null) {
-                        existing.setProductoStock(dto.getStock());
-                    }
-
                     existing.setCategoria(categoria);
                     existing.setProductoCantidadLote(cantidadLote);
 
@@ -177,22 +183,49 @@ public class ProductoService {
                     nuevoProducto.setProductoCodigo(dto.getCodigo());
                     nuevoProducto.setProductoNombre(dto.getNombre());
                     nuevoProducto.setProductoPrecio(dto.getPrecio());
-
-                    nuevoProducto.setProductoStock(
-                            dto.getStock() != null ? dto.getStock() : 0
-                    );
-
                     nuevoProducto.setProductoCantidadLote(cantidadLote);
                     nuevoProducto.setCategoria(categoria);
 
                     AuditHelper.setCreationAudit(nuevoProducto, "EXCEL_IMPORT");
 
-                    repo.save(nuevoProducto);
+                    Producto saved = repo.save(nuevoProducto);
+
+                    ensureProductoInAllLugares(saved);
                 }
             }
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to import Excel file", e);
+        }
+    }
+
+    // =========================
+    // GRID CONSISTENCY CORE
+    // =========================
+
+    private void ensureProductoInAllLugares(Producto producto) {
+
+        List<Long> existingLugarIds = mlpRepo
+                .findByProducto_ProductoId(producto.getProductoId())
+                .stream()
+                .map(mlp -> mlp.getMovimientoLugar().getMovimientoLugarId())
+                .toList();
+
+        List<MovimientoLugar> lugares = movimientoLugarRepo.findAll();
+
+        List<MovimientoLugarProducto> toCreate = lugares.stream()
+                .filter(l -> !existingLugarIds.contains(l.getMovimientoLugarId()))
+                .map(lugar -> {
+                    MovimientoLugarProducto mlp = new MovimientoLugarProducto();
+                    mlp.setMovimientoLugar(lugar);
+                    mlp.setProducto(producto);
+                    mlp.setMovimientoLugarProductoStock(0);
+                    return mlp;
+                })
+                .toList();
+
+        if (!toCreate.isEmpty()) {
+            mlpRepo.saveAll(toCreate);
         }
     }
 
@@ -218,5 +251,41 @@ public class ProductoService {
         }).toList();
 
         return excelExporter.exportProductos(dtos);
+    }
+
+    // =========================
+    // DETALLE
+    // =========================
+
+    @Transactional(readOnly = true)
+    public ProductoDetalleDTO getProductoDetalle(Long id) {
+
+        Producto producto = repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
+
+        List<MovimientoLugarProducto> relaciones =
+                mlpRepo.findByProducto_ProductoId(id);
+
+        List<ProductoStockLugarDTO> stockPorLugar = relaciones.stream().map(mlp -> {
+            ProductoStockLugarDTO dto = new ProductoStockLugarDTO();
+
+            dto.setMovimientoLugarId(mlp.getMovimientoLugar().getMovimientoLugarId());
+            dto.setMovimientoLugarDescripcion(mlp.getMovimientoLugar().getMovimientoLugarDescripcion());
+            dto.setStock(mlp.getMovimientoLugarProductoStock());
+            dto.setPrioridad(mlp.getMovimientoLugar().getMovimientoLugarPrioridad());
+
+            return dto;
+        }).toList();
+
+        ProductoDetalleDTO dto = new ProductoDetalleDTO();
+
+        dto.setProductoId(producto.getProductoId());
+        dto.setProductoNombre(producto.getProductoNombre());
+        dto.setProductoCodigo(producto.getProductoCodigo());
+        dto.setProductoPrecio(producto.getProductoPrecio());
+        dto.setProductoStock(producto.getProductoStock());
+        dto.setStockPorLugar(stockPorLugar);
+
+        return dto;
     }
 }

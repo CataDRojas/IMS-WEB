@@ -7,12 +7,18 @@ public class ProductoExcelDTO {
     private String codigo;
     private String nombre;
     private BigDecimal precio;
-    private Integer stock;
+
+    // ❌ no longer an input field
+    // private Integer stock;
+
     private String categoria;
     private Integer cantidadLote;
 
     private Boolean activo;
     private Integer criticoNumero;
+
+    // ✔ kept ONLY for export/display purposes
+    private Integer stock;
 
     public String getCodigo() {
         return codigo;

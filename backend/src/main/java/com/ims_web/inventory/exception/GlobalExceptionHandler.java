@@ -95,6 +95,14 @@ public class GlobalExceptionHandler {
                 errorCode = "ERR_MOVIMIENTO_ESTADO_INVALID";
                 userMessage = "Invalid movimiento estado";
             }
+
+            // =========================
+            // NEW: MOVIMIENTO LUGAR PRIORIDAD
+            // =========================
+            else if (rawMessage.contains("MovimientoLugarPrioridad")) {
+                errorCode = "ERR_PRIORIDAD_UNICA";
+                userMessage = "Only one priority location is allowed";
+            }
         }
 
         Map<String, Object> body = new HashMap<>();
@@ -129,7 +137,6 @@ public class GlobalExceptionHandler {
 
         else if (raw != null) {
 
-            // NEW STOCK VALIDATION ERRORS
             if (raw.contains("ERR_STOCK_NEGATIVE")) {
                 errorCode = "ERR_STOCK_NEGATIVE";
                 userMessage = "Stock would go below zero";

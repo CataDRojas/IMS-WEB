@@ -7,7 +7,10 @@ export interface Producto {
   productoNombre: string;
   productoDesc: string;
   productoActivo: boolean;
+
+  // READ-ONLY (derived from backend MLP sync)
   productoStock: number;
+
   productoStockCritico: boolean;
   productoCriticoNumero: number;
   productoPrecio: number;
@@ -25,10 +28,29 @@ export interface Producto {
   descuento?: any;
 }
 
+// NEW: stock per location DTO
+export interface ProductoStockLugar {
+  movimientoLugarId: number;
+  movimientoLugarDescripcion: string;
+  stock: number;
+  prioridad: boolean;
+}
+
 export interface ProductoUiData {
   productos: Producto[];
   categorias: any[];
   descuentos: any[];
+}
+
+// NEW: full product detail response (matches backend DTO)
+export interface ProductoDetalle {
+  productoId: number;
+  productoNombre: string;
+  productoCodigo: string;
+  productoPrecio: number;
+
+  productoStock: number;
+  stockPorLugar: ProductoStockLugar[];
 }
 
 @Injectable({
@@ -82,8 +104,15 @@ export class ProductoService {
     });
   }
 
-  // EXCEL
+  // NEW: product + stock per location
+  obtenerDetalleProducto(id: number): Observable<ProductoDetalle> {
+    return this.http.get<ProductoDetalle>(
+      `${this.apiUrl}/${id}/detalle`,
+      { headers: this.getHeaders() }
+    );
+  }
 
+  // EXCEL
   importarExcel(archivo: File): Observable<string> {
     const formData = new FormData();
     formData.append('file', archivo);

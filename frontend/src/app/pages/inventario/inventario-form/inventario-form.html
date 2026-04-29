@@ -4,8 +4,11 @@
 </mat-toolbar>
 
 <div class="container" style="padding: 20px; max-width: 600px; margin: auto">
+
   <!-- ==================== INICIO ==================== -->
   <div *ngIf="estado === 'inicio'">
+
+    <!-- ONLY ENTRY POINT -->
     <button
       mat-raised-button
       color="primary"
@@ -17,21 +20,22 @@
 
     <!-- Borradores en BD -->
     <div *ngIf="inventariosBD.length > 0">
+
       <h3 style="color: #1976d2">📋 Continuar inventario:</h3>
+
       <mat-card
         *ngFor="let inv of inventariosBD"
         style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #1976d2"
         (click)="seleccionarInventario(inv)"
       >
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; padding: 10px"
-        >
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px">
           <div>
             <strong>{{inv.nombre}}</strong>
             <div style="font-size: 0.8em; color: #1976d2">
-              💾 Guardado en BD · {{inv.lista.length}} productos
+              💾 BD · {{inv.lista.length}} productos · {{inv.tipo}}
             </div>
           </div>
+
           <button
             mat-icon-button
             color="warn"
@@ -41,25 +45,27 @@
           </button>
         </div>
       </mat-card>
+
     </div>
 
     <!-- Borradores locales -->
     <div *ngIf="inventariosLocales.length > 0">
+
       <h3 style="color: #666">📝 Borradores locales:</h3>
+
       <mat-card
         *ngFor="let inv of inventariosLocales"
         style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #ccc"
         (click)="seleccionarInventario(inv)"
       >
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; padding: 10px"
-        >
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px">
           <div>
             <strong>{{inv.nombre}}</strong>
             <div style="font-size: 0.8em; color: #999">
-              📱 Solo en este dispositivo · {{inv.lista.length}} productos
+              📱 Local · {{inv.lista.length}} productos · {{inv.tipo}}
             </div>
           </div>
+
           <button
             mat-icon-button
             color="warn"
@@ -69,18 +75,29 @@
           </button>
         </div>
       </mat-card>
+
     </div>
 
     <button mat-stroked-button (click)="irAHistorial()" style="width: 100%; margin-top: 20px">
       📜 VER HISTORIAL
     </button>
+
   </div>
 
   <!-- ==================== AGREGAR ==================== -->
   <div *ngIf="estado === 'agregar'">
+
     <mat-card style="margin-bottom: 20px; padding: 20px">
-      <h3>Sesión: {{inventarioActual?.nombre}}</h3>
+
+      <h3>
+        Sesión: {{inventarioActual?.nombre}}
+        <span style="font-size: 0.8em; color: #888">
+          ({{inventarioActual?.tipo}})
+        </span>
+      </h3>
+
       <div *ngIf="!productoEditando" style="display: flex; gap: 10px">
+
         <input
           type="text"
           [(ngModel)]="codigo"
@@ -88,28 +105,35 @@
           style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc"
           (keyup.enter)="buscarProducto()"
         />
+
         <button mat-mini-fab color="primary" (click)="buscarProducto()">🔍</button>
+
         <button
           (click)="abrirEscaner()"
           style="background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 8px"
         >
           📷
         </button>
+
       </div>
 
       <div *ngIf="escanerAbierto" style="margin-top: 15px; text-align: center; background: #000">
         <video #videoElement style="width: 100%; max-height: 200px"></video>
         <button mat-button color="warn" (click)="cerrarEscaner()">Cerrar Cámara</button>
       </div>
+
     </mat-card>
 
     <mat-card *ngIf="productoEncontrado" style="padding: 20px; border-top: 5px solid #3f51b5">
+
       <h2>{{productoEncontrado.productoNombre}}</h2>
+
       <div style="font-size: 0.9em; color: #666; margin-bottom: 15px">
         💰 Precio: ${{productoEncontrado.productoPrecio | number}}
       </div>
 
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px">
+
         <mat-form-field appearance="outline">
           <mat-label>Ubicación</mat-label>
           <mat-select [(ngModel)]="lugarSeleccionado">
@@ -129,24 +153,22 @@
             (input)="calcularPorCajas()"
           />
         </mat-form-field>
+
       </div>
 
       <div style="background: #f9f9f9; padding: 15px; border-radius: 8px">
+
         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px">
           <label style="min-width: 80px">N° de cajas:</label>
+
           <input
             type="number"
             [(ngModel)]="cajas"
             min="0"
             (input)="calcularPorCajas()"
-            style="
-              width: 80px;
-              padding: 6px;
-              border-radius: 6px;
-              border: 1px solid #ccc;
-              text-align: center;
-            "
+            style="width: 80px; padding: 6px; border-radius: 6px; border: 1px solid #ccc; text-align: center;"
           />
+
           <span style="color: #888; font-size: 0.85em">
             × {{loteEditable}} = {{cajas * loteEditable}} un.
           </span>
@@ -157,24 +179,23 @@
         <label style="display: block; margin-bottom: 8px; font-weight: bold">
           Unidades totales:
         </label>
+
         <div style="display: flex; justify-content: center; align-items: center; gap: 15px">
+
           <button mat-mini-fab color="primary" (click)="disminuir()">-</button>
+
           <input
             type="number"
             [(ngModel)]="cantidad"
             min="1"
             (input)="calcularPorUnidades()"
-            style="
-              width: 100px;
-              text-align: center;
-              font-size: 2em;
-              font-weight: bold;
-              border: none;
-              background: transparent;
-            "
+            style="width: 100px; text-align: center; font-size: 2em; font-weight: bold; border: none; background: transparent;"
           />
+
           <button mat-mini-fab color="primary" (click)="aumentar()">+</button>
+
         </div>
+
       </div>
 
       <div style="display: flex; gap: 10px; margin-top: 20px">
@@ -183,20 +204,20 @@
           {{ productoEditando ? '✏️ Actualizar' : '➕ Agregar' }}
         </button>
       </div>
+
     </mat-card>
+
   </div>
 
   <!-- ==================== LISTA ==================== -->
   <div *ngIf="estado === 'lista'">
-    <div
-      style="
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-      "
-    >
-      <h3>📦 {{inventarioActual?.nombre}}</h3>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3>
+        📦 {{inventarioActual?.nombre}}
+        <span style="font-size: 0.8em; color: #888">({{inventarioActual?.tipo}})</span>
+      </h3>
+
       <button
         mat-button
         color="warn"
@@ -206,10 +227,7 @@
       </button>
     </div>
 
-    <p
-      *ngIf="inventarioActual?.lista.length === 0"
-      style="color: #999; text-align: center; padding: 20px"
-    >
+    <p *ngIf="inventarioActual?.lista.length === 0" style="color: #999; text-align: center; padding: 20px">
       No hay productos aún. Agrega el primero.
     </p>
 
@@ -219,31 +237,30 @@
       style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #17a2b8"
     >
       <div style="display: flex; justify-content: space-between; padding: 10px">
+
         <div>
           <strong>{{item.productoNombre}}</strong>
           <div style="font-size: 0.8em; color: #666">
             📍 {{item.lugarNombre}} | Lote: {{item.productoCantidadLote}}
           </div>
         </div>
+
         <div style="text-align: right">
           <div style="font-size: 1.2em; font-weight: bold">{{item.cantidadAgregada}} un.</div>
-          <button
-            mat-icon-button
-            color="warn"
-            (click)="$event.stopPropagation(); eliminarIndividual(item)"
-          >
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarIndividual(item)">
             🗑️
           </button>
         </div>
+
       </div>
     </mat-card>
 
     <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px">
+
       <button mat-stroked-button color="primary" (click)="estado='agregar'; reset()">
         ➕ AÑADIR OTRO
       </button>
 
-      <!-- Solo mostrar guardar borrador si NO está ya en BD -->
       <button
         *ngIf="!inventarioActual?.esBD"
         mat-stroked-button
@@ -262,6 +279,9 @@
       >
         🚀 FINALIZAR INVENTARIO
       </button>
+
     </div>
+
   </div>
+
 </div>

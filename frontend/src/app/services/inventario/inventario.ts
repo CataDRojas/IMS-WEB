@@ -40,72 +40,74 @@ export class InventarioService {
   }
 
   // Guardar borrador en BD (PENDIENTE, no suma stock)
-  guardarBorrador(nombre: string, items: any[]): Observable<any> {
-    const movimiento = {
-      movimientoTipo: 'ENTRADA',
-      movimientoEstado: 'PENDIENTE',
-      movimientoMetodoPago: null,
-      movimientoDescripcion: `Inventario: ${nombre}`
+guardarBorrador(nombre: string, items: any[], tipo: string = 'ENTRADA'): Observable<any> {
+  const movimiento = {
+    movimientoTipo: tipo,
+    movimientoEstado: 'PENDIENTE',
+    movimientoMetodoPago: null,
+    movimientoDescripcion: `Inventario: ${nombre}`
+  };
+
+  const detalles = items.map((item: any) => {
+    const precioReal = Number(item.productoPrecio || 0);
+    const cajas = Number(item.cajasAgregadas || 1);
+    const lote = Number(item.productoCantidadLote || 1);
+    const unidades = cajas * lote;
+
+    return {
+      productoId: Number(item.productoId),
+      movimientoLugarId: Number(item.lugarId),
+      movimientoDetalleCantidad: cajas,
+      movimientoDetalleUnidadesPorPaquete: lote,
+      movimientoDetallePrecioBase: precioReal,
+      movimientoDetallePrecioUnitario: precioReal,
+      movimientoDetallePrecioTotal: precioReal * unidades,
+      movimientoDetalleDescuentoAplicado: 0,
+      movimientoDetalleDescripcion: `Borrador: ${nombre}`
     };
+  });
 
-    const detalles = items.map((item: any) => {
-      const precioReal = Number(item.productoPrecio || 0);
-      const cajas = Number(item.cajasAgregadas || 1);
-      const lote = Number(item.productoCantidadLote || 1);
-      const unidades = cajas * lote;
-      return {
-        productoId: Number(item.productoId),
-        movimientoLugarId: Number(item.lugarId),
-        movimientoDetalleCantidad: cajas,
-        movimientoDetalleUnidadesPorPaquete: lote,
-        movimientoDetallePrecioBase: precioReal,
-        movimientoDetallePrecioUnitario: precioReal,
-        movimientoDetallePrecioTotal: precioReal * unidades,
-        movimientoDetalleDescuentoAplicado: 0,
-        movimientoDetalleDescripcion: `Borrador: ${nombre}`
-      };
-    });
-
-    return this.http.post<any>(
-      `${this.apiMovimientos}/borrador`,
-      { movimiento, detalles },
-      { headers: this.getHeaders() }
-    );
-  }
+  return this.http.post<any>(
+    `${this.apiMovimientos}/borrador`,
+    { movimiento, detalles },
+    { headers: this.getHeaders() }
+  );
+}
 
   // Finalizar = crear + confirmar
-  finalizarInventario(nombre: string, items: any[]): Observable<any> {
-    const movimiento = {
-      movimientoTipo: 'ENTRADA',
-      movimientoEstado: 'PENDIENTE',
-      movimientoMetodoPago: null,
-      movimientoDescripcion: `Inventario: ${nombre}`
+finalizarInventario(nombre: string, items: any[], tipo: string = 'ENTRADA'): Observable<any> {
+  const movimiento = {
+    movimientoTipo: tipo,
+    movimientoEstado: 'PENDIENTE',
+    movimientoMetodoPago: null,
+    movimientoDescripcion: `Inventario: ${nombre}`
+  };
+
+  const detalles = items.map((item: any) => {
+    const precioReal = Number(item.productoPrecio || 0);
+    const cajas = Number(item.cajasAgregadas || 1);
+    const lote = Number(item.productoCantidadLote || 1);
+    const unidades = cajas * lote;
+
+    return {
+      productoId: Number(item.productoId),
+      movimientoLugarId: Number(item.lugarId),
+      movimientoDetalleCantidad: cajas,
+      movimientoDetalleUnidadesPorPaquete: lote,
+      movimientoDetallePrecioBase: precioReal,
+      movimientoDetallePrecioUnitario: precioReal,
+      movimientoDetallePrecioTotal: precioReal * unidades,
+      movimientoDetalleDescuentoAplicado: 0,
+      movimientoDetalleDescripcion: `Carga stock: ${nombre}`
     };
+  });
 
-    const detalles = items.map((item: any) => {
-      const precioReal = Number(item.productoPrecio || 0);
-      const cajas = Number(item.cajasAgregadas || 1);
-      const lote = Number(item.productoCantidadLote || 1);
-      const unidades = cajas * lote;
-      return {
-        productoId: Number(item.productoId),
-        movimientoLugarId: Number(item.lugarId),
-        movimientoDetalleCantidad: cajas,
-        movimientoDetalleUnidadesPorPaquete: lote,
-        movimientoDetallePrecioBase: precioReal,
-        movimientoDetallePrecioUnitario: precioReal,
-        movimientoDetallePrecioTotal: precioReal * unidades,
-        movimientoDetalleDescuentoAplicado: 0,
-        movimientoDetalleDescripcion: `Carga stock: ${nombre}`
-      };
-    });
-
-    return this.http.post<any>(
-      this.apiMovimientos,
-      { movimiento, detalles },
-      { headers: this.getHeaders() }
-    );
-  }
+  return this.http.post<any>(
+    this.apiMovimientos,
+    { movimiento, detalles },
+    { headers: this.getHeaders() }
+  );
+}
 
   confirmarMovimiento(movimientoId: number): Observable<any> {
     return this.http.post<any>(

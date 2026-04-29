@@ -23,10 +23,12 @@ export class LugaresComponent implements OnInit {
     private fb: FormBuilder,
     private lugarService: LugarService
   ) {
-    this.lugarForm = this.fb.group({
-      movimientoLugarDescripcion: ['', Validators.required],
-      movimientoLugarActivo: [true]
-    });
+this.lugarForm = this.fb.group({
+  movimientoLugarDescripcion: ['', Validators.required],
+  movimientoLugarActivo: [true],
+
+  movimientoLugarPrioridad: [false]
+});
   }
 
   ngOnInit(): void {
@@ -53,10 +55,11 @@ export class LugaresComponent implements OnInit {
 
   editar(lugar: MovimientoLugar): void {
     this.lugarActual = { ...lugar };
-    this.lugarForm.patchValue({
-      movimientoLugarDescripcion: lugar.movimientoLugarDescripcion,
-      movimientoLugarActivo: lugar.movimientoLugarActivo
-    });
+  this.lugarForm.patchValue({
+  movimientoLugarDescripcion: lugar.movimientoLugarDescripcion,
+  movimientoLugarActivo: lugar.movimientoLugarActivo,
+  movimientoLugarPrioridad: lugar.movimientoLugarPrioridad
+  });
     this.mostrarFormulario = true;
   }
 
@@ -67,10 +70,10 @@ export class LugaresComponent implements OnInit {
   guardar(): void {
     if (this.lugarForm.invalid) return;
 
-    const formData: MovimientoLugar = {
-      ...this.lugarForm.value,
-      movimientoLugarId: this.lugarActual.movimientoLugarId
-    };
+const formData: MovimientoLugar = {
+  ...this.lugarForm.value,
+  movimientoLugarId: this.lugarActual.movimientoLugarId
+};
 
     this.lugarService.guardarLugar(formData).subscribe({
       next: () => {

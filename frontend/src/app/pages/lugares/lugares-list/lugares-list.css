@@ -5,6 +5,14 @@
   margin: 0 auto;
 }
 
+/* --- estrella en nombre --- */
+.name-with-star {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
 /* --- HEADER DINÁMICO --- */
 .header-section {
   display: flex;

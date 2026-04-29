@@ -1,8 +1,6 @@
 package com.ims_web.inventory.controller;
 
 import com.ims_web.inventory.entity.Producto;
-import com.ims_web.inventory.entity.Categoria;
-import com.ims_web.inventory.entity.Descuento;
 import com.ims_web.inventory.service.ProductoService;
 import com.ims_web.inventory.service.CategoriaService;
 import com.ims_web.inventory.service.DescuentoService;
@@ -13,6 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.ims_web.inventory.dto.ProductoDetalleDTO;
+
+
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
@@ -122,5 +123,9 @@ public class ProductoController {
         response.put("descuentos", descuentoService.getActive());
 
         return ResponseEntity.ok(response);
+    }
+    @GetMapping("/{id}/detalle")
+    public ProductoDetalleDTO getDetalle(@PathVariable Long id) {
+        return service.getProductoDetalle(id);
     }
 }

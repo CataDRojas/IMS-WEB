@@ -31,118 +31,206 @@
     </div>
   </header>
 
-  <!-- VISTA TELEFONO -->
-  <div class="mobile-list">
-    <mat-accordion>
-      <mat-expansion-panel *ngFor="let prod of productos">
-        <mat-expansion-panel-header>
-          <mat-panel-title class="product-title">
-            {{ prod.productoNombre }}
-          </mat-panel-title>
-          <mat-panel-description>
-            <span class="product-price-tag">${{ prod.productoPrecio }}</span>
-          </mat-panel-description>
-        </mat-expansion-panel-header>
+<!-- VISTA TELEFONO -->
+<div class="mobile-list">
+  <mat-accordion>
+    <mat-expansion-panel *ngFor="let prod of productos">
 
-        <div class="product-details-grid">
-          <div class="detail-item">
-            <span class="detail-label">Código</span>
-            <span class="detail-value">{{ prod.productoCodigo }}</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Stock</span>
-            <span
-              class="detail-value"
-              [class.stock-alert]="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
-            >
-              {{ prod.productoStock }}
-            </span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">Descuento</span>
-            <span class="detail-value"
-              >{{ prod.descuento?.descuentoNombre || '—' }}</span
-            >
-          </div>
+      <mat-expansion-panel-header>
+        <mat-panel-title class="product-title">
+          {{ prod.productoNombre }}
+        </mat-panel-title>
 
-          <ng-container *ngIf="esAdmin()">
-            <p>
-              <strong>Estado:</strong> {{ prod.productoActivo ? 'Activo' :
-              'Inactivo' }}
-            </p>
-            <div class="mobile-actions">
-              <button (click)="editarProducto(prod)" class="btn-edit-small">
-                Editar
-              </button>
-              <button
-                (click)="cambiarEstado(prod)"
-                [class.btn-deactivate]="prod.productoActivo"
-                [class.btn-activate]="!prod.productoActivo"
-              >
-                {{ prod.productoActivo ? 'Desactivar' : 'Activar' }}
-              </button>
-            </div>
-          </ng-container>
+        <mat-panel-description>
+          <span class="product-price-tag">
+            ${{ prod.productoPrecio }}
+          </span>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div class="product-details-grid">
+
+        <div class="detail-item">
+          <span class="detail-label">Código</span>
+          <span class="detail-value">
+            {{ prod.productoCodigo }}
+          </span>
         </div>
-      </mat-expansion-panel>
-    </mat-accordion>
-  </div>
 
-  <!-- VISTA ESCRITORIO -->
-  <div class="desktop-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Nombre</th>
-          <th>Categoría</th>
-          <th>Precio</th>
-          <th>Descuento</th>
-          <th>Stock</th>
-          <th *ngIf="esAdmin()">Estado</th>
-          <th *ngIf="esAdmin()">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let prod of productos">
-          <td>{{ prod.productoCodigo }}</td>
-          <td>{{ prod.productoNombre }}</td>
-          <td>{{ prod.categoria?.categoriaNombre }}</td>
-          <td>${{ prod.productoPrecio }}</td>
-          <td>{{ prod.descuento?.descuentoNombre || '—' }}</td>
-          <td>{{ prod.productoStock }}</td>
+        <div class="detail-item">
+          <span class="detail-label">Stock</span>
 
-          <td *ngIf="esAdmin()">
-            {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
-          </td>
-          <td *ngIf="esAdmin()">
-            <div class="table-actions">
-              <button
-                (click)="editarProducto(prod)"
-                class="btn-icon edit"
-                title="Editar Producto"
-              >
-                <mat-icon>edit</mat-icon>
-              </button>
+          <span
+            class="detail-value"
+            [class.stock-alert]="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
+          >
+            {{ prod.productoStock }}
+          </span>
 
-              <button
-                (click)="cambiarEstado(prod)"
-                class="btn-icon"
-                [class.deactivate]="prod.productoActivo"
-                [class.activate]="!prod.productoActivo"
-                [title]="prod.productoActivo ? 'Desactivar' : 'Activar'"
-              >
-                <mat-icon
-                  >{{ prod.productoActivo ? 'block' : 'check_circle'
-                  }}</mat-icon
-                >
-              </button>
+          <!-- 🔽 STOCK POR LUGAR TOGGLE -->
+          <button class="btn-stock-toggle" (click)="toggleDetalleStock(prod)">
+            <mat-icon>expand_more</mat-icon>
+            Ver stock por lugar
+          </button>
+
+          <div
+            *ngIf="productoExpandido[prod.productoId!]"
+            class="stock-detail-box"
+          >
+
+            <div *ngIf="cargandoStock[prod.productoId!]">
+              Cargando...
             </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+
+            <div *ngFor="let item of stockDetalleMap[prod.productoId!]">
+              <div class="stock-row">
+                <span>{{ item.movimientoLugarDescripcion }}</span>
+                <strong>{{ item.stock }}</strong>
+
+                <span *ngIf="item.prioridad" class="priority-badge">
+                  PRIORIDAD
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <span class="detail-label">Descuento</span>
+          <span class="detail-value">
+            {{ prod.descuento?.descuentoNombre || '—' }}
+          </span>
+        </div>
+
+        <ng-container *ngIf="esAdmin()">
+
+          <p>
+            <strong>Estado:</strong>
+            {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
+          </p>
+
+          <div class="mobile-actions">
+            <button (click)="editarProducto(prod)" class="btn-edit-small">
+              Editar
+            </button>
+
+            <button
+              (click)="cambiarEstado(prod)"
+              [class.btn-deactivate]="prod.productoActivo"
+              [class.btn-activate]="!prod.productoActivo"
+            >
+              {{ prod.productoActivo ? 'Desactivar' : 'Activar' }}
+            </button>
+          </div>
+
+        </ng-container>
+
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>
+
+<!-- VISTA ESCRITORIO -->
+<div class="desktop-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Descuento</th>
+        <th>Stock</th>
+        <th *ngIf="esAdmin()">Estado</th>
+        <th *ngIf="esAdmin()">Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let prod of productos">
+
+        <td>{{ prod.productoCodigo }}</td>
+        <td>{{ prod.productoNombre }}</td>
+        <td>{{ prod.categoria?.categoriaNombre }}</td>
+        <td>${{ prod.productoPrecio }}</td>
+        <td>{{ prod.descuento?.descuentoNombre || '—' }}</td>
+
+        <!-- STOCK + DROPDOWN -->
+        <td>
+          <div class="stock-cell">
+
+            <div>
+              {{ prod.productoStock }}
+            </div>
+
+            <button
+              class="btn-small"
+              (click)="toggleDetalleStock(prod)"
+            >
+              ver
+            </button>
+
+            <div
+              class="stock-breakdown-inline"
+              *ngIf="productoExpandido[prod.productoId!]"
+            >
+
+              <div *ngIf="cargandoStock[prod.productoId!]">
+                Cargando...
+              </div>
+
+              <div
+                *ngFor="let item of stockDetalleMap[prod.productoId!]"
+                class="stock-row"
+              >
+                <span>{{ item.movimientoLugarDescripcion }}</span>
+                <strong>{{ item.stock }}</strong>
+
+                <span *ngIf="item.prioridad" class="priority-badge">
+                  PRIORIDAD
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+        </td>
+
+        <td *ngIf="esAdmin()">
+          {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
+        </td>
+
+        <td *ngIf="esAdmin()">
+          <div class="table-actions">
+
+            <button
+              (click)="editarProducto(prod)"
+              class="btn-icon edit"
+              title="Editar Producto"
+            >
+              <mat-icon>edit</mat-icon>
+            </button>
+
+            <button
+              (click)="cambiarEstado(prod)"
+              class="btn-icon"
+              [class.deactivate]="prod.productoActivo"
+              [class.activate]="!prod.productoActivo"
+              [title]="prod.productoActivo ? 'Desactivar' : 'Activar'"
+            >
+              <mat-icon>
+                {{ prod.productoActivo ? 'block' : 'check_circle' }}
+              </mat-icon>
+            </button>
+
+          </div>
+        </td>
+
+      </tr>
+    </tbody>
+  </table>
+</div>
 
   <!-- FORM MODAL -->
   <div *ngIf="mostrarFormulario" class="modal-overlay">
@@ -198,10 +286,7 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Stock Actual</label>
-          <input type="number" [(ngModel)]="productoActual.productoStock">
-        </div>
+
 
         <div class="form-group">
           <label>Cantidad por Lote</label>

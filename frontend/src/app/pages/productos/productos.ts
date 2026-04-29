@@ -35,6 +35,10 @@ export class ProductosComponent implements OnInit {
 
   productoActual: Producto = this.generarProductoVacio();
 
+  stockDetalleMap: Record<number, any[]> = {};
+  productoExpandido: Record<number, boolean> = {};
+  cargandoStock: Record<number, boolean> = {};
+
   constructor(private productoService: ProductoService, private router: Router) {}
 
   ngOnInit(): void {
@@ -67,6 +71,38 @@ export class ProductosComponent implements OnInit {
       }
     });
   }
+
+toggleDetalleStock(prod: Producto): void {
+
+  if (!prod.productoId) return;
+
+  const id = prod.productoId;
+
+  // toggle close
+  if (this.productoExpandido[id]) {
+    this.productoExpandido[id] = false;
+    return;
+  }
+
+  this.productoExpandido[id] = true;
+
+  // already loaded → no refetch
+  if (this.stockDetalleMap[id]) return;
+
+  this.cargandoStock[id] = true;
+
+  this.productoService.obtenerDetalleProducto(id).subscribe({
+    next: (detalle) => {
+      this.stockDetalleMap[id] = detalle.stockPorLugar;
+      this.cargandoStock[id] = false;
+    },
+    error: () => {
+      this.mensajeError = 'Error al cargar stock por lugar.';
+      this.cargandoStock[id] = false;
+    }
+  });
+}
+
 
   generarProductoVacio(): Producto {
     return {
@@ -112,36 +148,49 @@ export class ProductosComponent implements OnInit {
 
   // GUARDAR PRODUCTO
 
-  guardarProducto(): void {
+guardarProducto(): void {
 
-    const { 
-      categoriaId, categoriaNombre, 
-      descuentoId, descuentoNombre, descuentoPorcentaje, 
-      productoStockCritico,
-      ...productoLimpio 
-    } = this.productoActual;
+  const {
+    categoriaId,
+    categoriaNombre,
+    descuentoId,
+    descuentoNombre,
+    descuentoPorcentaje,
+    productoStock,
+    productoStockCritico,
+    ...productoLimpio
+  } = this.productoActual;
 
-    const payloadEnvio = {
-      ...productoLimpio,
-      categoria: this.productoActual.categoriaId ? { categoriaId: this.productoActual.categoriaId } : null,
-      descuento: this.productoActual.descuentoId ? { descuentoId: this.productoActual.descuentoId } : null
-    };
+  const payloadEnvio = {
+    ...productoLimpio,
 
-    const request$ = this.productoActual.productoId
-      ? this.productoService.actualizarProducto(this.productoActual.productoId, payloadEnvio as any)
-      : this.productoService.crearProducto(payloadEnvio as any);
+    // hard guarantee: backend never receives stock (belt + suspenders)
+    productoStock: null,
 
-    request$.subscribe({
-      next: () => {
-        this.mostrarFormulario = false;
-        this.cargarDatos();
-      },
-      error: (err) => {
-        console.error('Error del backend:', err);
-        this.mensajeError = 'Error al guardar producto. Revisa los datos.';
-      }
-    });
-  }
+    categoria: this.productoActual.categoriaId
+      ? { categoriaId: this.productoActual.categoriaId }
+      : null,
+
+    descuento: this.productoActual.descuentoId
+      ? { descuentoId: this.productoActual.descuentoId }
+      : null
+  };
+
+  const request$ = this.productoActual.productoId
+    ? this.productoService.actualizarProducto(this.productoActual.productoId, payloadEnvio as any)
+    : this.productoService.crearProducto(payloadEnvio as any);
+
+  request$.subscribe({
+    next: () => {
+      this.mostrarFormulario = false;
+      this.cargarDatos();
+    },
+    error: (err) => {
+      console.error('Error del backend:', err);
+      this.mensajeError = 'Error al guardar producto. Revisa los datos.';
+    }
+  });
+}
 
   cambiarEstado(prod: Producto): void {
 

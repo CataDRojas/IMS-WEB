@@ -12,6 +12,8 @@ import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { MatDialog } from '@angular/material/dialog';
+import { NuevoInventarioDialogComponent } from '../../../components/nuevo-inventario-dialog/nuevo-inventario-dialog';
 
 @Component({
   selector: 'app-inventario-form',
@@ -30,6 +32,8 @@ export class InventarioForm implements OnInit {
   cajas = 0;
   loteEditable = 1;
 
+
+  tipoInventarioDefault: string = 'ENTRADA';
   productoEncontrado: any = null;
   productoEditando: any = null;
 
@@ -49,7 +53,8 @@ export class InventarioForm implements OnInit {
   constructor(
     private router: Router,
     private location: Location,
-    private inventarioService: InventarioService
+    private inventarioService: InventarioService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -76,6 +81,7 @@ export class InventarioForm implements OnInit {
         this.inventariosBD = movimientos.map(m => ({
           nombre: m.movimientoDescripcion?.replace('Inventario: ', '') || 'Sin nombre',
           movimientoId: m.movimientoId,
+          tipo: m.movimientoTipo,
           esBD: true,
           lista: (m.detalles || []).map((d: any) => ({
             productoId: d.productoId,
@@ -94,25 +100,37 @@ export class InventarioForm implements OnInit {
     });
   }
 
-  iniciarNuevo() {
-    const nombre = prompt('Nombre del inventario (ej: Lácteos Mañana):');
-    if (!nombre) return;
+iniciarNuevo() {
+  const dialogRef = this.dialog.open(NuevoInventarioDialogComponent, {
+    width: '400px'
+  });
+
+  dialogRef.afterClosed().subscribe(result => {
+    if (!result) return;
 
     this.inventarioActual = {
-      nombre,
+      nombre: result.nombre,
+      tipo: result.tipo,
       lista: [],
       esBD: false,
       fecha: new Date()
     };
+
     this.inventariosLocales.push(this.inventarioActual);
     this.guardarLocales();
     this.estado = 'agregar';
-  }
+  });
+}
 
-  seleccionarInventario(inv: any) {
-    this.inventarioActual = inv;
-    this.estado = 'lista';
-  }
+seleccionarInventario(inv: any) {
+  this.inventarioActual = {
+    ...inv,
+    tipo: inv.tipo || 'ENTRADA',
+    esBD: inv.esBD ?? false
+  };
+
+  this.estado = 'lista';
+}
 
   buscarProducto() {
     if (!this.codigo) return;
@@ -237,10 +255,11 @@ export class InventarioForm implements OnInit {
     if (!confirm(`¿Guardar "${this.inventarioActual.nombre}" como borrador? Podrás continuarlo después desde cualquier dispositivo.`)) return;
 
     try {
-      await this.inventarioService.guardarBorrador(
-        this.inventarioActual.nombre,
-        this.inventarioActual.lista
-      ).toPromise();
+        await this.inventarioService.guardarBorrador(
+          this.inventarioActual.nombre,
+          this.inventarioActual.lista,
+          this.inventarioActual.tipo
+        ).toPromise();
 
       alert('💾 Borrador guardado. Puedes continuarlo desde cualquier dispositivo.');
 
@@ -273,10 +292,11 @@ export class InventarioForm implements OnInit {
         movimientoId = this.inventarioActual.movimientoId;
       } else {
         // Está local, crear en BD y confirmar
-        const res: any = await this.inventarioService.finalizarInventario(
-          this.inventarioActual.nombre,
-          this.inventarioActual.lista
-        ).toPromise();
+          const res: any = await this.inventarioService.finalizarInventario(
+            this.inventarioActual.nombre,
+            this.inventarioActual.lista,
+            this.inventarioActual.tipo
+          ).toPromise();
         movimientoId = res.movimientoId;
       }
 

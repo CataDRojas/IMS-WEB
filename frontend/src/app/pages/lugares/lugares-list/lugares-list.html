@@ -18,7 +18,10 @@
       <mat-expansion-panel *ngFor="let lugar of lugares">
         <mat-expansion-panel-header>
           <mat-panel-title class="product-title">
-            {{ lugar.movimientoLugarDescripcion }}
+            <span class="name-with-star">
+              <span *ngIf="lugar.movimientoLugarPrioridad">⭐</span>
+              {{ lugar.movimientoLugarDescripcion }}
+            </span>
           </mat-panel-title>
           <mat-panel-description>
             <span
@@ -73,7 +76,10 @@
 
       <tbody>
         <tr *ngFor="let lugar of lugares">
-          <td><strong>{{ lugar.movimientoLugarDescripcion }}</strong></td>
+          <td><strong class="name-with-star">
+            <span *ngIf="lugar.movimientoLugarPrioridad">⭐</span>
+              {{ lugar.movimientoLugarDescripcion }}
+            </strong></td>
           <td>
             <span
               [class]="lugar.movimientoLugarActivo ? 'status-pill active' : 'status-pill inactive'"
@@ -116,58 +122,69 @@
 
   </div>
 
-  <div *ngIf="mostrarFormulario" class="modal-overlay">
-    <div class="modal-card shadow-lg">
-      <header class="modal-header">
-        <h3>
-          <mat-icon>storefront</mat-icon>
-          {{ lugarActual.movimientoLugarId ? 'Editar Sector' : 'Nuevo Sector' }}
-        </h3>
-        <button class="btn-close-x" (click)="cancelar()">×</button>
-      </header>
+ <div *ngIf="mostrarFormulario" class="modal-overlay">
+  <div class="modal-card shadow-lg">
+    <header class="modal-header">
+      <h3>
+        <mat-icon>storefront</mat-icon>
+        {{ lugarActual.movimientoLugarId ? 'Editar Sector' : 'Nuevo Sector' }}
+      </h3>
+      <button class="btn-close-x" (click)="cancelar()">×</button>
+    </header>
 
-      <div class="modal-body">
-        <form [formGroup]="lugarForm">
-          <div class="form-group full-width">
-            <label>Descripción del Lugar *</label>
-            <input
-              type="text"
-              formControlName="movimientoLugarDescripcion"
-              placeholder="Ej: Bodega Norte - Pasillo A"
-              [class.input-error]="lugarForm.get('movimientoLugarDescripcion')?.invalid && lugarForm.get('movimientoLugarDescripcion')?.touched"
-            />
-            <small
-              class="error-text"
-              *ngIf="lugarForm.get('movimientoLugarDescripcion')?.invalid && lugarForm.get('movimientoLugarDescripcion')?.touched"
-            >
-              La descripción es obligatoria.
-            </small>
-          </div>
+    <div class="modal-body">
+      <form [formGroup]="lugarForm">
+        <div class="form-group full-width">
+          <label>Descripción del Lugar *</label>
+          <input
+            type="text"
+            formControlName="movimientoLugarDescripcion"
+            placeholder="Ej: Bodega Norte - Pasillo A"
+            [class.input-error]="lugarForm.get('movimientoLugarDescripcion')?.invalid && lugarForm.get('movimientoLugarDescripcion')?.touched"
+          />
+          <small
+            class="error-text"
+            *ngIf="lugarForm.get('movimientoLugarDescripcion')?.invalid && lugarForm.get('movimientoLugarDescripcion')?.touched"
+          >
+            La descripción es obligatoria.
+          </small>
+        </div>
 
-          <div class="toggle-group">
-            <label class="switch-container">
-              <input type="checkbox" formControlName="movimientoLugarActivo" />
-              <span class="slider"></span>
-              <span class="label-text"
-                >¿Sector habilitado para movimientos?</span
-              >
-            </label>
-          </div>
-        </form>
-      </div>
+        <div class="toggle-group">
+          <label class="switch-container">
+            <input type="checkbox" formControlName="movimientoLugarActivo" />
+            <span class="slider"></span>
+            <span class="label-text">
+              ¿Sector habilitado para movimientos?
+            </span>
+          </label>
+        </div>
 
-      <footer class="modal-footer">
-        <button class="btn-modal btn-modal-cancel" (click)="cancelar()">
-          Cancelar
-        </button>
-        <button
-          class="btn-modal btn-modal-save"
-          (click)="guardar()"
-          [disabled]="lugarForm.invalid"
-        >
-          <mat-icon>save</mat-icon> Guardar Lugar
-        </button>
-      </footer>
+        <!-- ⭐ ADDED FIELD (NO OTHER CHANGES) -->
+        <div class="toggle-group">
+          <label class="switch-container">
+            <input type="checkbox" formControlName="movimientoLugarPrioridad" />
+            <span class="slider"></span>
+            <span class="label-text">
+              ¿Marcar como prioridad (⭐)?
+            </span>
+          </label>
+        </div>
+
+      </form>
     </div>
+
+    <footer class="modal-footer">
+      <button class="btn-modal btn-modal-cancel" (click)="cancelar()">
+        Cancelar
+      </button>
+      <button
+        class="btn-modal btn-modal-save"
+        (click)="guardar()"
+        [disabled]="lugarForm.invalid"
+      >
+        <mat-icon>save</mat-icon> Guardar Lugar
+      </button>
+    </footer>
   </div>
 </div>

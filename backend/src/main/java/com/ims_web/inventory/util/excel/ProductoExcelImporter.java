@@ -30,7 +30,7 @@ public class ProductoExcelImporter {
 
             if (header == null || header.getPhysicalNumberOfCells() < 8) {
                 throw new RuntimeException(
-                        "Invalid Excel format: expected 8 columns (codigo, nombre, precio, stock, categoria, cantidadLote, activo, criticoNumero)"
+                        "Invalid Excel format: expected 8 columns (codigo, nombre, precio, categoria, cantidadLote, activo, criticoNumero)"
                 );
             }
 

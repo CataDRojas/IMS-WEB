@@ -26,15 +26,11 @@ public class ProductoImportExcelMapper {
             dto.setNombre(getString(row.getCell(1)));
             dto.setPrecio(getBigDecimal(row.getCell(2)));
 
-            dto.setStock(getInteger(row.getCell(3)));
+            // ❌ STOCK REMOVED (DB is source of truth)
 
-            // NEW ORDER
             dto.setCriticoNumero(getInteger(row.getCell(4)));
-
             dto.setCantidadLote(getInteger(row.getCell(5)));
-
             dto.setCategoria(getString(row.getCell(6)));
-
             dto.setActivo(getBoolean(row.getCell(7)));
 
             if (dto.getCodigo() == null && dto.getNombre() == null) {
@@ -62,11 +58,11 @@ public class ProductoImportExcelMapper {
                 row.createCell(2).setCellValue(dto.getPrecio().doubleValue());
             }
 
+            // ✔ STOCK remains EXPORT ONLY (snapshot)
             row.createCell(3).setCellValue(
                     dto.getStock() != null ? dto.getStock() : 0
             );
 
-            // NEW ORDER
             row.createCell(4).setCellValue(
                     dto.getCriticoNumero() != null ? dto.getCriticoNumero() : 0
             );
