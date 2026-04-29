@@ -117,7 +117,7 @@
         <!-- RIGHT -->
         <div style="text-align: right">
 
-          <div><strong>{{v.totalFinal | currency}}</strong></div>
+          <div><strong>{{v.movimientoPrecioTotal | currency}}</strong></div>
 
           <div style="font-size: 12px">
             {{v.movimientoMetodoPago}}
@@ -142,10 +142,10 @@
       <div *ngIf="v.expandido" style="padding: 10px; border-top: 1px solid #ddd">
 
         <div style="margin-bottom: 10px">
-          <strong>Total:</strong> {{v.totalFinal | currency}} <br>
-          <strong>Descuento:</strong> {{v.movimientoDescuento || 0 | currency}} <br>
-          <strong>Neto:</strong>
-          {{(v.totalFinal - (v.movimientoDescuento || 0)) | currency}}
+            <strong>Total:</strong> {{v.movimientoPrecioTotal | currency}} <br>
+            <strong>Descuento:</strong> {{v.movimientoDescuento || 0 | currency}} <br>
+            <strong>Neto:</strong>
+            {{v.movimientoPrecioNeto | currency}}
         </div>
 
         <div *ngFor="let d of v.detalles" style="padding: 8px; border-bottom: 1px solid #eee">

@@ -131,7 +131,7 @@ buscarProducto() {
 
 private simularDescuento(base: number, cantidad: number, desc: any): number {
 
-  if (!desc) return 0;
+  if (!desc || desc.descuentoActivo === false) return 0;
 
   const tipo = desc.descuentoTipo;
   const v1 = Number(desc.descuentoValor ?? 0);

@@ -636,3 +636,21 @@ select:focus {
     min-width: 140px;
   }
 }
+
+
+/* boton para ver detalle*/
+.expand-icon {
+  cursor: pointer;
+  color: #666;
+  font-size: 20px;
+  vertical-align: middle;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.expand-icon:hover {
+  color: #222;
+}
+
+.expand-icon:active {
+  transform: scale(0.9);
+}

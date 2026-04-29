@@ -79,12 +79,13 @@ public class ProductoController {
 
     // EXCEL IMPORT
 
-    @PreAuthorize("hasAuthority('PRODUCTO_MANAGE')")
     @PostMapping(value = "/import-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> importExcel(@RequestParam("file") MultipartFile file) {
-
-        service.importFromExcel(file);
-
+    @PreAuthorize("hasAuthority('PRODUCTO_MANAGE')")
+    public ResponseEntity<String> importExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("X-User") String currentUser
+    ) {
+        service.importFromExcel(file, currentUser);
         return ResponseEntity.ok("Excel imported successfully");
     }
 

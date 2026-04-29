@@ -59,6 +59,11 @@ public class ProductoStockSyncService {
                     .setParameter("id", productoId)
                     .executeUpdate();
         }
+
+        // 🔥 NEW: recalculation procedure
+        entityManager.createNativeQuery("CALL sp_recalcular_movimiento(:id)")
+                .setParameter("id", movimientoId)
+                .executeUpdate();
     }
 
     // =========================================================
@@ -71,4 +76,5 @@ public class ProductoStockSyncService {
                 .distinct()
                 .forEach(this::sync);
     }
+
 }

@@ -5,10 +5,12 @@ import com.ims_web.inventory.dto.MovimientoDetalleResponseDTO;
 import com.ims_web.inventory.entity.Configuracion;
 import com.ims_web.inventory.entity.Descuento;
 import com.ims_web.inventory.entity.Producto;
+import com.ims_web.inventory.entity.MovimientoLugar;
 import com.ims_web.inventory.service.ConfiguracionService;
 import com.ims_web.inventory.service.DescuentoService;
 import com.ims_web.inventory.service.MovimientoDetalleService;
 import com.ims_web.inventory.service.ProductoService;
+import com.ims_web.inventory.service.MovimientoLugarService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,17 +24,21 @@ public class MovimientoDetalleController {
     private final ConfiguracionService configuracionService;
     private final DescuentoService descuentoService;
     private final ProductoService productoService;
+    private final MovimientoLugarService movimientoLugarService;
+
 
     public MovimientoDetalleController(
             MovimientoDetalleService service,
             ConfiguracionService configuracionService,
             DescuentoService descuentoService,
-            ProductoService productoService
+            ProductoService productoService,
+            MovimientoLugarService movimientoLugarService
     ) {
         this.service = service;
         this.configuracionService = configuracionService;
         this.descuentoService = descuentoService;
         this.productoService = productoService;
+        this.movimientoLugarService = movimientoLugarService;
     }
 
     // =========================
@@ -133,5 +139,26 @@ public class MovimientoDetalleController {
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         service.deleteDetalle(id);
+    }
+    // =========================
+    // MOVIMIENTO LUGAR (READ BRIDGE)
+    // =========================
+
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @GetMapping("/movimiento-lugares")
+    public List<MovimientoLugar> getMovimientoLugares() {
+        return movimientoLugarService.getAll();
+    }
+
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @GetMapping("/movimiento-lugares/active")
+    public List<MovimientoLugar> getMovimientoLugaresActive() {
+        return movimientoLugarService.getActive();
+    }
+
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @GetMapping("/movimiento-lugares/{id}")
+    public MovimientoLugar getMovimientoLugarById(@PathVariable Long id) {
+        return movimientoLugarService.getById(id);
     }
 }

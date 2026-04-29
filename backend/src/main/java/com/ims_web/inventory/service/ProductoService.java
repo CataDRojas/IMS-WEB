@@ -131,9 +131,8 @@ public class ProductoService {
     // =========================
     // EXCEL IMPORT
     // =========================
-
     @Transactional
-    public void importFromExcel(MultipartFile file) {
+    public void importFromExcel(MultipartFile file, String currentUser) {
 
         try (InputStream inputStream = file.getInputStream()) {
 
@@ -156,7 +155,9 @@ public class ProductoService {
                             .orElseGet(() -> {
                                 Categoria nuevaCat = new Categoria();
                                 nuevaCat.setCategoriaNombre(catNombre);
-                                AuditHelper.setCreationAudit(nuevaCat, "EXCEL_IMPORT");
+
+                                AuditHelper.setCreationAudit(nuevaCat, currentUser);
+
                                 return categoriaRepo.save(nuevaCat);
                             });
                 }
@@ -186,7 +187,7 @@ public class ProductoService {
                     nuevoProducto.setProductoCantidadLote(cantidadLote);
                     nuevoProducto.setCategoria(categoria);
 
-                    AuditHelper.setCreationAudit(nuevoProducto, "EXCEL_IMPORT");
+                    AuditHelper.setCreationAudit(nuevoProducto, currentUser);
 
                     Producto saved = repo.save(nuevoProducto);
 
@@ -198,7 +199,6 @@ public class ProductoService {
             throw new RuntimeException("Failed to import Excel file", e);
         }
     }
-
     // =========================
     // GRID CONSISTENCY CORE
     // =========================

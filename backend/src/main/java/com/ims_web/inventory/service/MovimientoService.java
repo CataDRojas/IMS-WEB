@@ -3,13 +3,13 @@ package com.ims_web.inventory.service;
 import com.ims_web.inventory.dto.*;
 import com.ims_web.inventory.entity.*;
 import com.ims_web.inventory.repository.*;
-import com.ims_web.inventory.util.AuditHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import com.ims_web.inventory.util.AuditHelper;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -72,8 +72,7 @@ public class MovimientoService {
     @Transactional
     public MovimientoResponseDTO guardarBorrador(
             Movimiento movimiento,
-            List<MovimientoDetalleRequestDTO> detalles,
-            String currentUser
+            List<MovimientoDetalleRequestDTO> detalles
     ) {
 
         if (detalles == null || detalles.isEmpty()) {
@@ -81,7 +80,6 @@ public class MovimientoService {
         }
 
         movimiento.setMovimientoEstado("PENDIENTE");
-        AuditHelper.setCreationAudit(movimiento, currentUser);
 
         Movimiento saved = repo.save(movimiento);
 
@@ -115,7 +113,6 @@ public class MovimientoService {
         }
 
         entityManager.flush();
-
         return toDTO(saved);
     }
 
@@ -126,8 +123,7 @@ public class MovimientoService {
     @Transactional
     public MovimientoResponseDTO create(
             Movimiento movimiento,
-            List<MovimientoDetalleRequestDTO> detalles,
-            String currentUser
+            List<MovimientoDetalleRequestDTO> detalles
     ) {
 
         if (detalles == null || detalles.isEmpty()) {
@@ -140,7 +136,8 @@ public class MovimientoService {
 
         simulateStockAndRules(movimiento.getMovimientoTipo(), detalles);
 
-        AuditHelper.setCreationAudit(movimiento, currentUser);
+        AuditHelper.setCreationAudit(movimiento, null);
+
         Movimiento saved = repo.save(movimiento);
 
         for (MovimientoDetalleRequestDTO dto : detalles) {
@@ -173,15 +170,14 @@ public class MovimientoService {
         }
 
         entityManager.flush();
-
         return toDTO(saved);
     }
 
     // =========================================================
-    // CONFIRMATION (NOW THE ONLY STOCK TRIGGER POINT)
+    // CONFIRMATION
     // =========================================================
 
-    public MovimientoResponseDTO confirmarMovimiento(Long id, String user) {
+    public MovimientoResponseDTO confirmarMovimiento(Long id) {
         Movimiento m = repo.findById(id).orElseThrow();
         m.setMovimientoEstado("CONFIRMADO");
 
@@ -194,13 +190,13 @@ public class MovimientoService {
         return toDTO(saved);
     }
 
-    public MovimientoResponseDTO anularMovimiento(Long id, String user) {
+    public MovimientoResponseDTO anularMovimiento(Long id) {
         Movimiento m = repo.findById(id).orElseThrow();
         m.setMovimientoEstado("ANULADO");
         return toDTO(repo.save(m));
     }
 
-    public MovimientoResponseDTO reactivarMovimiento(Long id, String user) {
+    public MovimientoResponseDTO reactivarMovimiento(Long id) {
         Movimiento m = repo.findById(id).orElseThrow();
         m.setMovimientoEstado("CONFIRMADO");
 
@@ -271,10 +267,11 @@ public class MovimientoService {
     }
 
     // =========================================================
-    // REST UNCHANGED BELOW
+    // UPDATE / DELETE / SEARCH
     // =========================================================
 
-    public MovimientoResponseDTO update(Movimiento movimiento, String currentUser) {
+    public MovimientoResponseDTO update(Movimiento movimiento) {
+
         Movimiento existing = repo.findById(movimiento.getMovimientoId())
                 .orElseThrow(() -> new EntityNotFoundException("Movimiento not found"));
 
@@ -283,7 +280,8 @@ public class MovimientoService {
         existing.setMovimientoTipo(movimiento.getMovimientoTipo());
         existing.setMovimientoMetodoPago(movimiento.getMovimientoMetodoPago());
 
-        AuditHelper.setModificationAudit(existing, currentUser);
+        AuditHelper.setModificationAudit(existing, null);
+
         return toDTO(repo.save(existing));
     }
 
@@ -315,6 +313,10 @@ public class MovimientoService {
         return repo.findAll(spec, pageable).map(this::toDTO);
     }
 
+    // =========================================================
+    // DTO MAPPERS (UNCHANGED)
+    // =========================================================
+
     private MovimientoResponseDTO toDTO(Movimiento m) {
         MovimientoResponseDTO dto = new MovimientoResponseDTO();
         dto.setMovimientoId(m.getMovimientoId());
@@ -322,6 +324,13 @@ public class MovimientoService {
         dto.setMovimientoEstado(m.getMovimientoEstado());
         dto.setMovimientoTipo(m.getMovimientoTipo());
         dto.setMovimientoMetodoPago(m.getMovimientoMetodoPago());
+        dto.setMovimientoPrecioTotal(m.getMovimientoPrecioTotal());
+        dto.setMovimientoPrecioNeto(m.getMovimientoPrecioNeto());
+        dto.setMovimientoDescuento(m.getMovimientoDescuento());
+        dto.setMovimientoFechaCreacion(m.getMovimientoFechaCreacion());
+        dto.setMovimientoFechaModif(m.getMovimientoFechaModif());
+        dto.setMovimientoUsuarioCreacion(m.getMovimientoUsuarioCreacion());
+        dto.setMovimientoUsuarioModif(m.getMovimientoUsuarioModif());
 
         dto.setDetalles(
                 detalleRepo.findByMovimiento(m)
@@ -332,12 +341,27 @@ public class MovimientoService {
     }
 
     private MovimientoDetalleResponseDTO mapDetalle(MovimientoDetalle d) {
+
         MovimientoDetalleResponseDTO dto = new MovimientoDetalleResponseDTO();
 
         dto.setMovimientoDetalleId(d.getMovimientoDetalleId());
+        dto.setMovimientoId(d.getMovimiento().getMovimientoId());
         dto.setProductoId(d.getProducto().getProductoId());
         dto.setProductoNombre(d.getProducto().getProductoNombre());
+
         dto.setMovimientoDetalleCantidad(d.getMovimientoDetalleCantidad());
+        dto.setMovimientoDetalleUnidadesPorPaquete(d.getMovimientoDetalleUnidadesPorPaquete());
+        dto.setMovimientoDetalleDescripcion(d.getMovimientoDetalleDescripcion());
+
+        dto.setMovimientoDetallePrecioBase(d.getMovimientoDetallePrecioBase());
+        dto.setMovimientoDetallePrecioUnitario(d.getMovimientoDetallePrecioUnitario());
+        dto.setMovimientoDetallePrecioTotal(d.getMovimientoDetallePrecioTotal());
+        dto.setMovimientoDetalleDescuentoAplicado(d.getMovimientoDetalleDescuentoAplicado());
+
+        if (d.getMovimientoLugar() != null) {
+            dto.setMovimientoLugarId(d.getMovimientoLugar().getMovimientoLugarId());
+            dto.setMovimientoLugarNombre(d.getMovimientoLugar().getMovimientoLugarDescripcion());
+        }
 
         return dto;
     }

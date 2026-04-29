@@ -16,6 +16,9 @@ public class MovimientoResponseDTO {
     private String movimientoEstado;
     private String movimientoTipo;
     private String movimientoMetodoPago;
+    private java.math.BigDecimal movimientoPrecioTotal;
+    private java.math.BigDecimal movimientoPrecioNeto;
+    private java.math.BigDecimal movimientoDescuento;
 
     private LocalDateTime movimientoFechaCreacion;
     private LocalDateTime movimientoFechaModif;

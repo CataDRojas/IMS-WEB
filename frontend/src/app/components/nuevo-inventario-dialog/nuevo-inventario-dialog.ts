@@ -33,7 +33,7 @@ import { MatCardModule } from '@angular/material/card';
       <mat-label>Tipo</mat-label>
       <mat-select [(ngModel)]="tipo">
         <mat-option value="ENTRADA">ENTRADA</mat-option>
-        <mat-option value="AJUSTE">AJUSTE</mat-option>
+        <mat-option value="AJUSTE">CONTEO</mat-option>
       </mat-select>
     </mat-form-field>
 

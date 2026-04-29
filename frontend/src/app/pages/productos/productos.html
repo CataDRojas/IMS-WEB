@@ -136,6 +136,7 @@
   <table>
     <thead>
       <tr>
+        <th></th>
         <th>Código</th>
         <th>Nombre</th>
         <th>Categoría</th>
@@ -148,86 +149,96 @@
     </thead>
 
     <tbody>
-      <tr *ngFor="let prod of productos">
+      <ng-container *ngFor="let prod of productos">
 
-        <td>{{ prod.productoCodigo }}</td>
-        <td>{{ prod.productoNombre }}</td>
-        <td>{{ prod.categoria?.categoriaNombre }}</td>
-        <td>${{ prod.productoPrecio }}</td>
-        <td>{{ prod.descuento?.descuentoNombre || '—' }}</td>
+        <!-- MAIN ROW -->
+        <tr>
 
-        <!-- STOCK + DROPDOWN -->
-        <td>
-          <div class="stock-cell">
-
-            <div>
-              {{ prod.productoStock }}
-            </div>
-
-            <button
-              class="btn-small"
+          <!-- NEW: EXPAND ARROW (LEFT) -->
+          <td>
+            <mat-icon
+              class="expand-icon"
               (click)="toggleDetalleStock(prod)"
             >
-              ver
-            </button>
+              {{ productoExpandido[prod.productoId!] ? 'expand_more' : 'chevron_right' }}
+            </mat-icon>
+          </td>
 
-            <div
-              class="stock-breakdown-inline"
-              *ngIf="productoExpandido[prod.productoId!]"
-            >
+          <td>{{ prod.productoCodigo }}</td>
+          <td>{{ prod.productoNombre }}</td>
+          <td>{{ prod.categoria?.categoriaNombre }}</td>
+          <td>${{ prod.productoPrecio }}</td>
+          <td>{{ prod.descuento?.descuentoNombre || '—' }}</td>
+
+          <!-- CLEAN STOCK (NO DROPDOWN HERE ANYMORE) -->
+          <td>
+            {{ prod.productoStock }}
+          </td>
+
+          <td *ngIf="esAdmin()">
+            {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
+          </td>
+
+          <td *ngIf="esAdmin()">
+            <div class="table-actions">
+
+              <button
+                (click)="editarProducto(prod)"
+                class="btn-icon edit"
+                title="Editar Producto"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+
+              <button
+                (click)="cambiarEstado(prod)"
+                class="btn-icon"
+                [class.deactivate]="prod.productoActivo"
+                [class.activate]="!prod.productoActivo"
+                [title]="prod.productoActivo ? 'Desactivar' : 'Activar'"
+              >
+                <mat-icon>
+                  {{ prod.productoActivo ? 'block' : 'check_circle' }}
+                </mat-icon>
+              </button>
+
+            </div>
+          </td>
+
+        </tr>
+
+        <!-- EXPANDED DETAIL ROW -->
+        <tr *ngIf="productoExpandido[prod.productoId!]">
+          <td colspan="100%">
+
+            <div class="stock-detail-table-container">
 
               <div *ngIf="cargandoStock[prod.productoId!]">
                 Cargando...
               </div>
 
-              <div
-                *ngFor="let item of stockDetalleMap[prod.productoId!]"
-                class="stock-row"
-              >
-                <span>{{ item.movimientoLugarDescripcion }}</span>
-                <strong>{{ item.stock }}</strong>
+              <table class="stock-detail-table" *ngIf="!cargandoStock[prod.productoId!]">
+                <thead>
+                  <tr>
+                    <th>Lugar</th>
+                    <th>Stock</th>
+                  </tr>
+                </thead>
 
-                <span *ngIf="item.prioridad" class="priority-badge">
-                  PRIORIDAD
-                </span>
-              </div>
+                <tbody>
+                  <tr *ngFor="let item of stockDetalleMap[prod.productoId!]">
+                    <td>{{ item.movimientoLugarDescripcion }}</td>
+                    <td>{{ item.stock }}</td>
+                  </tr>
+                </tbody>
+              </table>
 
             </div>
 
-          </div>
-        </td>
+          </td>
+        </tr>
 
-        <td *ngIf="esAdmin()">
-          {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
-        </td>
-
-        <td *ngIf="esAdmin()">
-          <div class="table-actions">
-
-            <button
-              (click)="editarProducto(prod)"
-              class="btn-icon edit"
-              title="Editar Producto"
-            >
-              <mat-icon>edit</mat-icon>
-            </button>
-
-            <button
-              (click)="cambiarEstado(prod)"
-              class="btn-icon"
-              [class.deactivate]="prod.productoActivo"
-              [class.activate]="!prod.productoActivo"
-              [title]="prod.productoActivo ? 'Desactivar' : 'Activar'"
-            >
-              <mat-icon>
-                {{ prod.productoActivo ? 'block' : 'check_circle' }}
-              </mat-icon>
-            </button>
-
-          </div>
-        </td>
-
-      </tr>
+      </ng-container>
     </tbody>
   </table>
 </div>
