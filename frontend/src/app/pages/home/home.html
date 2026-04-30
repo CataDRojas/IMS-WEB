@@ -20,6 +20,10 @@
         <mat-icon class="menu-icon">admin_panel_settings</mat-icon>
         <span>Gestión de Roles</span>
       </button>
+      <button mat-menu-item routerLink="/configuracion" *ngIf="tienePermiso('CONFIGURACION_MANAGE')">
+        <mat-icon class="menu-icon">settings_applications</mat-icon>
+        <span>Configuración del Sistema</span>
+      </button>
       <button mat-menu-item routerLink="/categorias" *ngIf="tienePermiso('CATEGORIA_READ')">
         <mat-icon class="menu-icon">category</mat-icon>
         <span>Categorías</span>
