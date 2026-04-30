@@ -24,6 +24,10 @@ import { DescuentosListComponent } from './pages/descuentos/descuentos-list/desc
 import { InventarioForm } from './pages/inventario/inventario-form/inventario-form';
 import { InventarioHistorial } from './pages/inventario/inventario-historial/inventario-historial';
 
+// IMPORTS DE RECEPCION
+import { RecepcionForm } from './pages/recepcion/recepcion-form/recepcion-form';
+import { RecepcionHistorial } from './pages/recepcion/recepcion-historial/recepcion-historial';
+
 // IMPORTS DE LUGARES 
 import { LugaresComponent } from './pages/lugares/lugares-list/lugares-list';
 
@@ -129,6 +133,22 @@ export const routes: Routes = [
     path: 'inventario/historial', 
     component: InventarioHistorial, 
     canActivate: [authGuard, permisosGuard], 
+    data: { requiredPermisos: ['INVENTARIO_MANAGE', 'INVENTARIO_READ'] }
+  },
+
+  // =========================
+  // RECEPCION
+  // =========================
+  {
+    path: 'recepcion',
+    component: RecepcionForm,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['INVENTARIO_MANAGE', 'INVENTARIO_READ'] }
+  },
+  {
+    path: 'recepcion/historial',
+    component: RecepcionHistorial,
+    canActivate: [authGuard, permisosGuard],
     data: { requiredPermisos: ['INVENTARIO_MANAGE', 'INVENTARIO_READ'] }
   },
 

@@ -1,0 +1,258 @@
+<mat-toolbar color="primary">
+  <button mat-button (click)="volver()">⬅ Volver</button>
+  <span style="flex: 1; text-align: center">RECEPCIÓN IMS</span>
+</mat-toolbar>
+
+<div class="container" style="padding: 20px; max-width: 600px; margin: auto">
+  <!-- ==================== INICIO ==================== -->
+  <div *ngIf="estado === 'inicio'">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="iniciarNuevo()"
+      style="width: 100%; height: 60px; margin-bottom: 20px; font-size: 1.1em"
+    >
+      ➕ NUEVA RECEPCIÓN
+    </button>
+
+    <div *ngIf="recepcionesBD.length > 0">
+      <h3 style="color: #1976d2">📋 Continuar recepción:</h3>
+      <mat-card
+        *ngFor="let rec of recepcionesBD"
+        style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #1976d2"
+        (click)="seleccionarRecepcion(rec)"
+      >
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; padding: 10px"
+        >
+          <div>
+            <strong>{{rec.nombre}}</strong>
+            <div style="font-size: 0.8em; color: #1976d2">
+              💾 BD · {{rec.lista.length}} productos
+            </div>
+          </div>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="$event.stopPropagation(); eliminarRecepcionBD(rec)"
+          >
+            🗑️
+          </button>
+        </div>
+      </mat-card>
+    </div>
+
+    <div *ngIf="recepcionesLocales.length > 0">
+      <h3 style="color: #666">📝 Borradores locales:</h3>
+      <mat-card
+        *ngFor="let rec of recepcionesLocales"
+        style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #ccc"
+        (click)="seleccionarRecepcion(rec)"
+      >
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; padding: 10px"
+        >
+          <div>
+            <strong>{{rec.nombre}}</strong>
+            <div style="font-size: 0.8em; color: #999">
+              📱 Local · {{rec.lista.length}} productos
+            </div>
+          </div>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="$event.stopPropagation(); eliminarRecepcionLocal(rec)"
+          >
+            🗑️
+          </button>
+        </div>
+      </mat-card>
+    </div>
+
+    <button mat-stroked-button (click)="irAHistorial()" style="width: 100%; margin-top: 20px">
+      📜 VER HISTORIAL
+    </button>
+  </div>
+
+  <!-- ==================== AGREGAR ==================== -->
+  <div *ngIf="estado === 'agregar'">
+    <mat-card style="margin-bottom: 20px; padding: 20px">
+      <h3>Recepción: {{recepcionActual?.nombre}}</h3>
+      <div *ngIf="!productoEditando" style="display: flex; gap: 10px">
+        <input
+          type="text"
+          [(ngModel)]="codigo"
+          placeholder="Código..."
+          style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc"
+          (keyup.enter)="buscarProducto()"
+        />
+        <button mat-mini-fab color="primary" (click)="buscarProducto()">🔍</button>
+        <button
+          (click)="abrirEscaner()"
+          style="background: #17a2b8; color: white; border: none; padding: 10px; border-radius: 8px"
+        >
+          📷
+        </button>
+      </div>
+      <div *ngIf="escanerAbierto" style="margin-top: 15px; text-align: center; background: #000">
+        <video #videoElement style="width: 100%; max-height: 200px"></video>
+        <button mat-button color="warn" (click)="cerrarEscaner()">Cerrar Cámara</button>
+      </div>
+    </mat-card>
+
+    <mat-card *ngIf="productoEncontrado" style="padding: 20px; border-top: 5px solid #3f51b5">
+      <h2>{{productoEncontrado.productoNombre}}</h2>
+      <div style="font-size: 0.9em; color: #666; margin-bottom: 15px">
+        💰 Precio: ${{productoEncontrado.productoPrecio | number}}
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px">
+        <mat-form-field appearance="outline">
+          <mat-label>Ubicación</mat-label>
+          <mat-select [(ngModel)]="lugarSeleccionado">
+            <mat-option *ngFor="let l of lugares" [value]="l"
+              >{{l.movimientoLugarDescripcion}}</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Unid. por caja</mat-label>
+          <input
+            matInput
+            type="number"
+            [(ngModel)]="loteEditable"
+            min="1"
+            (input)="calcularPorCajas()"
+          />
+        </mat-form-field>
+      </div>
+
+      <div style="background: #f9f9f9; padding: 15px; border-radius: 8px">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px">
+          <label style="min-width: 80px">N° de cajas:</label>
+          <input
+            type="number"
+            [(ngModel)]="cajas"
+            min="0"
+            (input)="calcularPorCajas()"
+            style="
+              width: 80px;
+              padding: 6px;
+              border-radius: 6px;
+              border: 1px solid #ccc;
+              text-align: center;
+            "
+          />
+          <span style="color: #888; font-size: 0.85em"
+            >× {{loteEditable}} = {{cajas * loteEditable}} un.</span
+          >
+        </div>
+        <hr />
+        <label style="display: block; margin-bottom: 8px; font-weight: bold"
+          >Unidades totales:</label
+        >
+        <div style="display: flex; justify-content: center; align-items: center; gap: 15px">
+          <button mat-mini-fab color="primary" (click)="disminuir()">-</button>
+          <input
+            type="number"
+            [(ngModel)]="cantidad"
+            min="1"
+            (input)="calcularPorUnidades()"
+            style="
+              width: 100px;
+              text-align: center;
+              font-size: 2em;
+              font-weight: bold;
+              border: none;
+              background: transparent;
+            "
+          />
+          <button mat-mini-fab color="primary" (click)="aumentar()">+</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px">
+        <button mat-button color="warn" (click)="volver()" style="flex: 1">Volver</button>
+        <button mat-raised-button color="primary" (click)="agregarProducto()" style="flex: 2">
+          {{ productoEditando ? '✏️ Actualizar' : '➕ Agregar' }}
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ==================== LISTA ==================== -->
+  <div *ngIf="estado === 'lista'">
+    <div
+      style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      "
+    >
+      <h3>📦 {{recepcionActual?.nombre}}</h3>
+      <button
+        mat-button
+        color="warn"
+        (click)="recepcionActual?.esBD ? eliminarRecepcionBD(recepcionActual) : eliminarRecepcionLocal(recepcionActual)"
+      >
+        🗑️ Vaciar
+      </button>
+    </div>
+
+    <p
+      *ngIf="recepcionActual?.lista.length === 0"
+      style="color: #999; text-align: center; padding: 20px"
+    >
+      No hay productos aún. Agrega el primero.
+    </p>
+
+    <mat-card
+      *ngFor="let item of recepcionActual?.lista"
+      (click)="seleccionarParaEditar(item)"
+      style="margin-bottom: 10px; cursor: pointer; border-left: 5px solid #17a2b8"
+    >
+      <div style="display: flex; justify-content: space-between; padding: 10px">
+        <div>
+          <strong>{{item.productoNombre}}</strong>
+          <div style="font-size: 0.8em; color: #666">
+            📍 {{item.lugarNombre}} | Lote: {{item.productoCantidadLote}}
+          </div>
+        </div>
+        <div style="text-align: right">
+          <div style="font-size: 1.2em; font-weight: bold">{{item.cantidadAgregada}} un.</div>
+          <button
+            mat-icon-button
+            color="warn"
+            (click)="$event.stopPropagation(); eliminarIndividual(item)"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+    </mat-card>
+
+    <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px">
+      <button mat-stroked-button color="primary" (click)="estado='agregar'; reset()">
+        ➕ AÑADIR OTRO
+      </button>
+      <button
+        *ngIf="!recepcionActual?.esBD"
+        mat-stroked-button
+        color="accent"
+        (click)="guardarBorrador()"
+        style="height: 50px; font-weight: bold"
+      >
+        💾 GUARDAR BORRADOR
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="finalizar()"
+        style="height: 55px; font-weight: bold; font-size: 1.1em"
+      >
+        ✅ CONFIRMAR RECEPCIÓN
+      </button>
+    </div>
+  </div>
+</div>
