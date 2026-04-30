@@ -3,6 +3,7 @@ package com.ims_web.inventory.service;
 import com.ims_web.inventory.dto.ProductoDetalleDTO;
 import com.ims_web.inventory.dto.ProductoExcelDTO;
 import com.ims_web.inventory.dto.ProductoStockLugarDTO;
+import com.ims_web.inventory.dto.ProductoListDTO;
 import com.ims_web.inventory.entity.*;
 import com.ims_web.inventory.repository.*;
 import com.ims_web.inventory.util.AuditHelper;
@@ -287,5 +288,57 @@ public class ProductoService {
         dto.setStockPorLugar(stockPorLugar);
 
         return dto;
+    }
+    private String resolveDescuentoNombre(Producto p) {
+
+        if (p.getDescuento() != null && Boolean.TRUE.equals(p.getDescuento().getDescuentoActivo())) {
+            return p.getDescuento().getDescuentoNombre();
+        }
+
+        if (p.getCategoria() != null
+                && p.getCategoria().getDescuento() != null
+                && Boolean.TRUE.equals(p.getCategoria().getDescuento().getDescuentoActivo())) {
+            return p.getCategoria().getDescuento().getDescuentoNombre();
+        }
+
+        return null;
+    }
+    private ProductoListDTO toListDTO(Producto p) {
+
+        ProductoListDTO dto = new ProductoListDTO();
+
+        dto.setProductoId(p.getProductoId());
+        dto.setProductoNombre(p.getProductoNombre());
+        dto.setProductoCodigo(p.getProductoCodigo());
+
+        dto.setProductoPrecio(p.getProductoPrecio());
+        dto.setProductoStock(p.getProductoStock());
+        dto.setProductoActivo(p.getProductoActivo());
+
+        dto.setCategoriaNombre(
+                p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
+        );
+
+        dto.setCategoriaId(
+                p.getCategoria() != null ? p.getCategoria().getCategoriaId() : null
+        );
+
+        dto.setDescuentoNombre(resolveDescuentoNombre(p));
+
+        dto.setDescuentoId(
+                p.getDescuento() != null ? p.getDescuento().getDescuentoId() : null
+        );
+
+        dto.setProductoStockCritico(p.getProductoStockCritico());
+        dto.setProductoCriticoNumero(p.getProductoCriticoNumero());
+        dto.setProductoCantidadLote(p.getProductoCantidadLote());
+
+        return dto;
+    }
+    public List<ProductoListDTO> getAllProductosList() {
+        return repo.findAll()
+                .stream()
+                .map(this::toListDTO)
+                .toList();
     }
 }

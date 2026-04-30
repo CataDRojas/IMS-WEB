@@ -24,6 +24,7 @@ export class ProductosComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   productos: Producto[] = [];
+  productosBase: Producto[] = [];
   categorias: any[] = [];
   descuentos: any[] = [];
   rolUsuario = localStorage.getItem('rol_ims') ?? 'Invitado';
@@ -39,11 +40,29 @@ export class ProductosComponent implements OnInit {
   productoExpandido: Record<number, boolean> = {};
   cargandoStock: Record<number, boolean> = {};
 
+// =========================
+// LIST CONTROL (ONLY UI STATE)
+// =========================
+
+// pagination
+paginaActual = 1;
+tamanoPagina = 10;
+totalItems = 0;
+
+// filters (LIST ONLY — do not touch form model)
+filtros = {
+  nombre: '',
+  categoriaId: null as number | null,
+  activo: '' // '' | 'true' | 'false'
+};
+showFilters: boolean = false;
+
   constructor(private productoService: ProductoService, private router: Router) {}
 
-  ngOnInit(): void {
-    this.cargarDatos();
-  }
+ngOnInit(): void {
+  this.cargarDatos(); // form system (unchanged)
+  this.cargarListaProductos();
+}
 
   // Función rápida para chequear si es admin
   esAdmin(): boolean {
@@ -59,18 +78,69 @@ export class ProductosComponent implements OnInit {
 
   // CARGA DE DATOS
 
-  cargarDatos(): void {
-    this.productoService.obtenerUiData().subscribe({
-      next: (data) => {
-        this.productos = data.productos;
-        this.categorias = data.categorias;
-        this.descuentos = data.descuentos;
-      },
-      error: () => {
-        this.mensajeError = 'No se pudo cargar la información del sistema.';
-      }
-    });
+cargarDatos(): void {
+  this.productoService.obtenerUiData().subscribe({
+    next: (data) => {
+      this.productosBase = data.productos;
+      this.categorias = data.categorias;
+      this.descuentos = data.descuentos;
+
+      this.cargarListaProductos(); // list only
+    },
+    error: () => {
+      this.mensajeError = 'No se pudo cargar la información del sistema.';
+    }
+  });
+}
+
+cargarListaProductos(): void {
+
+  const productos = [...this.productosBase];
+
+  let filtrados = productos;
+
+  // nombre filter
+  if (this.filtros.nombre?.trim()) {
+    filtrados = filtrados.filter(p =>
+      p.productoNombre
+        .toLowerCase()
+        .includes(this.filtros.nombre.toLowerCase())
+    );
   }
+
+  // categoria filter
+  if (this.filtros.categoriaId) {
+    filtrados = filtrados.filter(p =>
+      p.categoria?.categoriaId === this.filtros.categoriaId
+    );
+  }
+
+  // activo filter
+  if (this.filtros.activo !== '') {
+    const activo = this.filtros.activo === 'true';
+    filtrados = filtrados.filter(p =>
+      p.productoActivo === activo
+    );
+  }
+
+  // IMPORTANT: update total BEFORE pagination math
+  this.totalItems = filtrados.length;
+
+  // clamp page if filters reduced dataset
+  const maxPage = Math.max(1, Math.ceil(this.totalItems / this.tamanoPagina));
+
+  if (this.paginaActual > maxPage) {
+    this.paginaActual = maxPage;
+  }
+
+  // pagination
+  const start = (this.paginaActual - 1) * this.tamanoPagina;
+  const end = start + this.tamanoPagina;
+
+  this.productos = filtrados.slice(start, end);
+}
+
+
 
 toggleDetalleStock(prod: Producto): void {
 
@@ -131,16 +201,54 @@ toggleDetalleStock(prod: Producto): void {
     this.mostrarFormulario = true;
   }
 
-  editarProducto(prod: any): void {
-    this.productoActual = { 
-      ...prod,
-      categoriaId: prod.categoria ? prod.categoria.categoriaId : null,
-      descuentoId: prod.descuento ? prod.descuento.descuentoId : null
-    };
-    
-    this.mensajeError = '';
-    this.mostrarFormulario = true;
+getDescuentoNombre(prod: any): string {
+
+  // product-level discount (DTO)
+  if (prod.descuentoNombre) {
+    return prod.descuentoNombre;
   }
+
+  return '—';
+}
+
+editarProducto(prod: any): void {
+
+  if (!prod.productoId) return;
+
+  const base = this.productosBase.find(p => p.productoId === prod.productoId);
+
+  if (!base) {
+    this.mensajeError = 'Producto no encontrado.';
+    return;
+  }
+
+  // resolve categoriaId
+  let categoriaId = null;
+  if (base.categoriaNombre) {
+    const cat = this.categorias.find(c => c.categoriaNombre === base.categoriaNombre);
+    if (cat) {
+      categoriaId = cat.categoriaId;
+    }
+  }
+
+  // resolve descuentoId
+  let descuentoId = null;
+  if (base.descuentoNombre) {
+    const desc = this.descuentos.find(d => d.descuentoNombre === base.descuentoNombre);
+    if (desc) {
+      descuentoId = desc.descuentoId;
+    }
+  }
+
+  this.productoActual = {
+    ...base,
+    categoriaId: categoriaId,
+    descuentoId: descuentoId
+  };
+
+  this.mensajeError = '';
+  this.mostrarFormulario = true;
+}
 
   cancelar(): void {
     this.mostrarFormulario = false;
@@ -184,6 +292,7 @@ guardarProducto(): void {
     next: () => {
       this.mostrarFormulario = false;
       this.cargarDatos();
+      this.cargarListaProductos();
     },
     error: (err) => {
       console.error('Error del backend:', err);
@@ -202,7 +311,10 @@ guardarProducto(): void {
     };
 
     this.productoService.actualizarProducto(prod.productoId, updated).subscribe({
-      next: () => this.cargarDatos(),
+      next: () => {
+  this.cargarDatos();
+  this.cargarListaProductos(); // <-- add this
+},
       error: () => {
         this.mensajeError = 'No se pudo cambiar el estado.';
       }
@@ -228,6 +340,7 @@ guardarProducto(): void {
       next: () => {
         this.mensajeExito = 'Importación exitosa';
         this.cargarDatos();
+        this.cargarListaProductos();
         event.target.value = '';
       },
       error: () => {
@@ -256,6 +369,46 @@ guardarProducto(): void {
       }
     });
   }
+
+
+// =========================
+// LIST FILTERING
+// =========================
+
+aplicarFiltros(): void {
+  this.paginaActual = 1;
+  this.cargarListaProductos();
+}
+
+limpiarFiltros(): void {
+  this.filtros = {
+    nombre: '',
+    categoriaId: null,
+    activo: ''
+  };
+
+  this.paginaActual = 1;
+  this.cargarListaProductos();
+}
+
+
+
+// =========================
+// PAGINATION
+// =========================
+
+cambiarPagina(delta: number): void {
+  const nueva = this.paginaActual + delta;
+
+  if (nueva < 1) return;
+
+  this.paginaActual = nueva;
+  this.cargarListaProductos();
+}
+
+totalPaginas(): number {
+  return Math.ceil(this.totalItems / this.tamanoPagina) || 1;
+}
 
   // CAMARA
 

@@ -567,6 +567,23 @@ select:focus {
   margin-bottom: 12px;
 }
 
+.stock-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stock-warning-icon {
+  font-size: 18px;
+  color: #ff9800; /* amber warning */
+}
+
+.stock-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 /* FOOTER */
 .modal-footer {
   padding: 20px 24px;
@@ -653,4 +670,87 @@ select:focus {
 
 .expand-icon:active {
   transform: scale(0.9);
+}
+
+.stock-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stock-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stock-value {
+  font-weight: 600;
+}
+
+.stock-warning-icon {
+  color: #ff3b30;
+  font-size: 18px;
+}
+
+.btn-stock-inline {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #555;
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+  justify-content: flex-start; /* IMPORTANT: no space-between */
+}
+
+.stock-location {
+  color: #333;
+}
+
+.stock-right {
+  font-weight: 600;
+  margin-left: 6px; /* controlled separation */
+}
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+.page-btn {
+  background: #2d2f36;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #3a3d46;
+  transform: translateY(-1px);
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 14px;
+  opacity: 0.85;
 }
