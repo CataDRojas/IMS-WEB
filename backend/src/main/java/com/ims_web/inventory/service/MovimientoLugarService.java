@@ -55,6 +55,10 @@ public class MovimientoLugarService {
             // CREATE
             // =========================
 
+            if (lugar.getMovimientoLugarActivo() == null) {
+                lugar.setMovimientoLugarActivo(true);
+            }
+
             AuditHelper.setCreationAudit(lugar, currentUser);
 
             MovimientoLugar saved = repo.save(lugar);
@@ -62,23 +66,26 @@ public class MovimientoLugarService {
             ensureLugarInAllProductos(saved);
 
             return saved;
-
-        } else {
-
-            // =========================
-            // UPDATE
-            // =========================
-
-            MovimientoLugar lugarExistente = repo.findById(lugar.getMovimientoLugarId())
-                    .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
-
-            lugarExistente.setMovimientoLugarDescripcion(lugar.getMovimientoLugarDescripcion());
-            lugarExistente.setMovimientoLugarPrioridad(lugar.getMovimientoLugarPrioridad());
-
-            AuditHelper.setModificationAudit(lugarExistente, currentUser);
-
-            return repo.save(lugarExistente);
         }
+
+        // =========================
+        // UPDATE
+        // =========================
+
+        MovimientoLugar lugarExistente = repo.findById(lugar.getMovimientoLugarId())
+                .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
+
+        lugarExistente.setMovimientoLugarDescripcion(lugar.getMovimientoLugarDescripcion());
+        lugarExistente.setMovimientoLugarPrioridad(lugar.getMovimientoLugarPrioridad());
+
+        // 🔥 CRITICAL FIX: allow reactivation / deactivation via update
+        if (lugar.getMovimientoLugarActivo() != null) {
+            lugarExistente.setMovimientoLugarActivo(lugar.getMovimientoLugarActivo());
+        }
+
+        AuditHelper.setModificationAudit(lugarExistente, currentUser);
+
+        return repo.save(lugarExistente);
     }
 
     // =========================
@@ -101,7 +108,7 @@ public class MovimientoLugarService {
     }
 
     // =========================
-    // SOFT DELETE
+    // SOFT DELETE (NOW EXPLICIT, NOT TOGGLE)
     // =========================
 
     @Transactional
@@ -110,7 +117,8 @@ public class MovimientoLugarService {
         MovimientoLugar lugar = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("MovimientoLugar not found"));
 
-        lugar.setMovimientoLugarActivo(!lugar.getMovimientoLugarActivo());
+        // 🔥 explicit state change instead of toggle
+        lugar.setMovimientoLugarActivo(false);
 
         AuditHelper.setModificationAudit(lugar, currentUser);
 

@@ -126,16 +126,31 @@ volver() {
 
         const data = res?.content ?? [];
 
-        this.ventas = data.map((v: any) => ({
-          ...v,
-          expandido: false,
+this.ventas = data.map((v: any) => ({
 
-          usuarioCreacion: v.movimientoUsuarioCreacion,
-          fechaCreacion: v.movimientoFechaCreacion,
+  ...v,
 
-          usuarioModificacion: v.movimientoUsuarioModif,
-          fechaModificacion: v.movimientoFechaModif
-        }));
+  expandido: false,
+
+  usuarioCreacion: v.movimientoUsuarioCreacion,
+  fechaCreacion: v.movimientoFechaCreacion,
+
+  usuarioModificacion: v.movimientoUsuarioModif,
+  fechaModificacion: v.movimientoFechaModif,
+
+  // =========================
+  // 💰 UI MONEY NORMALIZATION
+  // =========================
+
+  movimientoTotal: Math.floor(v.movimientoTotal ?? 0),
+  movimientoSubtotal: Math.floor(v.movimientoSubtotal ?? 0),
+  movimientoDescuento: Math.floor(v.movimientoDescuento ?? 0),
+  movimientoNeto: Math.floor(v.movimientoNeto ?? 0),
+  // IVA INCLUDED IN RULE (NO DECIMALS ANYWHERE)
+  movimientoIva: Math.floor(v.movimientoIva ?? 0),
+
+  movimientoTotalFinal: Math.floor(v.movimientoTotalFinal ?? 0)
+}));
 
         this.totalPaginas = res?.totalPages ?? 0;
         this.totalItems = res?.totalElements ?? 0;

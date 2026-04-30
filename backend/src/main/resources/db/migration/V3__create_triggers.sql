@@ -187,6 +187,7 @@ BEGIN
     WHERE MovimientoId = NEW.MovimientoId;
 
     IF v_tipo_mov <> 'SALIDA' THEN
+
         SET NEW.MovimientoDetallePrecioBase = IFNULL(NEW.MovimientoDetallePrecioBase, 0);
         SET NEW.MovimientoDetalleDescuentoAplicado = IFNULL(NEW.MovimientoDetalleDescuentoAplicado, 0);
         SET NEW.MovimientoDetallePrecioUnitario = IFNULL(NEW.MovimientoDetallePrecioUnitario, 0);
@@ -214,14 +215,19 @@ BEGIN
         SET NEW.MovimientoDetallePrecioBase = v_precio_base;
 
         SET NEW.MovimientoDetalleDescuentoAplicado =
-            CASE WHEN v_cantidad_real = 0 THEN 0
-                 ELSE v_descuento_total / v_cantidad_real END;
+            FLOOR(
+                CASE WHEN v_cantidad_real = 0 THEN 0
+                     ELSE v_descuento_total / v_cantidad_real END
+            );
 
         SET NEW.MovimientoDetallePrecioUnitario =
-            CASE WHEN v_cantidad_real = 0 THEN 0
-                 ELSE v_total_final / v_cantidad_real END;
+            FLOOR(
+                CASE WHEN v_cantidad_real = 0 THEN 0
+                     ELSE v_total_final / v_cantidad_real END
+            );
 
-        SET NEW.MovimientoDetallePrecioTotal = v_total_final;
+        SET NEW.MovimientoDetallePrecioTotal = FLOOR(v_total_final);
+
     END IF;
 END;
 
@@ -272,14 +278,19 @@ BEGIN
         SET NEW.MovimientoDetallePrecioBase = v_precio_base;
 
         SET NEW.MovimientoDetalleDescuentoAplicado =
-            CASE WHEN v_cantidad_real = 0 THEN 0
-                 ELSE v_descuento_total / v_cantidad_real END;
+            FLOOR(
+                CASE WHEN v_cantidad_real = 0 THEN 0
+                     ELSE v_descuento_total / v_cantidad_real END
+            );
 
         SET NEW.MovimientoDetallePrecioUnitario =
-            CASE WHEN v_cantidad_real = 0 THEN 0
-                 ELSE v_total_final / v_cantidad_real END;
+            FLOOR(
+                CASE WHEN v_cantidad_real = 0 THEN 0
+                     ELSE v_total_final / v_cantidad_real END
+            );
 
-        SET NEW.MovimientoDetallePrecioTotal = v_total_final;
+        SET NEW.MovimientoDetallePrecioTotal = FLOOR(v_total_final);
+
     END IF;
 END;
 

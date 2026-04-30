@@ -214,6 +214,7 @@ public class MovimientoDetalleService {
             Integer stock = mlpRepo.sumStockByProductoId(d.getProducto().getProductoId());
             if (stock == null) stock = 0;
 
+            // SALIDA: ensure no negative resulting stock
             if ("SALIDA".equals(movimiento.getMovimientoTipo())) {
 
                 int projected = stock - unidades;
@@ -223,6 +224,18 @@ public class MovimientoDetalleService {
                             "ERR_STOCK_NEGATIVE|Product " +
                                     d.getProducto().getProductoId() +
                                     " would go below zero"
+                    );
+                }
+            }
+
+            // AJUSTE: only validate adjustment value itself (no stock simulation)
+            if ("AJUSTE".equals(movimiento.getMovimientoTipo())) {
+
+                if (unidades < 0) {
+                    throw new IllegalStateException(
+                            "ERR_ADJUSTMENT_NEGATIVE|Product " +
+                                    d.getProducto().getProductoId() +
+                                    " adjustment cannot be negative"
                     );
                 }
             }

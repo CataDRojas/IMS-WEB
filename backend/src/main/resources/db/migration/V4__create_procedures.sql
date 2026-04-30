@@ -135,9 +135,9 @@ BEGIN
 
     UPDATE Movimiento
     SET
-        MovimientoPrecioBase = v_precio_base,
-        MovimientoPrecioTotal = v_total_con_descuento,
-        MovimientoPrecioNeto = v_neto,
+        MovimientoPrecioBase = FLOOR(v_precio_base),
+        MovimientoPrecioTotal = FLOOR(v_total_con_descuento),
+        MovimientoPrecioNeto = FLOOR(v_neto),
         MovimientoStock = v_stock_total
     WHERE MovimientoId = p_movimiento_id;
 

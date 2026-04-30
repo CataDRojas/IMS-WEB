@@ -232,13 +232,22 @@ public class MovimientoService {
             Integer currentStock = mlpRepo.sumStockByProductoId(p.getProductoId());
             if (currentStock == null) currentStock = 0;
 
-            if ("SALIDA".equals(tipoMovimiento) || "AJUSTE".equals(tipoMovimiento)) {
+            if ("SALIDA".equals(tipoMovimiento)) {
 
                 int projected = currentStock - cantidadReal;
 
                 if (projected < 0) {
                     throw new IllegalStateException(
                             "ERR_STOCK_NEGATIVE|Product " + p.getProductoId()
+                    );
+                }
+            }
+
+            if ("AJUSTE".equals(tipoMovimiento)) {
+
+                if (cantidadReal < 0) {
+                    throw new IllegalStateException(
+                            "ERR_ADJUSTMENT_NEGATIVE|Product " + p.getProductoId()
                     );
                 }
             }

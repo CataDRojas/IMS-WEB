@@ -57,6 +57,30 @@ export class InventarioForm implements OnInit {
     private dialog: MatDialog
   ) {}
 
+
+mapTipoToUI(tipo: string): string {
+  switch (tipo) {
+    case 'ENTRADA':
+      return 'ENTRADA';
+    case 'AJUSTE':
+      return 'CONTEO';
+    default:
+      return tipo;
+  }
+}
+
+mapUIToTipo(label: string): string {
+  switch (label) {
+    case 'ENTRADA':
+      return 'ENTRADA';
+    case 'CONTEO':
+      return 'AJUSTE';
+    default:
+      return label;
+  }
+}
+
+
   ngOnInit() {
     this.cargarLugares();
     this.cargarBorradoresBD();
@@ -110,7 +134,7 @@ iniciarNuevo() {
 
     this.inventarioActual = {
       nombre: result.nombre,
-      tipo: result.tipo,
+      tipo: this.mapUIToTipo(result.tipo),
       lista: [],
       esBD: false,
       fecha: new Date()

@@ -196,10 +196,10 @@ private simularDescuento(base: number, cantidad: number, desc: any): number {
 
       existing.movimientoDetalleDescuentoAplicado = newDesc / newQty;
       existing.movimientoDetallePrecioBase = base;
-      existing.movimientoDetallePrecioUnitario = base - (newDesc / newQty);
-      existing.movimientoDetallePrecioTotal =
-        existing.movimientoDetallePrecioUnitario * newQty;
-
+      existing.movimientoDetallePrecioUnitario = Math.floor( base - (newDesc / newQty));
+      existing.movimientoDetallePrecioTotal = Math.floor(
+        existing.movimientoDetallePrecioUnitario * newQty
+      );
     } else {
 
       this.detalles.push({
@@ -209,8 +209,10 @@ private simularDescuento(base: number, cantidad: number, desc: any): number {
         movimientoDetalleCantidad: qty,
         movimientoDetallePrecioBase: base,
         movimientoDetalleDescuentoAplicado: descuentoTotal / qty,
-        movimientoDetallePrecioUnitario: base - (descuentoTotal / qty),
-        movimientoDetallePrecioTotal: (base - (descuentoTotal / qty)) * qty
+        movimientoDetallePrecioUnitario: Math.floor(  base - (descuentoTotal / qty)),
+        movimientoDetallePrecioTotal: Math.floor(
+  (base - (descuentoTotal / qty)) * qty
+)
       });
     }
 
@@ -233,8 +235,9 @@ private simularDescuento(base: number, cantidad: number, desc: any): number {
 
     detalle.movimientoDetalleDescuentoAplicado = descuentoTotal / qty;
     detalle.movimientoDetallePrecioUnitario = base - (descuentoTotal / qty);
-    detalle.movimientoDetallePrecioTotal =
-      detalle.movimientoDetallePrecioUnitario * qty;
+    detalle.movimientoDetallePrecioTotal = Math.floor(
+      detalle.movimientoDetallePrecioUnitario * qty
+      );
   }
 
   // =========================
@@ -302,13 +305,13 @@ onDetalleCantidadChange(detalle: any, value: number) {
 
     const conDescuento = Math.max(0, subtotal - (this.descuentoHeader || 0));
 
-    this.total = subtotal;
-    this.totalFinal = conDescuento;
+    this.total = Math.floor(subtotal);
+    this.totalFinal = Math.floor(conDescuento);
 
     const divisor = 1 + (this.ivaPct / 100);
     const neto = conDescuento / divisor;
 
-    this.iva = conDescuento - neto;
+    this.iva = Math.floor(conDescuento - neto);
   }
 
   // =========================
@@ -350,7 +353,8 @@ if (this.detalles.length === 0) {
     movimiento: {
       movimientoTipo: 'SALIDA',
       movimientoEstado: 'PENDIENTE',
-      movimientoMetodoPago: this.metodoPago
+      movimientoMetodoPago: this.metodoPago,
+      movimientoDescuento: this.descuentoHeader || 0
     },
     detalles: this.detalles.map(d => ({
       productoId: d.productoId,
