@@ -8,7 +8,7 @@
 /* DISEÑO PARA ESCRITORIO (Default) */
 .header-section {
   display: flex;
-  justify-content: space-between; /* Título a la izquierda, botones a la derecha */
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
   gap: 20px;
@@ -28,7 +28,7 @@
 /* --- CONFIGURACIÓN PARA MÓVIL --- */
 @media (max-width: 767px) {
   .header-section {
-    flex-direction: column; /* Apilamos: Título arriba, Botones abajo */
+    flex-direction: column;
     justify-content: center;
     text-align: center;
     gap: 15px;
@@ -45,13 +45,13 @@
   .header-actions-container {
     width: 100%;
     display: flex;
-    justify-content: center; /* Centra los botones horizontalmente */
+    justify-content: center;
   }
 
   .actions-group {
     width: 100%;
-    justify-content: center; /* Asegura que el grupo de botones esté centrado */
-    flex-wrap: wrap; /* Por si los botones son muy anchos, que bajen con gracia */
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
   /* Ajuste de botones en móvil */
@@ -59,13 +59,6 @@
     padding: 10px 14px !important;
     font-size: 0.85rem;
   }
-
-  /* Opcional: si quieres ocultar el texto en móvil para ganar espacio */
-  /*
-  .actions-group button span {
-    display: none;
-  }
-  */
 }
 
 /* --- ESTILOS COMPARTIDOS BOTONES EDITAR Y ELIMINAR--- */
@@ -127,12 +120,11 @@
   transform: translateY(-2px);
 }
 
-/* VISTA MÓVIL (EXPANSION PANELS) */
+/* VISTA MÓVIL */
 .mobile-list {
   display: block;
 }
 
-/* --- VISTA MÓVIL (Botones en Acordeón) --- */
 .mobile-actions {
   display: flex;
   gap: 10px;
@@ -143,7 +135,7 @@
 }
 
 .mobile-actions button {
-  flex: 1; /* Mitad y mitad */
+  flex: 1;
   padding: 12px;
   border-radius: 12px;
   font-weight: 700;
@@ -191,17 +183,16 @@
 /* Ajuste del contenedor interno del header */
 ::ng-deep .mat-content {
   display: flex;
-  justify-content: space-between; /* Empuja el precio a la derecha */
+  justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-right: 8px; /* Espacio antes de la flecha del indicador */
+  margin-right: 8px;
 }
 
-/* Quitamos el comportamiento por defecto que divide el espacio en partes iguales */
 ::ng-deep .mat-expansion-panel-header-title,
 ::ng-deep .mat-expansion-panel-header-description {
-  flex-grow: 0 !important; /* Evita que crezcan 5 veces */
-  flex-basis: auto !important; /* Que ocupen lo que mide su contenido */
+  flex-grow: 0 !important;
+  flex-basis: auto !important; 
   margin-right: 0 !important;
 }
 
@@ -378,14 +369,13 @@ tr:hover td {
 }
 
 /*MODAL*/
-/* MODAL OVERLAY */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Cambiado de 100vw a 100% para evitar scroll horizontal */
+  width: 100%;
   height: 100%;
-  background: rgba(15, 23, 42, 0.6); /* Color pizarra traslúcido */
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -445,7 +435,6 @@ tr:hover td {
   color: #94a3b8;
   cursor: pointer;
 }
-
 
 /* BODY & GRID */
 .modal-body {
@@ -638,7 +627,7 @@ select:focus {
 }
 
 
-/* boton para ver detalle*/
+/* boton para ver detalle en movil*/
 .expand-icon {
   cursor: pointer;
   color: #666;
@@ -653,4 +642,104 @@ select:focus {
 
 .expand-icon:active {
   transform: scale(0.9);
+}
+
+/* Botón de control */
+.btn-stock-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 6px;
+  width: 100%;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-stock-toggle:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.btn-stock-toggle mat-icon {
+  transition: transform 0.3s ease;
+}
+
+.btn-stock-toggle.is-active mat-icon {
+  transform: rotate(180deg);
+  color: #3b82f6;
+}
+
+/* Contenedor de la lista */
+.stock-detail-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-top: none; /* Une visualmente el botón con la caja */
+  border-radius: 0 0 8px 8px;
+  padding: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stock-row-modern {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.stock-row-modern:last-child { border-bottom: none; }
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #1e293b;
+}
+
+.loc-icon { font-size: 16px; width: 16px; height: 16px; color: #94a3b8; }
+.loc-name { font-size: 0.85rem; }
+
+.stock-value-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-qty {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.9rem;
+}
+
+/* El tag de prioridad de Javier, pero más lindo */
+.priority-tag {
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid #fef3c7;
+}
+
+.stock-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #64748b;
+  padding: 10px 0;
 }

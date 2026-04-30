@@ -78,7 +78,7 @@ public class DataInitializer {
 
         createUsuario("carlitos.lechuga@ims.cl", "1234", "Carlitos Lechuga", vendedor, "15482901", "6");
 
-        //createUsuario("cosme.fulanito@ims.cl", "1234", "Cosme Fulanito", bodeguero, "18903112", "2");
+        createUsuario("cosme.fulanito@ims.cl", "1234", "Cosme Fulanito", bodeguero, "18903112", "2");
     }
 
     private String calculateDV(String rut) {
