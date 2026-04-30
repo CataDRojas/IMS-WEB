@@ -350,7 +350,8 @@ if (this.detalles.length === 0) {
     movimiento: {
       movimientoTipo: 'SALIDA',
       movimientoEstado: 'PENDIENTE',
-      movimientoMetodoPago: this.metodoPago
+      movimientoMetodoPago: this.metodoPago,
+      movimientoDescuento: this.descuentoHeader || 0
     },
     detalles: this.detalles.map(d => ({
       productoId: d.productoId,

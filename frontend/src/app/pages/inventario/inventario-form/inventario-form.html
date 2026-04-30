@@ -32,7 +32,7 @@
           <div>
             <strong>{{inv.nombre}}</strong>
             <div style="font-size: 0.8em; color: #1976d2">
-              💾 BD · {{inv.lista.length}} productos · {{inv.tipo}}
+              💾 BD · {{inv.lista.length}} productos · {{ mapTipoToUI(inv.tipo) }}
             </div>
           </div>
 
@@ -62,7 +62,7 @@
           <div>
             <strong>{{inv.nombre}}</strong>
             <div style="font-size: 0.8em; color: #999">
-              📱 Local · {{inv.lista.length}} productos · {{inv.tipo}}
+              📱 Local · {{inv.lista.length}} productos · {{ mapTipoToUI(inv.tipo) }}
             </div>
           </div>
 
@@ -92,7 +92,7 @@
       <h3>
         Sesión: {{inventarioActual?.nombre}}
         <span style="font-size: 0.8em; color: #888">
-          ({{inventarioActual?.tipo}})
+          ({{ mapTipoToUI(inventarioActual?.tipo) }})
         </span>
       </h3>
 
@@ -215,7 +215,9 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
       <h3>
         📦 {{inventarioActual?.nombre}}
-        <span style="font-size: 0.8em; color: #888">({{inventarioActual?.tipo}})</span>
+        <span style="font-size: 0.8em; color: #888">
+  ({{ mapTipoToUI(inventarioActual?.tipo) }})
+</span>
       </h3>
 
       <button
