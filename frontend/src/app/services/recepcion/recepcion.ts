@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators';
 export class RecepcionService {
   private apiMovimientos = 'http://localhost:8080/api/movimientos';
   private apiDetalles = 'http://localhost:8080/api/movimiento-detalles';
-  private apiLugares = 'http://localhost:8080/api/movimiento-lugares';
+  private apiLugares = 'http://localhost:8080/api/movimiento-detalles';
 
   constructor(private http: HttpClient) { }
 
@@ -26,11 +26,11 @@ export class RecepcionService {
   }
 
   obtenerLugaresActivos(): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.apiLugares}/active`,
-      { headers: this.getHeaders() }
-    );
-  }
+  return this.http.get<any[]>(
+    `${this.apiDetalles}/movimiento-lugares/active`,
+    { headers: this.getHeaders() }
+  );
+}
 
   obtenerBorradores(): Observable<any[]> {
     return this.http.get<any[]>(

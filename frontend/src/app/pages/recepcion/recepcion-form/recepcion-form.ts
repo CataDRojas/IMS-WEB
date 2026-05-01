@@ -239,7 +239,7 @@ export class RecepcionForm implements OnInit {
       ).toPromise();
 
       alert('💾 Borrador guardado.');
-      this.recepcionesLocales = this.recepcionesLocales.filter(i => i !== this.recepcionActual);
+      this.recepcionesLocales = this.recepcionesLocales.filter(i => i.nombre !== this.recepcionActual.nombre);
       this.guardarLocales();
       this.recepcionActual = null;
       this.estado = 'inicio';
@@ -293,10 +293,31 @@ export class RecepcionForm implements OnInit {
   }
 
   volver() {
-    if (this.estado === 'agregar') { this.estado = 'lista'; this.reset(); return; }
-    if (this.estado === 'lista') { this.estado = 'inicio'; this.recepcionActual = null; return; }
-    if (this.estado === 'inicio') { this.router.navigate(['/home']); }
+  if (this.estado === 'agregar') {
+    this.estado = 'lista';
+    this.reset();
+    return;
   }
+  if (this.estado === 'lista') {
+    if (!this.recepcionActual?.esBD) {
+      if (confirm('¿Salir sin guardar? Se perderán los productos agregados.')) {
+        this.recepcionesLocales = this.recepcionesLocales.filter(
+          i => i.nombre !== this.recepcionActual.nombre
+        );
+        this.guardarLocales();
+        this.recepcionActual = null;
+        this.estado = 'inicio';
+      }
+      return;
+    }
+    this.estado = 'inicio';
+    this.recepcionActual = null;
+    return;
+  }
+  if (this.estado === 'inicio') {
+    this.router.navigate(['/home']);
+  }
+}
 
   aumentar() { this.cantidad++; this.calcularPorUnidades(); }
   disminuir() { if (this.cantidad > 1) { this.cantidad--; this.calcularPorUnidades(); } }

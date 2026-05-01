@@ -19,7 +19,11 @@
         <mat-icon class="menu-icon">admin_panel_settings</mat-icon>
         <span>Gestión de Roles</span>
       </button>
-      <button mat-menu-item routerLink="/configuracion" *ngIf="tienePermiso('CONFIGURACION_MANAGE')">
+      <button
+        mat-menu-item
+        routerLink="/configuracion"
+        *ngIf="tienePermiso('CONFIGURACION_MANAGE')"
+      >
         <mat-icon class="menu-icon">settings_applications</mat-icon>
         <span>Configuración del Sistema</span>
       </button>
@@ -36,7 +40,6 @@
         <span>Áreas de Almacenaje</span>
       </button>
       <mat-divider></mat-divider>
-
       <button mat-menu-item (click)="logout()" class="logout-item">
         <mat-icon>logout</mat-icon>
         <span>Cerrar Sesión</span>
@@ -47,8 +50,8 @@
   <main class="action-grid">
     <button
       class="btn-main btn-sale"
-      routerLink="/ventas"
-      *ngIf="tienePermiso('MOVIMIENTO_READ') || tienePermiso('VENTA_MANAGE')"
+      routerLink="/ventas/form"
+      *ngIf="tienePermiso('VENTA_MANAGE')"
     >
       <mat-icon class="giant-icon">point_of_sale</mat-icon>
       <div class="btn-text">
@@ -83,6 +86,15 @@
       >
         <mat-icon>move_to_inbox</mat-icon>
         <span>Recepción</span>
+      </button>
+
+      <button
+        class="btn-main btn-inventory"
+        routerLink="/historial"
+        *ngIf="tienePermiso('VENTA_READ') || tienePermiso('INVENTARIO_READ')"
+      >
+        <mat-icon>history</mat-icon>
+        <span>Historial</span>
       </button>
     </div>
   </main>

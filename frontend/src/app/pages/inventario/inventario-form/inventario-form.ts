@@ -12,8 +12,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
-import { MatDialog } from '@angular/material/dialog';
-import { NuevoInventarioDialogComponent } from '../../../components/nuevo-inventario-dialog/nuevo-inventario-dialog';
 
 @Component({
   selector: 'app-inventario-form',
@@ -33,7 +31,6 @@ export class InventarioForm implements OnInit {
   loteEditable = 1;
 
 
-  tipoInventarioDefault: string = 'ENTRADA';
   productoEncontrado: any = null;
   productoEditando: any = null;
 
@@ -54,19 +51,11 @@ export class InventarioForm implements OnInit {
     private router: Router,
     private location: Location,
     private inventarioService: InventarioService,
-    private dialog: MatDialog
   ) {}
 
 
 mapTipoToUI(tipo: string): string {
-  switch (tipo) {
-    case 'ENTRADA':
-      return 'ENTRADA';
-    case 'AJUSTE':
-      return 'CONTEO';
-    default:
-      return tipo;
-  }
+  return tipo === 'AJUSTE' ? 'CONTEO' : tipo;
 }
 
 mapUIToTipo(label: string): string {
@@ -125,25 +114,19 @@ mapUIToTipo(label: string): string {
   }
 
 iniciarNuevo() {
-  const dialogRef = this.dialog.open(NuevoInventarioDialogComponent, {
-    width: '400px'
-  });
+  const nombre = prompt('Nombre del conteo (ej: Conteo Bodega Principal):');
+  if (!nombre) return;
 
-  dialogRef.afterClosed().subscribe(result => {
-    if (!result) return;
-
-    this.inventarioActual = {
-      nombre: result.nombre,
-      tipo: this.mapUIToTipo(result.tipo),
-      lista: [],
-      esBD: false,
-      fecha: new Date()
-    };
-
-    this.inventariosLocales.push(this.inventarioActual);
-    this.guardarLocales();
-    this.estado = 'agregar';
-  });
+  this.inventarioActual = {
+    nombre,
+    tipo: 'AJUSTE',
+    lista: [],
+    esBD: false,
+    fecha: new Date()
+  };
+  this.inventariosLocales.push(this.inventarioActual);
+  this.guardarLocales();
+  this.estado = 'agregar';
 }
 
 seleccionarInventario(inv: any) {
@@ -237,16 +220,18 @@ seleccionarInventario(inv: any) {
     }
   }
 
-  eliminarInventarioLocal(inv: any) {
-    if (confirm(`¿Borrar el borrador "${inv.nombre}"?`)) {
-      this.inventariosLocales = this.inventariosLocales.filter(i => i !== inv);
-      this.guardarLocales();
-      if (this.inventarioActual === inv) {
-        this.inventarioActual = null;
-        this.estado = 'inicio';
-      }
-    }
+  eliminarInventarioLocal(inv: any, confirmar: boolean = true) {
+  if (confirmar && !confirm(`¿Borrar el borrador "${inv.nombre}"?`)) return;
+  
+  this.inventariosLocales = this.inventariosLocales.filter(
+    i => i.nombre !== inv.nombre
+  );
+  this.guardarLocales();
+  if (this.inventarioActual?.nombre === inv.nombre) {
+    this.inventarioActual = null;
+    this.estado = 'inicio';
   }
+}
 
   eliminarInventarioBD(inv: any) {
     if (!confirm(`¿Borrar el inventario guardado "${inv.nombre}"? Esto lo eliminará de la base de datos.`)) return;
@@ -300,63 +285,72 @@ seleccionarInventario(inv: any) {
   }
 
   async finalizar() {
-    if (!this.inventarioActual || this.inventarioActual.lista.length === 0) {
-      alert('❌ No hay productos en el inventario actual.');
-      return;
-    }
-
-    if (!confirm(`¿Finalizar y confirmar el inventario "${this.inventarioActual.nombre}"? Esto actualizará el stock.`)) return;
-
-    try {
-      let movimientoId: number;
-
-      if (this.inventarioActual.esBD) {
-        // Ya está en BD como PENDIENTE, solo confirmar
-        movimientoId = this.inventarioActual.movimientoId;
-      } else {
-        // Está local, crear en BD y confirmar
-          const res: any = await this.inventarioService.finalizarInventario(
-            this.inventarioActual.nombre,
-            this.inventarioActual.lista,
-          ).toPromise();
-        movimientoId = res.movimientoId;
-      }
-
-      await this.inventarioService.confirmarMovimiento(movimientoId).toPromise();
-
-      alert('✅ Inventario confirmado y stock actualizado.');
-
-      if (this.inventarioActual.esBD) {
-        this.inventariosBD = this.inventariosBD.filter(i => i !== this.inventarioActual);
-      } else {
-        this.inventariosLocales = this.inventariosLocales.filter(i => i !== this.inventarioActual);
-        this.guardarLocales();
-      }
-
-      this.inventarioActual = null;
-      this.estado = 'inicio';
-
-    } catch (err: any) {
-      console.error('Error:', err);
-      alert('❌ Error al procesar. Revisa la consola.');
-    }
+  if (!this.inventarioActual || this.inventarioActual.lista.length === 0) {
+    alert('❌ No hay productos en el inventario actual.');
+    return;
   }
+
+  if (!confirm(`¿Finalizar y confirmar el inventario "${this.inventarioActual.nombre}"? Esto actualizará el stock.`)) return;
+
+  try {
+    let movimientoId: number;
+
+    if (this.inventarioActual.esBD) {
+      movimientoId = this.inventarioActual.movimientoId;
+    } else {
+      const res: any = await this.inventarioService.finalizarInventario(
+        this.inventarioActual.nombre,
+        this.inventarioActual.lista,
+      ).toPromise();
+      movimientoId = res.movimientoId;
+    }
+
+    await this.inventarioService.confirmarMovimiento(movimientoId).toPromise();
+
+    alert('✅ Inventario confirmado y stock actualizado.');
+
+    // ✅ FIX: filtrar por nombre/id en vez de referencia
+    if (this.inventarioActual.esBD) {
+      this.inventariosBD = this.inventariosBD.filter(
+        i => i.movimientoId !== this.inventarioActual.movimientoId
+      );
+    } else {
+      this.inventariosLocales = this.inventariosLocales.filter(
+        i => i.nombre !== this.inventarioActual.nombre
+      );
+      this.guardarLocales();
+    }
+
+    this.inventarioActual = null;
+    this.estado = 'inicio';
+
+  } catch (err: any) {
+    console.error('Error:', err);
+    alert('❌ Error al procesar. Revisa la consola.');
+  }
+}
 
   volver() {
-    if (this.estado === 'agregar') {
-      this.estado = 'lista';
-      this.reset();
-      return;
-    }
-    if (this.estado === 'lista') {
-      this.estado = 'inicio';
-      this.inventarioActual = null;
-      return;
-    }
-    if (this.estado === 'inicio') {
-      this.router.navigate(['/home']);
-    }
+  if (this.estado === 'agregar') {
+    this.estado = 'lista';
+    this.reset();
+    return;
   }
+  if (this.estado === 'lista') {
+    if (!this.inventarioActual?.esBD) {
+      if (confirm('¿Salir sin guardar? Se perderán los productos agregados.')) {
+        this.eliminarInventarioLocal(this.inventarioActual, false);
+      }
+      return;
+    }
+    this.estado = 'inicio';
+    this.inventarioActual = null;
+    return;
+  }
+  if (this.estado === 'inicio') {
+    this.router.navigate(['/home']);
+  }
+}
 
   aumentar() { this.cantidad++; this.calcularPorUnidades(); }
   disminuir() { if (this.cantidad > 1) { this.cantidad--; this.calcularPorUnidades(); } }

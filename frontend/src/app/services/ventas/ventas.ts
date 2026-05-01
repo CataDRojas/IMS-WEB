@@ -145,4 +145,11 @@ getMovimientosPaginados(filtros: {
       detalles
     );
   }
+  anularMovimiento(id: number): Observable<any> {
+  return this.http.post(`${this.baseMovimientos}/${id}/anular`, {});
+}
+
+reactivarMovimiento(id: number): Observable<any> {
+  return this.http.post(`${this.baseMovimientos}/${id}/reactivar`, {});
+}
 }

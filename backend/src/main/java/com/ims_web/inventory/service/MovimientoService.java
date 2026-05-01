@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,7 +63,7 @@ public class MovimientoService {
     }
 
     public List<MovimientoResponseDTO> getPendientesEntrada() {
-        return repo.findByMovimientoEstadoAndMovimientoTipo("PENDIENTE", "ENTRADA")
+        return repo.findByMovimientoEstado("PENDIENTE")
                 .stream().map(this::toDTO).toList();
     }
 
@@ -310,6 +313,18 @@ public class MovimientoService {
                 p.add(cb.equal(root.get("movimientoTipo"), tipo));
             if (estado != null)
                 p.add(cb.equal(root.get("movimientoEstado"), estado));
+            if (usuario != null && !usuario.isBlank())
+                p.add(cb.like(cb.lower(root.get("movimientoUsuarioCreacion")),
+                        "%" + usuario.toLowerCase() + "%"));
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            if (desde != null && !desde.isBlank()) {
+                LocalDateTime d = LocalDate.parse(desde, fmt).atStartOfDay();
+                p.add(cb.greaterThanOrEqualTo(root.get("movimientoFechaCreacion"), d));
+            }
+            if (hasta != null && !hasta.isBlank()) {
+                LocalDateTime h = LocalDate.parse(hasta, fmt).atTime(23, 59, 59);
+                p.add(cb.lessThanOrEqualTo(root.get("movimientoFechaCreacion"), h));
+            }
 
             return cb.and(p.toArray(new Predicate[0]));
         };

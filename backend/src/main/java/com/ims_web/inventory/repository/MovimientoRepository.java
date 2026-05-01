@@ -13,4 +13,6 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long>,
     Optional<Movimiento> findByMovimientoReferenciaExterna(String referencia);
 
     List<Movimiento> findByMovimientoEstadoAndMovimientoTipo(String estado, String tipo);
+
+    List<Movimiento> findByMovimientoEstado(String estado);
 }
