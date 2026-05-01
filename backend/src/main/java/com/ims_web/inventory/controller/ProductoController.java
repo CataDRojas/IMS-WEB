@@ -119,7 +119,7 @@ public class ProductoController {
 
         Map<String, Object> response = new HashMap<>();
 
-        response.put("productos", service.getAllProductos());
+        response.put("productos", service.getAllProductosList());
         response.put("categorias", categoriaService.getAll());
         response.put("descuentos", descuentoService.getActive());
 

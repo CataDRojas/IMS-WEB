@@ -26,6 +26,9 @@ import { InventarioHistorial } from './pages/inventario/inventario-historial/inv
 
 // IMPORTS DE LUGARES 
 import { LugaresComponent } from './pages/lugares/lugares-list/lugares-list';
+import { ConfiguracionSistema } from './pages/configuracion-sistema/configuracion-sistema';
+
+
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -142,6 +145,15 @@ export const routes: Routes = [
     data: { requiredPermisos: ['MOVIMIENTO_LUGAR_MANAGE'] }
   },
 
+  // =========================
+  // CONFIGURACION
+  // =========================
+  {
+  path: 'configuracion',
+  component: ConfiguracionSistema,
+  canActivate: [authGuard, permisosGuard],
+  data: { requiredPermisos: ['CONFIGURACION_MANAGE'] }
+},
   // =========================
   // SYSTEM
   // =========================
