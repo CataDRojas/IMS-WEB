@@ -107,11 +107,12 @@ cargarListaProductos(): void {
         .includes(this.filtros.nombre.toLowerCase())
     );
   }
-
+console.log('FILTER:', this.filtros.categoriaId);
+console.log('SAMPLE PRODUCT CATEGORY:', filtrados[0]?.categoria);
   // categoria filter
   if (this.filtros.categoriaId) {
     filtrados = filtrados.filter(p =>
-      p.categoria?.categoriaId === this.filtros.categoriaId
+      p.categoriaId === this.filtros.categoriaId
     );
   }
 
