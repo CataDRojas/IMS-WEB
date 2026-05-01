@@ -79,7 +79,6 @@ public class MovimientoService {
 
         movimiento.setMovimientoEstado("PENDIENTE");
         AuditHelper.setCreationAudit(movimiento, null);
-
         Movimiento saved = repo.save(movimiento);
 
         for (MovimientoDetalleRequestDTO dto : detalles) {
@@ -186,8 +185,14 @@ public class MovimientoService {
 
     public MovimientoResponseDTO anularMovimiento(Long id) {
         Movimiento m = repo.findById(id).orElseThrow();
+
         m.setMovimientoEstado("ANULADO");
-        return toDTO(repo.save(m));
+
+        Movimiento saved = repo.save(m);
+
+        registerAfterCommit(() -> syncService.syncMovimiento(saved.getMovimientoId()));
+
+        return toDTO(saved);
     }
 
     public MovimientoResponseDTO reactivarMovimiento(Long id) {

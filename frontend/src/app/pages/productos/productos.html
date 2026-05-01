@@ -27,10 +27,38 @@
         >
           <mat-icon>add</mat-icon> Nuevo
         </button>
+        <button class="btn-base btn-filter" (click)="showFilters = !showFilters">
+          <mat-icon>tune</mat-icon>
+          Filtros
+        </button>
       </div>
     </div>
   </header>
+<div class="filter-panel" *ngIf="showFilters">
 
+  <input
+    type="text"
+    placeholder="Buscar por nombre"
+    [(ngModel)]="filtros.nombre"
+    (input)="aplicarFiltros()"
+  />
+
+  <select [(ngModel)]="filtros.categoriaId" (change)="aplicarFiltros()">
+    <option [ngValue]="null">Todas las categorías</option>
+    <option *ngFor="let cat of categorias" [ngValue]="cat.categoriaId">
+      {{ cat.categoriaNombre }}
+    </option>
+  </select>
+
+  <select [(ngModel)]="filtros.activo" (change)="aplicarFiltros()">
+    <option value="">Todos</option>
+    <option value="true">Activos</option>
+    <option value="false">Inactivos</option>
+  </select>
+
+  <button (click)="limpiarFiltros()">Limpiar</button>
+
+</div>
 <!-- VISTA TELEFONO -->
 <div class="mobile-list">
   <mat-accordion>
@@ -57,49 +85,71 @@
           </span>
         </div>
 
-        <div class="detail-item">
-          <span class="detail-label">Stock</span>
+<div class="detail-item stock-item">
 
-          <span
-            class="detail-value"
-            [class.stock-alert]="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
-          >
-            {{ prod.productoStock }}
-          </span>
+  <span class="detail-label">Stock</span>
 
-          <!-- 🔽 STOCK POR LUGAR TOGGLE -->
-          <button class="btn-stock-toggle" (click)="toggleDetalleStock(prod)">
-            <mat-icon>expand_more</mat-icon>
-            Ver stock por lugar
-          </button>
+  <div class="stock-inline">
 
-          <div
-            *ngIf="productoExpandido[prod.productoId!]"
-            class="stock-detail-box"
-          >
+    <!-- STOCK + WARNING -->
+    <span
+      class="stock-value"
+      [class.stock-alert]="prod.productoStockCritico && prod.productoStock <= prod.productoCriticoNumero"
+    >
+      {{ prod.productoStock }}
+    </span>
 
-            <div *ngIf="cargandoStock[prod.productoId!]">
-              Cargando...
-            </div>
+    <mat-icon
+      *ngIf="prod.productoStockCritico"
+      class="stock-warning-icon"
+      title="Stock crítico activado"
+    >
+      warning
+    </mat-icon>
 
-            <div *ngFor="let item of stockDetalleMap[prod.productoId!]">
-              <div class="stock-row">
-                <span>{{ item.movimientoLugarDescripcion }}</span>
-                <strong>{{ item.stock }}</strong>
+    <!-- TOGGLE BUTTON (INLINE, RIGHT NEXT TO STOCK) -->
+    <button
+      class="btn-stock-inline"
+      (click)="toggleDetalleStock(prod)"
+      title="Ver stock por lugar"
+    >
+      <mat-icon>
+        {{ productoExpandido[prod.productoId!] ? 'expand_less' : 'expand_more' }}
+      </mat-icon>
+    </button>
 
-                <span *ngIf="item.prioridad" class="priority-badge">
-                  PRIORIDAD
-                </span>
-              </div>
-            </div>
+  </div>
 
-          </div>
-        </div>
+  <!-- DROPDOWN PANEL (NO PRIORIDAD HERE) -->
+  <div
+    *ngIf="productoExpandido[prod.productoId!]"
+    class="stock-detail-box"
+  >
+
+    <div *ngIf="cargandoStock[prod.productoId!]">
+      Cargando...
+    </div>
+
+    <div *ngFor="let item of stockDetalleMap[prod.productoId!]">
+<div class="stock-row">
+  <span class="stock-location">
+    {{ item.movimientoLugarDescripcion }}
+  </span>
+
+  <strong class="stock-right">
+    {{ item.stock }}
+  </strong>
+</div>
+    </div>
+
+  </div>
+
+</div>
 
         <div class="detail-item">
           <span class="detail-label">Descuento</span>
           <span class="detail-value">
-            {{ prod.descuento?.descuentoNombre || '—' }}
+            {{ getDescuentoNombre(prod) }}
           </span>
         </div>
 
@@ -129,6 +179,31 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+
+<div class="pagination-bar">
+
+  <button
+    class="page-btn"
+    (click)="cambiarPagina(-1)"
+    [disabled]="paginaActual === 1"
+  >
+    ← Anterior
+  </button>
+
+  <span class="page-info">
+    Página <strong>{{ paginaActual }}</strong> de
+    <strong>{{ totalPaginas() }}</strong>
+  </span>
+
+  <button
+    class="page-btn"
+    (click)="cambiarPagina(1)"
+    [disabled]="paginaActual >= totalPaginas()"
+  >
+    Siguiente →
+  </button>
+
+</div>
 </div>
 
 <!-- VISTA ESCRITORIO -->
@@ -166,14 +241,24 @@
 
           <td>{{ prod.productoCodigo }}</td>
           <td>{{ prod.productoNombre }}</td>
-          <td>{{ prod.categoria?.categoriaNombre }}</td>
+          <td>{{ prod.categoriaNombre }}</td>
           <td>${{ prod.productoPrecio }}</td>
-          <td>{{ prod.descuento?.descuentoNombre || '—' }}</td>
+          <td>{{ getDescuentoNombre(prod) }}</td>
 
           <!-- CLEAN STOCK (NO DROPDOWN HERE ANYMORE) -->
-          <td>
-            {{ prod.productoStock }}
-          </td>
+            <td class="stock-cell">
+
+              {{ prod.productoStock }}
+
+              <mat-icon
+                *ngIf="prod.productoStockCritico"
+                class="stock-warning-icon"
+                title="Stock crítico activado"
+              >
+                warning
+              </mat-icon>
+
+            </td>
 
           <td *ngIf="esAdmin()">
             {{ prod.productoActivo ? 'Activo' : 'Inactivo' }}
@@ -241,6 +326,30 @@
       </ng-container>
     </tbody>
   </table>
+<div class="pagination-bar">
+
+  <button
+    class="page-btn"
+    (click)="cambiarPagina(-1)"
+    [disabled]="paginaActual === 1"
+  >
+    ← Anterior
+  </button>
+
+  <span class="page-info">
+    Página <strong>{{ paginaActual }}</strong> de
+    <strong>{{ totalPaginas() }}</strong>
+  </span>
+
+  <button
+    class="page-btn"
+    (click)="cambiarPagina(1)"
+    [disabled]="paginaActual >= totalPaginas()"
+  >
+    Siguiente →
+  </button>
+
+</div>
 </div>
 
   <!-- FORM MODAL -->

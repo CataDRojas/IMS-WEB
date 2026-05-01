@@ -53,6 +53,21 @@ export interface ProductoDetalle {
   stockPorLugar: ProductoStockLugar[];
 }
 
+export interface ProductoList {
+  productoId: number;
+  productoNombre: string;
+  productoCodigo: string;
+
+  productoPrecio: number;
+  productoStock: number;
+  productoActivo: boolean;
+
+  categoriaNombre?: string | null;
+
+  // resolved backend field (product OR category OR null)
+  descuentoNombre?: string | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
