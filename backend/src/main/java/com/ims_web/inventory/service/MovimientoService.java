@@ -61,7 +61,7 @@ public class MovimientoService {
     }
 
     public List<MovimientoResponseDTO> getPendientesEntrada() {
-        return repo.findByMovimientoEstadoAndMovimientoTipo("PENDIENTE", "ENTRADA")
+        return repo.findByMovimientoEstado("PENDIENTE")
                 .stream().map(this::toDTO).toList();
     }
 

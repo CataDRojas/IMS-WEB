@@ -166,9 +166,12 @@
             <input type="checkbox" formControlName="movimientoLugarPrioridad" />
             <span class="slider"></span>
             <span class="label-text">
-              ¿Marcar como prioridad (⭐)?
+              ¿Usar este lugar como prioridad en ventas (de aqui se reduce primero el stock)? (⭐)
             </span>
           </label>
+          <div *ngIf="prioridadError" class="field-error-inline">
+            {{ prioridadError }}
+          </div>
         </div>
 
       </form>

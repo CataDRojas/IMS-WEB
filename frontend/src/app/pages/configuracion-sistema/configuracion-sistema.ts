@@ -24,7 +24,8 @@ export class ConfiguracionSistema implements OnInit {
 
   configForm!: FormGroup;
   loading = false;
-  saving = false;
+
+  editando = false;
 
   constructor(
     private fb: FormBuilder,
@@ -50,20 +51,23 @@ export class ConfiguracionSistema implements OnInit {
     });
   }
 
+  // helper for template
+  get ivaControl() {
+    return this.configForm.get('iva');
+  }
 
-    // =========================
+  // =========================
   // toggle
   // =========================
-editando = false;
+  activarEdicion() {
+    this.editando = true;
+  }
 
-activarEdicion() {
-  this.editando = true;
-}
+  cancelarEdicion() {
+    this.editando = false;
+    this.cargarConfiguracion();
+  }
 
-cancelarEdicion() {
-  this.editando = false;
-  this.cargarConfiguracion(); // revert changes
-}
   // =========================
   // LOAD CONFIG
   // =========================
@@ -92,35 +96,35 @@ cancelarEdicion() {
   // =========================
   // SAVE
   // =========================
-guardar() {
+  guardar() {
 
-  if (this.configForm.invalid) return;
-
-  const payload = {
-    configuracionId: 1,
-    ...this.configForm.value
-  };
-
-  this.loading = true;
-
-  this.configService.saveConfiguracion(payload).subscribe({
-    next: (res) => {
-
-      // 🔥 exit edit mode ONLY after successful save
-      this.editando = false;
-
-      // 🔄 refresh data from backend to ensure consistency
-      this.cargarConfiguracion();
-
-      this.loading = false;
-    },
-
-    error: (err) => {
-      console.error('Error saving config:', err);
-      this.loading = false;
+    if (this.configForm.invalid) {
+      this.configForm.markAllAsTouched(); // show validation errors
+      return;
     }
-  });
-}
+
+    const payload = {
+      configuracionId: 1,
+      ...this.configForm.value
+    };
+
+    this.loading = true;
+
+    this.configService.saveConfiguracion(payload).subscribe({
+      next: () => {
+
+        this.editando = false;
+        this.cargarConfiguracion();
+
+        this.loading = false;
+      },
+
+      error: () => {
+        // no backend error handling anymore
+        this.loading = false;
+      }
+    });
+  }
 
   // =========================
   // NAV
