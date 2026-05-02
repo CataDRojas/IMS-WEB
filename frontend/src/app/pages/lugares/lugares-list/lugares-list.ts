@@ -18,7 +18,7 @@ export class LugaresComponent implements OnInit {
   lugarForm: FormGroup;
   lugarActual: Partial<MovimientoLugar> = {};
   cargando = false;
-
+  prioridadError: string = '';
   constructor(
     private fb: FormBuilder,
     private lugarService: LugarService
@@ -67,7 +67,7 @@ this.lugarForm = this.fb.group({
     this.mostrarFormulario = false;
   }
 
-  guardar(): void {
+guardar(): void {
     if (this.lugarForm.invalid) return;
 
 const formData: MovimientoLugar = {
@@ -80,7 +80,13 @@ const formData: MovimientoLugar = {
         this.cargarLugares();
         this.mostrarFormulario = false;
       },
-      error: (err) => console.error('Error al guardar', err)
+      error: (err: any) => {
+  console.error('Error al guardar', err);
+
+  if (err.status === 400 && err.errorCode === 'ERR_DUPLICATE') {
+    this.prioridadError = 'Solo un lugar puede tener prioridad';
+  }
+}
     });
   }
 

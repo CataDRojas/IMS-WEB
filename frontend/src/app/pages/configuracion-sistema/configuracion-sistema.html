@@ -11,7 +11,6 @@
       <h2>⚙️ Configuración General</h2>
     </div>
 
-    <!-- EDIT BUTTON (ONLY IN VIEW MODE) -->
     <div class="header-actions-container" *ngIf="!editando">
       <button class="btn-base btn-edit" (click)="activarEdicion()">
         <mat-icon>edit</mat-icon>
@@ -21,46 +20,9 @@
   </header>
 
   <!-- =========================
-       VIEW MODE
+       FORM (USED FOR BOTH MODES)
   ========================== -->
-  <div class="config-view-card" *ngIf="!editando">
-
-    <div class="config-row">
-      <mat-icon>business</mat-icon>
-      <div>
-        <label>Empresa</label>
-        <span>{{ configForm.value.empresaNombre }}</span>
-      </div>
-    </div>
-
-    <div class="config-row">
-      <mat-icon>location_on</mat-icon>
-      <div>
-        <label>Dirección</label>
-        <span>{{ configForm.value.empresaDireccion }}</span>
-      </div>
-    </div>
-
-    <div class="config-row split">
-      <div>
-        <mat-icon>tag</mat-icon>
-        <label>RUN</label>
-        <span>{{ configForm.value.empresaRun }}-{{ configForm.value.empresaDV }}</span>
-      </div>
-
-      <div>
-        <mat-icon>percent</mat-icon>
-        <label>IVA</label>
-        <span>{{ configForm.value.iva }}%</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- =========================
-       EDIT MODE
-  ========================== -->
-  <div class="config-form-card" *ngIf="editando">
+  <div class="config-form-card">
 
     <form [formGroup]="configForm" class="vertical-form">
 
@@ -70,7 +32,12 @@
           <mat-icon>business</mat-icon>
           Nombre de Empresa
         </label>
-        <input type="text" formControlName="empresaNombre" />
+
+        <input
+          type="text"
+          formControlName="empresaNombre"
+          [readonly]="!editando"
+        />
       </div>
 
       <!-- DIRECCIÓN -->
@@ -79,7 +46,12 @@
           <mat-icon>location_on</mat-icon>
           Dirección
         </label>
-        <input type="text" formControlName="empresaDireccion" />
+
+        <input
+          type="text"
+          formControlName="empresaDireccion"
+          [readonly]="!editando"
+        />
       </div>
 
       <!-- RUN -->
@@ -90,12 +62,23 @@
             <mat-icon>tag</mat-icon>
             RUN
           </label>
-          <input type="text" formControlName="empresaRun" />
+
+          <input
+            type="text"
+            formControlName="empresaRun"
+            [readonly]="!editando"
+          />
         </div>
 
         <div>
           <label>DV</label>
-          <input type="text" formControlName="empresaDV" maxlength="1" />
+
+          <input
+            type="text"
+            formControlName="empresaDV"
+            maxlength="1"
+            [readonly]="!editando"
+          />
         </div>
 
       </div>
@@ -106,7 +89,32 @@
           <mat-icon>percent</mat-icon>
           IVA (%)
         </label>
-        <input type="number" formControlName="iva" min="0" max="100" />
+
+        <input
+          type="number"
+          formControlName="iva"
+          min="0"
+          max="100"
+          [readonly]="!editando"
+        />
+
+        <!-- 🔴 VALIDATION ERROR -->
+        <div class="field-error"
+             *ngIf="editando && ivaControl?.invalid && ivaControl?.touched">
+
+          <span *ngIf="ivaControl?.errors?.['required']">
+            El IVA es obligatorio
+          </span>
+
+          <span *ngIf="ivaControl?.errors?.['min']">
+            El IVA no puede ser menor a 0
+          </span>
+
+          <span *ngIf="ivaControl?.errors?.['max']">
+            El IVA no puede ser mayor a 100
+          </span>
+
+        </div>
       </div>
 
     </form>
@@ -114,7 +122,7 @@
   </div>
 
   <!-- =========================
-       ACTIONS (ONLY EDIT MODE)
+       ACTIONS
   ========================== -->
   <div class="form-actions" *ngIf="editando">
 
