@@ -14,6 +14,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.io.ByteArrayOutputStream;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -35,8 +36,7 @@ public class ProductoService {
             ProductoExcelExporter excelExporter,
             CategoriaRepository categoriaRepo,
             MovimientoLugarRepository movimientoLugarRepo,
-            MovimientoLugarProductoRepository mlpRepo
-    ) {
+            MovimientoLugarProductoRepository mlpRepo) {
         this.repo = repo;
         this.excelImporter = excelImporter;
         this.excelExporter = excelExporter;
@@ -141,9 +141,12 @@ public class ProductoService {
 
             for (ProductoExcelDTO dto : productos) {
 
-                if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty()) continue;
-                if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) continue;
-                if (dto.getPrecio() == null) continue;
+                if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty())
+                    continue;
+                if (dto.getNombre() == null || dto.getNombre().trim().isEmpty())
+                    continue;
+                if (dto.getPrecio() == null)
+                    continue;
 
                 Integer cantidadLote = dto.getCantidadLote() != null ? dto.getCantidadLote() : 1;
 
@@ -175,6 +178,7 @@ public class ProductoService {
                     existing.setProductoCodigo(dto.getCodigo());
                     existing.setCategoria(categoria);
                     existing.setProductoCantidadLote(cantidadLote);
+                    existing.setProductoCriticoNumero(dto.getCriticoNumero() != null ? dto.getCriticoNumero() : 0);
 
                     repo.save(existing);
 
@@ -187,6 +191,7 @@ public class ProductoService {
                     nuevoProducto.setProductoPrecio(dto.getPrecio());
                     nuevoProducto.setProductoCantidadLote(cantidadLote);
                     nuevoProducto.setCategoria(categoria);
+                    nuevoProducto.setProductoCriticoNumero(dto.getCriticoNumero() != null ? dto.getCriticoNumero() : 0);
 
                     AuditHelper.setCreationAudit(nuevoProducto, currentUser);
 
@@ -245,9 +250,9 @@ public class ProductoService {
             dto.setPrecio(p.getProductoPrecio());
             dto.setStock(p.getProductoStock());
             dto.setCategoria(
-                    p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
-            );
+                    p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null);
             dto.setCantidadLote(p.getProductoCantidadLote());
+            dto.setCriticoNumero(p.getProductoCriticoNumero());
             return dto;
         }).toList();
 
@@ -264,8 +269,7 @@ public class ProductoService {
         Producto producto = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
-        List<MovimientoLugarProducto> relaciones =
-                mlpRepo.findByProducto_ProductoId(id);
+        List<MovimientoLugarProducto> relaciones = mlpRepo.findByProducto_ProductoId(id);
 
         List<ProductoStockLugarDTO> stockPorLugar = relaciones.stream().map(mlp -> {
             ProductoStockLugarDTO dto = new ProductoStockLugarDTO();
@@ -289,6 +293,7 @@ public class ProductoService {
 
         return dto;
     }
+
     private String resolveDescuentoNombre(Producto p) {
 
         if (p.getDescuento() != null && Boolean.TRUE.equals(p.getDescuento().getDescuentoActivo())) {
@@ -303,6 +308,7 @@ public class ProductoService {
 
         return null;
     }
+
     private ProductoListDTO toListDTO(Producto p) {
 
         ProductoListDTO dto = new ProductoListDTO();
@@ -316,18 +322,15 @@ public class ProductoService {
         dto.setProductoActivo(p.getProductoActivo());
 
         dto.setCategoriaNombre(
-                p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
-        );
+                p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null);
 
         dto.setCategoriaId(
-                p.getCategoria() != null ? p.getCategoria().getCategoriaId() : null
-        );
+                p.getCategoria() != null ? p.getCategoria().getCategoriaId() : null);
 
         dto.setDescuentoNombre(resolveDescuentoNombre(p));
 
         dto.setDescuentoId(
-                p.getDescuento() != null ? p.getDescuento().getDescuentoId() : null
-        );
+                p.getDescuento() != null ? p.getDescuento().getDescuentoId() : null);
 
         dto.setProductoStockCritico(p.getProductoStockCritico());
         dto.setProductoCriticoNumero(p.getProductoCriticoNumero());
@@ -335,10 +338,51 @@ public class ProductoService {
 
         return dto;
     }
+
     public List<ProductoListDTO> getAllProductosList() {
         return repo.findAll()
                 .stream()
                 .map(this::toListDTO)
                 .toList();
+    }
+
+    public byte[] exportToExcelFiltrado(String nombre, Long categoriaId,
+            String activo, Boolean critico) throws Exception {
+        List<Producto> todos = repo.findAll();
+
+        // Aplicar filtros
+        List<Producto> filtrados = todos.stream()
+                .filter(p -> nombre == null || nombre.isBlank() ||
+                        p.getProductoNombre().toLowerCase().contains(nombre.toLowerCase()))
+                .filter(p -> categoriaId == null ||
+                        (p.getCategoria() != null &&
+                                categoriaId.equals(p.getCategoria().getCategoriaId())))
+                .filter(p -> activo == null || activo.isBlank() ||
+                        p.getProductoActivo().equals(Boolean.parseBoolean(activo)))
+                .filter(p -> critico == null || !critico ||
+                        Boolean.TRUE.equals(p.getProductoStockCritico()))
+                .toList();
+        System.out.println("Filtrados: " + filtrados.size());
+
+        List<ProductoExcelDTO> dtos = filtrados.stream().map(p -> {
+            ProductoExcelDTO dto = new ProductoExcelDTO();
+            dto.setCodigo(p.getProductoCodigo());
+            dto.setNombre(p.getProductoNombre());
+            dto.setPrecio(p.getProductoPrecio());
+            dto.setStock(p.getProductoStock());
+            dto.setCriticoNumero(p.getProductoCriticoNumero());
+            dto.setCantidadLote(p.getProductoCantidadLote());
+            dto.setCategoria(p.getCategoria() != null
+                    ? p.getCategoria().getCategoriaNombre()
+                    : null);
+            dto.setActivo(p.getProductoActivo());
+            return dto;
+        }).toList();
+
+        Workbook workbook = excelExporter.exportProductos(dtos);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        workbook.close();
+        return out.toByteArray();
     }
 }
