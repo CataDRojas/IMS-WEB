@@ -14,7 +14,9 @@
       style="padding: 8px; border-radius: 6px; border: 1px solid #ccc"
     >
       <option value="">Todos los tipos</option>
-      <option *ngFor="let t of tiposDisponibles()" [value]="t">{{getTipoLabel(t)}}</option>
+      <option *ngFor="let t of tiposFiltrados" [value]="t">
+  {{ getTipoLabel(t) }}
+</option>
     </select>
 
     <select
