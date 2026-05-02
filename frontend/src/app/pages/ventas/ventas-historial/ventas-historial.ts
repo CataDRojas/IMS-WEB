@@ -189,4 +189,23 @@ export class VentasHistorial implements OnInit, OnDestroy {
       alert('❌ Error al reactivar.');
     }
   }
+  exportarExcel() {
+  this.ventasService.exportarReporte({
+    tipo: this.filtros.tipo || undefined,
+    estado: this.filtros.estado || undefined,
+    usuario: this.filtros.usuario || undefined,
+    desde: this.filtros.desde || undefined,
+    hasta: this.filtros.hasta || undefined,
+  }).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Reporte_IMS_${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: () => alert('❌ Error al exportar el reporte.')
+  });
+}
 }
