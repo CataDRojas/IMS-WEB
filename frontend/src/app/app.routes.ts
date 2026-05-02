@@ -2,9 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login';
 import { Home } from './pages/home/home';
 import { UsuariosComponent } from './pages/usuarios/usuarios';
-
 import { RolesList } from './pages/roles/roles-list/roles-list';
-
 import { authGuard } from './guards/auth-guard';
 import { permisosGuard } from './guards/permisos-guard';
 
@@ -13,31 +11,19 @@ import { NOT_FOUND } from '@angular/core/primitives/di';
 
 import { NotFound } from './pages/not-found/not-found';
 import { AccessDenied } from './pages/access-denied/access-denied';
-
 import { CategoriasComponent } from './pages/categorias/categorias';
 import { ProductosComponent } from './pages/productos/productos';
-
 import { DescuentosListComponent } from './pages/descuentos/descuentos-list/descuentos-list';
-
-// IMPORTS DEL INVENTARIO
 import { InventarioForm } from './pages/inventario/inventario-form/inventario-form';
-import { InventarioHistorial } from './pages/inventario/inventario-historial/inventario-historial';
-
-// IMPORTS DE LUGARES 
+import { RecepcionForm } from './pages/recepcion/recepcion-form/recepcion-form';
 import { LugaresComponent } from './pages/lugares/lugares-list/lugares-list';
 import { ConfiguracionSistema } from './pages/configuracion-sistema/configuracion-sistema';
 import { VentasHistorial } from './pages/ventas/ventas-historial/ventas-historial';
 
-
-
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { 
-    path: 'home', 
-    component: Home, 
-    canActivate: [authGuard] 
-  },
+  { path: 'home', component: Home, canActivate: [authGuard] },
 
   // =========================
   // USERS
@@ -59,21 +45,25 @@ export const routes: Routes = [
     data: { requiredPermisos: ['ROLES_MANAGE'] }
   },
 
-// =========================
-// VENTAS / MOVIMIENTOS
-// =========================
-{
+  // =========================
+  // VENTAS
+  // =========================
+  {
   path: 'ventas',
   component: VentasForm,
   canActivate: [authGuard, permisosGuard],
   data: { requiredPermisos: ['VENTA_READ', 'VENTA_MANAGE'] },
 },
-{
-  path: 'ventas-historial',
-  component: VentasHistorial,
-  canActivate: [authGuard, permisosGuard],
-  data: { requiredPermisos: ['VENTA_READ', 'VENTA_MANAGE'] },
-},
+
+  // =========================
+  // HISTORIAL UNIFICADO
+  // =========================
+  {
+    path: 'historial',
+    component: VentasHistorial,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['VENTA_READ', 'INVENTARIO_READ'] }
+  },
 
   // =========================
   // PRODUCTOS
@@ -108,22 +98,20 @@ export const routes: Routes = [
   // =========================
   // INVENTARIO
   // =========================
-  { 
-    path: 'inventario', 
-    component: InventarioForm, 
-    canActivate: [authGuard, permisosGuard], 
+  {
+    path: 'inventario',
+    component: InventarioForm,
+    canActivate: [authGuard, permisosGuard],
     data: { requiredPermisos: ['INVENTARIO_MANAGE', 'INVENTARIO_READ'] }
   },
-  { 
-    path: 'inventario/nuevo', 
-    component: InventarioForm, 
-    canActivate: [authGuard, permisosGuard], 
-    data: { requiredPermisos: ['INVENTARIO_MANAGE', 'INVENTARIO_READ'] }
-  },
-  { 
-    path: 'inventario/historial', 
-    component: InventarioHistorial, 
-    canActivate: [authGuard, permisosGuard], 
+
+  // =========================
+  // RECEPCION
+  // =========================
+  {
+    path: 'recepcion',
+    component: RecepcionForm,
+    canActivate: [authGuard, permisosGuard],
     data: { requiredPermisos: ['INVENTARIO_MANAGE', 'INVENTARIO_READ'] }
   },
 
@@ -132,8 +120,8 @@ export const routes: Routes = [
   // =========================
   {
     path: 'lugares',
-    component: LugaresComponent, 
-    canActivate: [authGuard, permisosGuard], 
+    component: LugaresComponent,
+    canActivate: [authGuard, permisosGuard],
     data: { requiredPermisos: ['MOVIMIENTO_LUGAR_MANAGE'] }
   },
 
@@ -141,11 +129,12 @@ export const routes: Routes = [
   // CONFIGURACION
   // =========================
   {
-  path: 'configuracion',
-  component: ConfiguracionSistema,
-  canActivate: [authGuard, permisosGuard],
-  data: { requiredPermisos: ['CONFIGURACION_MANAGE'] }
-},
+    path: 'configuracion',
+    component: ConfiguracionSistema,
+    canActivate: [authGuard, permisosGuard],
+    data: { requiredPermisos: ['CONFIGURACION_MANAGE'] }
+  },
+
   // =========================
   // SYSTEM
   // =========================

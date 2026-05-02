@@ -53,7 +53,8 @@ totalItems = 0;
 filtros = {
   nombre: '',
   categoriaId: null as number | null,
-  activo: '' // '' | 'true' | 'false'
+  activo: '', // '' | 'true' | 'false'
+  critico: false
 };
 showFilters: boolean = false;
 
@@ -122,6 +123,10 @@ console.log('SAMPLE PRODUCT CATEGORY:', filtrados[0]?.categoria);
     filtrados = filtrados.filter(p =>
       p.productoActivo === activo
     );
+  }
+
+  if (this.filtros.critico) {
+    filtrados = filtrados.filter(p => p.productoStockCritico === true);
   }
 
   // IMPORTANT: update total BEFORE pagination math
@@ -351,25 +356,46 @@ guardarProducto(): void {
     });
   }
 
-  descargarExcel(): void {
+//   descargarExcel(): void {
+//   this.productoService.exportarExcel({
+//     nombre: this.filtros.nombre || undefined,
+//     categoriaId: this.filtros.categoriaId || undefined,
+//     activo: this.filtros.activo || undefined,
+//     critico: this.filtros.critico || undefined
+//   }).subscribe({
+//     next: (blob) => {
+//       const url = window.URL.createObjectURL(blob);
+//       const a = document.createElement('a');
+//       a.href = url;
+//       a.download = `Inventario_IMS_${new Date().toISOString().slice(0,10)}.xlsx`;
+//       a.click();
+//       window.URL.revokeObjectURL(url);
+//     },
+//     error: () => { this.mensajeError = 'Error al exportar Excel.'; }
+//   });
+// }
+descargarExcel(): void {
+  const filtrosEnvio = {
+    nombre: this.filtros.nombre || undefined,
+    categoriaId: this.filtros.categoriaId || undefined,
+    activo: this.filtros.activo && this.filtros.activo !== '' ? this.filtros.activo : undefined,
+    critico: this.filtros.critico || undefined
+  };
 
-    this.productoService.exportarExcel().subscribe({
-      next: (blob) => {
+  console.log('Filtros al exportar:', filtrosEnvio); // ← agrega esto
 
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Inventario_IMS.xlsx';
-        a.click();
-
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {
-        this.mensajeError = 'Error al exportar Excel.';
-      }
-    });
-  }
+  this.productoService.exportarExcel(filtrosEnvio).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Inventario_IMS_${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: () => { this.mensajeError = 'Error al exportar Excel.'; }
+  });
+}
 
 
 // =========================
@@ -385,7 +411,8 @@ limpiarFiltros(): void {
   this.filtros = {
     nombre: '',
     categoriaId: null,
-    activo: ''
+    activo: '',
+    critico: false
   };
 
   this.paginaActual = 1;

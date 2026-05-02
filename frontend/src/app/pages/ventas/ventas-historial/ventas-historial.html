@@ -1,166 +1,217 @@
-<div class="historial-container">
-  <header class="header-section">
-    <div class="header-title-container">
-      <h2>📜 Historial de Ventas</h2>
-    </div>
-  </header>
+<mat-toolbar color="primary">
+  <button mat-button (click)="volver()">⬅ Volver</button>
+  <span style="flex: 1; text-align: center">HISTORIAL</span>
+</mat-toolbar>
 
-  <!-- =========================================
-       SECCIÓN DE FILTROS RESPONSIVA
-  ========================================== -->
-  <div class="historial-filtros">
-    <input
-      class="filtro-input"
-      placeholder="👤 Buscar por Usuario..."
-      [(ngModel)]="filtros.usuario"
-      (input)="onUsuarioChange(filtros.usuario)"
+<div class="container" style="padding: 20px; max-width: 700px; margin: auto">
+  <h3>Historial de Movimientos</h3>
+
+  <!-- FILTROS -->
+  <div style="display: grid; gap: 10px; margin-bottom: 15px">
+    <select
+      [(ngModel)]="filtros.tipo"
       [disabled]="cargando"
-    />
-
-    <input
-      class="filtro-input"
-      type="date"
-      [(ngModel)]="filtros.desde"
-      [disabled]="cargando"
-    />
-
-    <input
-      class="filtro-input"
-      type="date"
-      [(ngModel)]="filtros.hasta"
-      [disabled]="cargando"
-    />
-
-    <div class="filtro-acciones">
-      <button mat-raised-button class="btn-accion btn-filtrar-color" (click)="aplicarFiltros()" [disabled]="cargando">
-        <div class="btn-contenido">
-          <span>🔍</span>
-          <span>Filtrar</span>
-        </div>
-      </button>
-      
-      <button mat-button class="btn-accion btn-limpiar-color" (click)="limpiarFiltros()" [disabled]="cargando">
-        <div class="btn-contenido">
-          <span>🧹</span>
-          <span>Limpiar</span>
-        </div>
-      </button>
-    </div>
-  </div>
-
-  <!-- ESTADOS DE CARGA Y VACÍO -->
-  <div *ngIf="cargando" class="estado-mensaje">
-    ⏳ Cargando el historial de ventas...
-  </div>
-  <div *ngIf="!cargando && ventas.length === 0" class="estado-mensaje">
-    📭 No se encontraron ventas con estos filtros.
-  </div>
-
-  <!-- =========================================
-       LISTA DE TARJETAS (HISTORIAL)
-  ========================================== -->
-  <mat-card
-    *ngFor="let v of ventas"
-    class="historial-card"
-    (click)="toggleExpand(v)"
-    style="cursor: pointer; padding: 0"
-  >
-    <!-- CABECERA DE LA TARJETA (Siempre visible) -->
-    <div class="card-header">
-      <!-- Izquierda -->
-      <div class="header-principal">
-        <div class="folio-text"><strong>Venta #{{v.movimientoId}}</strong></div>
-        <div class="fecha-text">
-          📅 {{v.movimientoFechaCreacion | date:'dd/MM/yyyy, h:mm a'}}
-        </div>
-        <div class="user-text">Cajero: {{v.usuarioCreacion || 'Sistema'}}</div>
-      </div>
-
-      <!-- Derecha -->
-      <div class="header-montos">
-        <div class="total-text">
-          <strong>${{v.movimientoPrecioTotal | number:'1.0-0'}}</strong>
-        </div>
-        <div class="metodo-text" 
-             [ngClass]="{
-               'metodo-efectivo': v.movimientoMetodoPago === 'EFECTIVO', 
-               'metodo-tarjeta': v.movimientoMetodoPago === 'TARJETA'
-             }">
-          {{v.movimientoMetodoPago}}
-        </div>
-      </div>
-
-      <!-- Flecha de despliegue -->
-      <div class="arrow-icon">{{ v.expandido ? '▲' : '▼' }}</div>
-    </div>
-
-    <!-- =========================================
-         DETALLE DESPLEGABLE (Solo si está expandido)
-    ========================================== -->
-    <div
-      *ngIf="v.expandido"
-      class="card-detalle"
-      (click)="$event.stopPropagation()"
+      style="padding: 8px; border-radius: 6px; border: 1px solid #ccc"
     >
-      <!-- Resumen Numérico -->
-      <div class="detalle-resumen">
-        <div class="resumen-item">
-          <span class="resumen-label">Total Neto</span>
-          <span class="resumen-valor"
-            >${{v.movimientoPrecioNeto | number:'1.0-0'}}</span
+      <option value="">Todos los tipos</option>
+      <option *ngFor="let t of tiposDisponibles()" [value]="t">{{getTipoLabel(t)}}</option>
+    </select>
+
+    <select
+      [(ngModel)]="filtros.estado"
+      [disabled]="cargando"
+      style="padding: 8px; border-radius: 6px; border: 1px solid #ccc"
+    >
+      <option value="">Todos los estados</option>
+      <option value="CONFIRMADO">Confirmado</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="ANULADO">Anulado</option>
+    </select>
+
+    <input
+      placeholder="Filtrar por usuario"
+      [ngModel]="filtros.usuario"
+      (input)="onUsuarioChange($any($event.target).value)"
+      [disabled]="cargando"
+      style="padding: 8px; border-radius: 6px; border: 1px solid #ccc"
+    />
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+      <div>
+        <label style="font-size: 12px; color: #666">Desde</label>
+        <input
+          type="date"
+          [(ngModel)]="filtros.desde"
+          [disabled]="cargando"
+          style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc"
+        />
+      </div>
+      <div>
+        <label style="font-size: 12px; color: #666">Hasta</label>
+        <input
+          type="date"
+          [(ngModel)]="filtros.hasta"
+          [disabled]="cargando"
+          style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc"
+        />
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="aplicarFiltros()"
+        [disabled]="cargando"
+        style="flex: 1"
+      >
+        Filtrar
+      </button>
+      <button mat-stroked-button (click)="limpiarFiltros()" [disabled]="cargando">Reset</button>
+    </div>
+  </div>
+
+  <!-- CARGANDO -->
+  <div *ngIf="cargando" style="padding: 10px; opacity: 0.7">Cargando...</div>
+
+  <!-- VACÍO -->
+  <div
+    *ngIf="!cargando && movimientos.length === 0"
+    style="text-align: center; padding: 40px; color: #999"
+  >
+    No hay movimientos para mostrar.
+  </div>
+  <div style="display: flex; justify-content: flex-end; margin-bottom: 15px">
+    <button mat-raised-button color="accent" (click)="exportarExcel()">📊 Exportar Excel</button>
+  </div>
+
+  <!-- CARDS -->
+  <mat-card
+    *ngFor="let m of movimientos"
+    style="margin-bottom: 10px; cursor: pointer"
+    (click)="toggleExpand(m)"
+  >
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px">
+      <div style="flex: 1">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px">
+          <span
+            style="
+              font-size: 0.8em;
+              font-weight: bold;
+              padding: 2px 8px;
+              border-radius: 10px;
+              color: white;
+            "
+            [style.background]="getTipoColor(m.movimientoTipo)"
           >
+            {{getTipoLabel(m.movimientoTipo)}}
+          </span>
+          <span
+            style="
+              font-size: 0.8em;
+              font-weight: bold;
+              padding: 2px 8px;
+              border-radius: 10px;
+              color: white;
+            "
+            [style.background]="getEstadoColor(m.movimientoEstado)"
+          >
+            {{m.movimientoEstado}}
+          </span>
         </div>
-        <div class="resumen-item">
-          <span class="resumen-label">Descuentos</span>
-          <span class="resumen-valor" style="color: #c62828"
-            >-${{ (v.movimientoDescuento || 0) | number:'1.0-0' }}</span
-          >
+
+        <div><strong>{{m.movimientoDescripcion || '#' + m.movimientoId}}</strong></div>
+
+        <div style="font-size: 12px; color: #666">
+          📅 {{m.movimientoFechaCreacion | date:'dd/MM/yyyy HH:mm'}} · 👤
+          {{m.movimientoUsuarioCreacion}}
         </div>
       </div>
 
-      <!-- Lista de Productos Vendidos -->
-      <div style="margin-bottom: 10px; font-weight: bold; color: #555">
-        Productos:
+      <div style="text-align: right; margin-left: 10px">
+        <div *ngIf="m.movimientoTipo === 'SALIDA'" style="font-weight: bold">
+          ${{m.movimientoPrecioTotal | number:'1.0-0'}}
+        </div>
+        <div *ngIf="m.movimientoTipo !== 'SALIDA'" style="font-size: 12px; color: #666">
+          📦 {{calcularTotalUnidades(m.detalles)}} un.
+        </div>
+        <div style="font-size: 12px; color: #666">{{m.movimientoMetodoPago}}</div>
       </div>
 
-      <div *ngFor="let d of v.detalles" class="producto-fila">
-        <div class="producto-info">
-          <div class="producto-nombre">{{d.productoNombre}}</div>
-          <div class="producto-meta">
-            {{d.movimientoDetalleCantidad}} unidad(es)
-            <span *ngIf="d.movimientoDetalleDescuentoAplicado > 0">
-              | Desc: -${{ d.movimientoDetalleDescuentoAplicado | number:'1.0-0'
-              }}
-            </span>
+      <div style="margin-left: 10px">{{ m.expandido ? '▼' : '▶' }}</div>
+    </div>
+
+    <!-- DETALLE EXPANDIDO -->
+    <div *ngIf="m.expandido" style="padding: 12px; border-top: 1px solid #eee">
+      <div
+        *ngIf="m.movimientoTipo === 'SALIDA'"
+        style="margin-bottom: 10px; background: #f5f5f5; padding: 10px; border-radius: 8px"
+      >
+        <div><strong>Total:</strong> ${{m.movimientoPrecioTotal | number:'1.0-0'}}</div>
+        <div><strong>Descuento:</strong> ${{(m.movimientoDescuento || 0) | number:'1.0-0'}}</div>
+        <div><strong>Neto:</strong> ${{m.movimientoPrecioNeto | number:'1.0-0'}}</div>
+        <div><strong>Método de pago:</strong> {{m.movimientoMetodoPago}}</div>
+      </div>
+
+      <div *ngFor="let d of m.detalles" style="padding: 8px; border-bottom: 1px solid #eee">
+        <div style="display: flex; justify-content: space-between">
+          <div>
+            <strong>{{d.productoNombre}}</strong>
+            <div style="font-size: 12px; color: #666" *ngIf="d.movimientoLugarNombre">
+              📍 {{d.movimientoLugarNombre}}
+            </div>
+          </div>
+          <div style="text-align: right">
+            <div style="font-weight: bold">
+              {{d.movimientoDetalleCantidad * d.movimientoDetalleUnidadesPorPaquete}} un.
+            </div>
+            <div *ngIf="m.movimientoTipo === 'SALIDA'" style="font-size: 12px; color: #666">
+              ${{d.movimientoDetallePrecioTotal | number:'1.0-0'}}
+            </div>
           </div>
         </div>
-        <div class="producto-total">
-          ${{d.movimientoDetallePrecioTotal | number:'1.0-0'}}
-        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div style="margin-top: 12px; display: flex; justify-content: flex-end; gap: 10px">
+        <button
+          mat-stroked-button
+          color="warn"
+          *ngIf="m.movimientoTipo === 'ENTRADA' && m.movimientoEstado === 'CONFIRMADO'"
+          (click)="anular(m, $event)"
+        >
+          ❌ Anular recepción
+        </button>
+        <button
+          mat-stroked-button
+          color="primary"
+          *ngIf="m.movimientoTipo === 'ENTRADA' && m.movimientoEstado === 'ANULADO'"
+          (click)="reactivar(m, $event)"
+        >
+          🔄 Reactivar recepción
+        </button>
+        <span
+          *ngIf="m.movimientoTipo === 'AJUSTE' && m.movimientoEstado === 'CONFIRMADO'"
+          style="font-size: 0.85em; color: #888"
+        >
+          📋 Para corregir este conteo, realiza uno nuevo
+        </span>
       </div>
     </div>
   </mat-card>
 
-  <!-- =========================================
-       PAGINACIÓN
-  ========================================== -->
-  <div *ngIf="ventas.length > 0" class="paginacion-container">
-    <button
-      mat-stroked-button
-      (click)="cambiarPagina(-1)"
-      [disabled]="paginaActual <= 1 || cargando"
-    >
-      ◀ Anterior
+  <!-- PAGINACIÓN -->
+  <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px">
+    <button mat-button (click)="cambiarPagina(-1)" [disabled]="paginaActual <= 1 || cargando">
+      ◀ Prev
     </button>
-    <span class="paginacion-texto">
-      Página {{paginaActual}} de {{totalPaginas || 1}}
-    </span>
+    <div style="padding: 8px 12px">Página {{paginaActual}} / {{totalPaginas || 1}}</div>
     <button
-      mat-stroked-button
+      mat-button
       (click)="cambiarPagina(1)"
       [disabled]="paginaActual >= totalPaginas || cargando"
     >
-      Siguiente ▶
+      Next ▶
     </button>
   </div>
 </div>

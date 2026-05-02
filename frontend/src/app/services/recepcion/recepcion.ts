@@ -6,7 +6,7 @@ import { map } from 'rxjs/operators';
 @Injectable({
   providedIn: 'root'
 })
-export class InventarioService {
+export class RecepcionService {
   private apiMovimientos = 'http://localhost:8080/api/movimientos';
   private apiDetalles = 'http://localhost:8080/api/movimiento-detalles';
   private apiLugares = 'http://localhost:8080/api/movimiento-detalles';
@@ -27,27 +27,26 @@ export class InventarioService {
 
   obtenerLugaresActivos(): Observable<any[]> {
   return this.http.get<any[]>(
-    `${this.apiDetalles}/movimiento-lugares/active`, // ← usa apiDetalles
+    `${this.apiDetalles}/movimiento-lugares/active`,
     { headers: this.getHeaders() }
   );
 }
 
-  // ✅ Solo borradores de AJUSTE
   obtenerBorradores(): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiMovimientos}/pendientes`,
       { headers: this.getHeaders() }
     ).pipe(
-      map((data: any[]) => data.filter(m => m.movimientoTipo === 'AJUSTE'))
+      map((data: any[]) => data.filter(m => m.movimientoTipo === 'ENTRADA'))
     );
   }
 
   guardarBorrador(nombre: string, items: any[]): Observable<any> {
     const movimiento = {
-      movimientoTipo: 'AJUSTE', // ✅ AJUSTE
+      movimientoTipo: 'ENTRADA',
       movimientoEstado: 'PENDIENTE',
       movimientoMetodoPago: null,
-      movimientoDescripcion: `Inventario: ${nombre}`
+      movimientoDescripcion: `Recepción: ${nombre}`
     };
 
     const detalles = items.map((item: any) => {
@@ -64,7 +63,7 @@ export class InventarioService {
         movimientoDetallePrecioUnitario: precioReal,
         movimientoDetallePrecioTotal: precioReal * unidades,
         movimientoDetalleDescuentoAplicado: 0,
-        movimientoDetalleDescripcion: `Inventario: ${nombre}`
+        movimientoDetalleDescripcion: `Recepción: ${nombre}`
       };
     });
 
@@ -75,12 +74,12 @@ export class InventarioService {
     );
   }
 
-  finalizarInventario(nombre: string, items: any[]): Observable<any> {
+  finalizarRecepcion(nombre: string, items: any[]): Observable<any> {
     const movimiento = {
-      movimientoTipo: 'AJUSTE', // ✅ AJUSTE
+      movimientoTipo: 'ENTRADA',
       movimientoEstado: 'PENDIENTE',
       movimientoMetodoPago: null,
-      movimientoDescripcion: `Inventario: ${nombre}`
+      movimientoDescripcion: `Recepción: ${nombre}`
     };
 
     const detalles = items.map((item: any) => {
@@ -97,7 +96,7 @@ export class InventarioService {
         movimientoDetallePrecioUnitario: precioReal,
         movimientoDetallePrecioTotal: precioReal * unidades,
         movimientoDetalleDescuentoAplicado: 0,
-        movimientoDetalleDescripcion: `Inventario: ${nombre}`
+        movimientoDetalleDescripcion: `Recepción: ${nombre}`
       };
     });
 
@@ -123,13 +122,12 @@ export class InventarioService {
     );
   }
 
-  // ✅ Solo AJUSTE para el historial de inventario
   obtenerTodosMovimientosEntrada(): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiMovimientos}`,
       { headers: this.getHeaders() }
     ).pipe(
-      map((data: any[]) => data.filter(m => m.movimientoTipo === 'AJUSTE'))
+      map((data: any[]) => data.filter(m => m.movimientoTipo === 'ENTRADA'))
     );
   }
 

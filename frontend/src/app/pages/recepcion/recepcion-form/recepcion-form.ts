@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Location } from '@angular/common';
-import { InventarioService } from '../../../services/inventario/inventario';
+import { RecepcionService } from '../../../services/recepcion/recepcion';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
 import { MatInputModule } from '@angular/material/input';
@@ -14,14 +14,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 
 @Component({
-  selector: 'app-inventario-form',
+  selector: 'app-recepcion-form',
   standalone: true,
   imports: [CommonModule, FormsModule, MatInputModule, MatButtonModule,
     MatCardModule, MatToolbarModule, MatSelectModule, MatOptionModule],
-  templateUrl: './inventario-form.html',
-  styleUrls: ['./inventario-form.css'],
+  templateUrl: './recepcion-form.html',
+  styleUrls: ['./recepcion-form.css'],
 })
-export class InventarioForm implements OnInit {
+export class RecepcionForm implements OnInit {
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
   estado: 'inicio' | 'agregar' | 'lista' = 'inicio';
@@ -30,16 +30,13 @@ export class InventarioForm implements OnInit {
   cajas = 0;
   loteEditable = 1;
 
-
   productoEncontrado: any = null;
   productoEditando: any = null;
 
-  // Borradores locales (solo en memoria, no guardados en BD)
-  inventariosLocales: any[] = [];
-  // Borradores desde BD
-  inventariosBD: any[] = [];
+  recepcionesLocales: any[] = [];
+  recepcionesBD: any[] = [];
 
-  inventarioActual: any = null;
+  recepcionActual: any = null;
   lugares: any[] = [];
   lugarSeleccionado: any = null;
 
@@ -50,25 +47,8 @@ export class InventarioForm implements OnInit {
   constructor(
     private router: Router,
     private location: Location,
-    private inventarioService: InventarioService,
+    private recepcionService: RecepcionService
   ) {}
-
-
-mapTipoToUI(tipo: string): string {
-  return tipo === 'AJUSTE' ? 'CONTEO' : tipo;
-}
-
-mapUIToTipo(label: string): string {
-  switch (label) {
-    case 'ENTRADA':
-      return 'ENTRADA';
-    case 'CONTEO':
-      return 'AJUSTE';
-    default:
-      return label;
-  }
-}
-
 
   ngOnInit() {
     this.cargarLugares();
@@ -77,24 +57,23 @@ mapUIToTipo(label: string): string {
   }
 
   cargarLugares() {
-    this.inventarioService.obtenerLugaresActivos().subscribe({
+    this.recepcionService.obtenerLugaresActivos().subscribe({
       next: (data: any[]) => this.lugares = data,
       error: (err: any) => console.error('Error lugares:', err)
     });
   }
 
   cargarLocales() {
-    const saved = localStorage.getItem('inventarios_ims_local');
-    this.inventariosLocales = saved ? JSON.parse(saved) : [];
+    const saved = localStorage.getItem('recepciones_ims_local');
+    this.recepcionesLocales = saved ? JSON.parse(saved) : [];
   }
 
   cargarBorradoresBD() {
-    this.inventarioService.obtenerBorradores().subscribe({
+    this.recepcionService.obtenerBorradores().subscribe({
       next: (movimientos: any[]) => {
-        this.inventariosBD = movimientos.map(m => ({
-          nombre: m.movimientoDescripcion?.replace('Inventario: ', '') || 'Sin nombre',
+        this.recepcionesBD = movimientos.map(m => ({
+          nombre: m.movimientoDescripcion?.replace('Recepción: ', '') || 'Sin nombre',
           movimientoId: m.movimientoId,
-          tipo: m.movimientoTipo,
           esBD: true,
           lista: (m.detalles || []).map((d: any) => ({
             productoId: d.productoId,
@@ -113,35 +92,29 @@ mapUIToTipo(label: string): string {
     });
   }
 
-iniciarNuevo() {
-  const nombre = prompt('Nombre del conteo (ej: Conteo Bodega Principal):');
-  if (!nombre) return;
+  iniciarNuevo() {
+    const nombre = prompt('Nombre de la recepción (ej: Proveedor Lácteos):');
+    if (!nombre) return;
 
-  this.inventarioActual = {
-    nombre,
-    tipo: 'AJUSTE',
-    lista: [],
-    esBD: false,
-    fecha: new Date()
-  };
-  this.inventariosLocales.push(this.inventarioActual);
-  this.guardarLocales();
-  this.estado = 'agregar';
-}
+    this.recepcionActual = {
+      nombre,
+      lista: [],
+      esBD: false,
+      fecha: new Date()
+    };
+    this.recepcionesLocales.push(this.recepcionActual);
+    this.guardarLocales();
+    this.estado = 'agregar';
+  }
 
-seleccionarInventario(inv: any) {
-  this.inventarioActual = {
-    ...inv,
-    tipo: inv.tipo || 'ENTRADA',
-    esBD: inv.esBD ?? false
-  };
-
-  this.estado = 'lista';
-}
+  seleccionarRecepcion(rec: any) {
+    this.recepcionActual = rec;
+    this.estado = 'lista';
+  }
 
   buscarProducto() {
     if (!this.codigo) return;
-    this.inventarioService.buscarProductoPorCodigo(this.codigo).subscribe({
+    this.recepcionService.buscarProductoPorCodigo(this.codigo).subscribe({
       next: (producto: any) => {
         this.productoEncontrado = producto;
         this.loteEditable = producto.productoCantidadLote || 1;
@@ -169,12 +142,10 @@ seleccionarInventario(inv: any) {
   agregarProducto() {
     if (!this.lugarSeleccionado) return alert('Debes seleccionar una ubicación');
 
-    const indexExistente = this.inventarioActual.lista.findIndex((p: any) =>
+    const indexExistente = this.recepcionActual.lista.findIndex((p: any) =>
       p.productoId === this.productoEncontrado.productoId &&
       p.lugarId === this.lugarSeleccionado.movimientoLugarId
     );
-
-    const lote = this.cantidad
 
     const itemData = {
       ...this.productoEncontrado,
@@ -186,16 +157,16 @@ seleccionarInventario(inv: any) {
     };
 
     if (this.productoEditando) {
-      const idx = this.inventarioActual.lista.indexOf(this.productoEditando);
-      this.inventarioActual.lista[idx] = itemData;
+      const idx = this.recepcionActual.lista.indexOf(this.productoEditando);
+      this.recepcionActual.lista[idx] = itemData;
       this.productoEditando = null;
     } else if (indexExistente !== -1) {
-      const existente = this.inventarioActual.lista[indexExistente];
+      const existente = this.recepcionActual.lista[indexExistente];
       existente.cantidadAgregada += this.cantidad;
       existente.cajasAgregadas = 1;
       existente.productoCantidadLote = existente.cantidadAgregada;
     } else {
-      this.inventarioActual.lista.push(itemData);
+      this.recepcionActual.lista.push(itemData);
     }
 
     this.guardarLocales();
@@ -214,121 +185,112 @@ seleccionarInventario(inv: any) {
   }
 
   eliminarIndividual(item: any) {
-    if (confirm(`¿Eliminar ${item.productoNombre} del conteo?`)) {
-      this.inventarioActual.lista = this.inventarioActual.lista.filter((i: any) => i !== item);
+    if (confirm(`¿Eliminar ${item.productoNombre}?`)) {
+      this.recepcionActual.lista = this.recepcionActual.lista.filter((i: any) => i !== item);
       this.guardarLocales();
     }
   }
 
-  eliminarInventarioLocal(inv: any, confirmar: boolean = true) {
-  if (confirmar && !confirm(`¿Borrar el borrador "${inv.nombre}"?`)) return;
-  
-  this.inventariosLocales = this.inventariosLocales.filter(
-    i => i.nombre !== inv.nombre
-  );
-  this.guardarLocales();
-  if (this.inventarioActual?.nombre === inv.nombre) {
-    this.inventarioActual = null;
-    this.estado = 'inicio';
+  eliminarRecepcionLocal(rec: any) {
+    if (confirm(`¿Borrar el borrador "${rec.nombre}"?`)) {
+      this.recepcionesLocales = this.recepcionesLocales.filter(i => i !== rec);
+      this.guardarLocales();
+      if (this.recepcionActual === rec) {
+        this.recepcionActual = null;
+        this.estado = 'inicio';
+      }
+    }
   }
-}
 
-  eliminarInventarioBD(inv: any) {
-    if (!confirm(`¿Borrar el inventario guardado "${inv.nombre}"? Esto lo eliminará de la base de datos.`)) return;
+  eliminarRecepcionBD(rec: any) {
+    if (!confirm(`¿Borrar la recepción "${rec.nombre}" de la base de datos?`)) return;
 
-    this.inventarioService.eliminarMovimiento(inv.movimientoId).subscribe({
+    this.recepcionService.eliminarMovimiento(rec.movimientoId).subscribe({
       next: () => {
-        this.inventariosBD = this.inventariosBD.filter(i => i !== inv);
-        if (this.inventarioActual === inv) {
-          this.inventarioActual = null;
+        this.recepcionesBD = this.recepcionesBD.filter(i => i !== rec);
+        if (this.recepcionActual === rec) {
+          this.recepcionActual = null;
           this.estado = 'inicio';
         }
       },
       error: (err) => {
-        console.error('Error eliminando borrador BD:', err);
+        console.error('Error eliminando:', err);
         alert('❌ Error al eliminar.');
       }
     });
   }
 
   guardarLocales() {
-    localStorage.setItem('inventarios_ims_local', JSON.stringify(this.inventariosLocales));
+    localStorage.setItem('recepciones_ims_local', JSON.stringify(this.recepcionesLocales));
   }
 
   async guardarBorrador() {
-    if (!this.inventarioActual || this.inventarioActual.lista.length === 0) {
+    if (!this.recepcionActual || this.recepcionActual.lista.length === 0) {
       alert('❌ No hay productos para guardar.');
       return;
     }
 
-    if (!confirm(`¿Guardar "${this.inventarioActual.nombre}" como borrador? Podrás continuarlo después desde cualquier dispositivo.`)) return;
+    if (!confirm(`¿Guardar "${this.recepcionActual.nombre}" como borrador?`)) return;
 
     try {
-        await this.inventarioService.guardarBorrador(
-          this.inventarioActual.nombre,
-          this.inventarioActual.lista,
-        ).toPromise();
+      await this.recepcionService.guardarBorrador(
+        this.recepcionActual.nombre,
+        this.recepcionActual.lista
+      ).toPromise();
 
-      alert('💾 Borrador guardado. Puedes continuarlo desde cualquier dispositivo.');
-
-      // Eliminar de locales y recargar BD
-      this.inventariosLocales = this.inventariosLocales.filter(i => i !== this.inventarioActual);
+      alert('💾 Borrador guardado.');
+      this.recepcionesLocales = this.recepcionesLocales.filter(i => i.nombre !== this.recepcionActual.nombre);
       this.guardarLocales();
-      this.inventarioActual = null;
+      this.recepcionActual = null;
       this.estado = 'inicio';
       this.cargarBorradoresBD();
 
     } catch (err: any) {
       console.error('Error:', err);
-      alert('❌ Error al guardar el borrador.');
+      alert('❌ Error al guardar.');
     }
   }
 
   async finalizar() {
-  if (!this.inventarioActual || this.inventarioActual.lista.length === 0) {
-    alert('❌ No hay productos en el inventario actual.');
-    return;
-  }
-
-  if (!confirm(`¿Finalizar y confirmar el inventario "${this.inventarioActual.nombre}"? Esto actualizará el stock.`)) return;
-
-  try {
-    let movimientoId: number;
-
-    if (this.inventarioActual.esBD) {
-      movimientoId = this.inventarioActual.movimientoId;
-    } else {
-      const res: any = await this.inventarioService.finalizarInventario(
-        this.inventarioActual.nombre,
-        this.inventarioActual.lista,
-      ).toPromise();
-      movimientoId = res.movimientoId;
+    if (!this.recepcionActual || this.recepcionActual.lista.length === 0) {
+      alert('❌ No hay productos en la recepción actual.');
+      return;
     }
 
-    await this.inventarioService.confirmarMovimiento(movimientoId).toPromise();
+    if (!confirm(`¿Confirmar la recepción "${this.recepcionActual.nombre}"? Esto sumará el stock.`)) return;
 
-    alert('✅ Inventario confirmado y stock actualizado.');
+    try {
+      let movimientoId: number;
 
-    // ✅ FIX: filtrar por nombre/id en vez de referencia
-    if (this.inventarioActual.esBD) {
-      this.inventariosBD = this.inventariosBD.filter(
-        i => i.movimientoId !== this.inventarioActual.movimientoId
-      );
-    } else {
-      this.inventariosLocales = this.inventariosLocales.filter(
-        i => i.nombre !== this.inventarioActual.nombre
-      );
-      this.guardarLocales();
+      if (this.recepcionActual.esBD) {
+        movimientoId = this.recepcionActual.movimientoId;
+      } else {
+        const res: any = await this.recepcionService.finalizarRecepcion(
+          this.recepcionActual.nombre,
+          this.recepcionActual.lista
+        ).toPromise();
+        movimientoId = res.movimientoId;
+      }
+
+      await this.recepcionService.confirmarMovimiento(movimientoId).toPromise();
+
+      alert('✅ Recepción confirmada y stock actualizado.');
+
+      if (this.recepcionActual.esBD) {
+        this.recepcionesBD = this.recepcionesBD.filter(i => i !== this.recepcionActual);
+      } else {
+        this.recepcionesLocales = this.recepcionesLocales.filter(i => i !== this.recepcionActual);
+        this.guardarLocales();
+      }
+
+      this.recepcionActual = null;
+      this.estado = 'inicio';
+
+    } catch (err: any) {
+      console.error('Error:', err);
+      alert('❌ Error al procesar.');
     }
-
-    this.inventarioActual = null;
-    this.estado = 'inicio';
-
-  } catch (err: any) {
-    console.error('Error:', err);
-    alert('❌ Error al procesar. Revisa la consola.');
   }
-}
 
   volver() {
   if (this.estado === 'agregar') {
@@ -337,14 +299,19 @@ seleccionarInventario(inv: any) {
     return;
   }
   if (this.estado === 'lista') {
-    if (!this.inventarioActual?.esBD) {
+    if (!this.recepcionActual?.esBD) {
       if (confirm('¿Salir sin guardar? Se perderán los productos agregados.')) {
-        this.eliminarInventarioLocal(this.inventarioActual, false);
+        this.recepcionesLocales = this.recepcionesLocales.filter(
+          i => i.nombre !== this.recepcionActual.nombre
+        );
+        this.guardarLocales();
+        this.recepcionActual = null;
+        this.estado = 'inicio';
       }
       return;
     }
     this.estado = 'inicio';
-    this.inventarioActual = null;
+    this.recepcionActual = null;
     return;
   }
   if (this.estado === 'inicio') {
@@ -363,10 +330,7 @@ seleccionarInventario(inv: any) {
     this.productoEditando = null;
   }
 
-  abrirEscaner() {
-    this.escanerAbierto = true;
-    setTimeout(() => this.iniciarCamara(), 100);
-  }
+  abrirEscaner() { this.escanerAbierto = true; setTimeout(() => this.iniciarCamara(), 100); }
 
   iniciarCamara() {
     this.codeReader.decodeFromVideoDevice(
@@ -384,5 +348,5 @@ seleccionarInventario(inv: any) {
     if (this.controlesCamara) { this.controlesCamara.stop(); this.controlesCamara = null; }
   }
 
-  irAHistorial() { this.router.navigate(['/inventario/historial']); }
+  irAHistorial() { this.router.navigate(['/recepcion/historial']); }
 }

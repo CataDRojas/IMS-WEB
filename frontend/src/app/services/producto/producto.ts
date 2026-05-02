@@ -142,13 +142,23 @@ export class ProductoService {
     );
   }
 
-  exportarExcel(): Observable<Blob> {
-    return this.http.get(
-      `${this.apiUrl}/export-excel`,
-      {
-        headers: this.getHeaders(),
-        responseType: 'blob'
-      }
-    );
-  }
+  exportarExcel(filtros?: {
+  nombre?: string;
+  categoriaId?: number | null;
+  activo?: string;
+  critico?: boolean;
+}): Observable<Blob> {
+  const params: any = {};
+  if (filtros?.nombre) params.nombre = filtros.nombre;
+  if (filtros?.categoriaId) params.categoriaId = filtros.categoriaId;
+  if (filtros?.activo && filtros.activo !== '' && filtros.activo !== 'undefined') 
+    params.activo = filtros.activo;
+  if (filtros?.critico) params.critico = filtros.critico;
+
+  return this.http.get(`${this.apiUrl}/export-excel`, {
+    headers: this.getHeaders(),
+    params,
+    responseType: 'blob'
+  });
+}
 }

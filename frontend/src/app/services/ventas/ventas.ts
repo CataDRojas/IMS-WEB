@@ -145,4 +145,30 @@ getMovimientosPaginados(filtros: {
       detalles
     );
   }
+  anularMovimiento(id: number): Observable<any> {
+  return this.http.post(`${this.baseMovimientos}/${id}/anular`, {});
+}
+
+reactivarMovimiento(id: number): Observable<any> {
+  return this.http.post(`${this.baseMovimientos}/${id}/reactivar`, {});
+}
+exportarReporte(filtros: {
+  tipo?: string;
+  estado?: string;
+  usuario?: string;
+  desde?: string;
+  hasta?: string;
+}): Observable<Blob> {
+  const params: any = {};
+  if (filtros.tipo) params.tipo = filtros.tipo;
+  if (filtros.estado) params.estado = filtros.estado;
+  if (filtros.usuario) params.usuario = filtros.usuario;
+  if (filtros.desde) params.desde = filtros.desde;
+  if (filtros.hasta) params.hasta = filtros.hasta;
+
+  return this.http.get('http://localhost:8080/api/reportes/excel', {
+    params,
+    responseType: 'blob'
+  });
+}
 }

@@ -14,6 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +38,7 @@ public class MovimientoService {
             MovimientoLugarRepository lugarRepo,
             MovimientoLugarProductoRepository mlpRepo,
             EntityManager entityManager,
-            ProductoStockSyncService syncService
-    ) {
+            ProductoStockSyncService syncService) {
         this.repo = repo;
         this.detalleRepo = detalleRepo;
         this.productoRepo = productoRepo;
@@ -72,8 +74,7 @@ public class MovimientoService {
     @Transactional
     public MovimientoResponseDTO guardarBorrador(
             Movimiento movimiento,
-            List<MovimientoDetalleRequestDTO> detalles
-    ) {
+            List<MovimientoDetalleRequestDTO> detalles) {
 
         if (detalles == null || detalles.isEmpty()) {
             throw new IllegalStateException("El inventario debe tener al menos un producto");
@@ -96,8 +97,7 @@ public class MovimientoService {
             detalle.setMovimientoDetalleUnidadesPorPaquete(
                     dto.getMovimientoDetalleUnidadesPorPaquete() != null
                             ? dto.getMovimientoDetalleUnidadesPorPaquete()
-                            : 1
-            );
+                            : 1);
             detalle.setMovimientoDetalleDescripcion(dto.getMovimientoDetalleDescripcion());
             detalle.setMovimientoDetallePrecioBase(dto.getMovimientoDetallePrecioBase());
             detalle.setMovimientoDetallePrecioUnitario(dto.getMovimientoDetallePrecioUnitario());
@@ -123,8 +123,7 @@ public class MovimientoService {
     @Transactional
     public MovimientoResponseDTO create(
             Movimiento movimiento,
-            List<MovimientoDetalleRequestDTO> detalles
-    ) {
+            List<MovimientoDetalleRequestDTO> detalles) {
 
         if (detalles == null || detalles.isEmpty()) {
             throw new IllegalStateException("Movimiento must contain at least one detalle");
@@ -153,8 +152,7 @@ public class MovimientoService {
             detalle.setMovimientoDetalleUnidadesPorPaquete(
                     dto.getMovimientoDetalleUnidadesPorPaquete() != null
                             ? dto.getMovimientoDetalleUnidadesPorPaquete()
-                            : 1
-            );
+                            : 1);
             detalle.setMovimientoDetalleDescripcion(dto.getMovimientoDetalleDescripcion());
             detalle.setMovimientoDetallePrecioBase(dto.getMovimientoDetallePrecioBase());
             detalle.setMovimientoDetallePrecioUnitario(dto.getMovimientoDetallePrecioUnitario());
@@ -183,9 +181,7 @@ public class MovimientoService {
 
         Movimiento saved = repo.save(m);
 
-        registerAfterCommit(() ->
-                syncService.syncMovimiento(saved.getMovimientoId())
-        );
+        registerAfterCommit(() -> syncService.syncMovimiento(saved.getMovimientoId()));
 
         return toDTO(saved);
     }
@@ -197,9 +193,7 @@ public class MovimientoService {
 
         Movimiento saved = repo.save(m);
 
-        registerAfterCommit(() ->
-                syncService.syncMovimiento(saved.getMovimientoId())
-        );
+        registerAfterCommit(() -> syncService.syncMovimiento(saved.getMovimientoId()));
 
         return toDTO(saved);
     }
@@ -210,9 +204,7 @@ public class MovimientoService {
 
         Movimiento saved = repo.save(m);
 
-        registerAfterCommit(() ->
-                syncService.syncMovimiento(saved.getMovimientoId())
-        );
+        registerAfterCommit(() -> syncService.syncMovimiento(saved.getMovimientoId()));
 
         return toDTO(saved);
     }
@@ -223,22 +215,21 @@ public class MovimientoService {
 
     private void simulateStockAndRules(
             String tipoMovimiento,
-            List<MovimientoDetalleRequestDTO> detalles
-    ) {
+            List<MovimientoDetalleRequestDTO> detalles) {
 
         for (MovimientoDetalleRequestDTO d : detalles) {
 
             Producto p = productoRepo.findById(d.getProductoId())
                     .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
 
-            int cantidadReal =
-                    d.getMovimientoDetalleCantidad() *
-                            (d.getMovimientoDetalleUnidadesPorPaquete() != null
-                                    ? d.getMovimientoDetalleUnidadesPorPaquete()
-                                    : 1);
+            int cantidadReal = d.getMovimientoDetalleCantidad() *
+                    (d.getMovimientoDetalleUnidadesPorPaquete() != null
+                            ? d.getMovimientoDetalleUnidadesPorPaquete()
+                            : 1);
 
             Integer currentStock = mlpRepo.sumStockByProductoId(p.getProductoId());
-            if (currentStock == null) currentStock = 0;
+            if (currentStock == null)
+                currentStock = 0;
 
             if ("SALIDA".equals(tipoMovimiento)) {
 
@@ -246,8 +237,7 @@ public class MovimientoService {
 
                 if (projected < 0) {
                     throw new IllegalStateException(
-                            "ERR_STOCK_NEGATIVE|Product " + p.getProductoId()
-                    );
+                            "ERR_STOCK_NEGATIVE|Product " + p.getProductoId());
                 }
             }
 
@@ -255,8 +245,7 @@ public class MovimientoService {
 
                 if (cantidadReal < 0) {
                     throw new IllegalStateException(
-                            "ERR_ADJUSTMENT_NEGATIVE|Product " + p.getProductoId()
-                    );
+                            "ERR_ADJUSTMENT_NEGATIVE|Product " + p.getProductoId());
                 }
             }
         }
@@ -313,16 +302,29 @@ public class MovimientoService {
             String desde,
             String hasta,
             int page,
-            int size
-    ) {
+            int size) {
 
         Pageable pageable = PageRequest.of(page, size);
 
         Specification<Movimiento> spec = (root, query, cb) -> {
             List<Predicate> p = new ArrayList<>();
 
-            if (tipo != null) p.add(cb.equal(root.get("movimientoTipo"), tipo));
-            if (estado != null) p.add(cb.equal(root.get("movimientoEstado"), estado));
+            if (tipo != null)
+                p.add(cb.equal(root.get("movimientoTipo"), tipo));
+            if (estado != null)
+                p.add(cb.equal(root.get("movimientoEstado"), estado));
+            if (usuario != null && !usuario.isBlank())
+                p.add(cb.like(cb.lower(root.get("movimientoUsuarioCreacion")),
+                        "%" + usuario.toLowerCase() + "%"));
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            if (desde != null && !desde.isBlank()) {
+                LocalDateTime d = LocalDate.parse(desde, fmt).atStartOfDay();
+                p.add(cb.greaterThanOrEqualTo(root.get("movimientoFechaCreacion"), d));
+            }
+            if (hasta != null && !hasta.isBlank()) {
+                LocalDateTime h = LocalDate.parse(hasta, fmt).atTime(23, 59, 59);
+                p.add(cb.lessThanOrEqualTo(root.get("movimientoFechaCreacion"), h));
+            }
 
             return cb.and(p.toArray(new Predicate[0]));
         };
@@ -351,8 +353,7 @@ public class MovimientoService {
 
         dto.setDetalles(
                 detalleRepo.findByMovimiento(m)
-                        .stream().map(this::mapDetalle).toList()
-        );
+                        .stream().map(this::mapDetalle).toList());
 
         return dto;
     }
