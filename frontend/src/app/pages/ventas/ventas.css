@@ -1,0 +1,517 @@
+/* =========================================
+   CONTENEDORES PRINCIPALES
+========================================= */
+.toolbar-title {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* 🔥 Bloqueo de scroll MODO ESTRICTO */
+.pos-container {
+  display: flex;
+  flex-direction: column;
+  /* 🔥 Le restamos exactamente lo que miden tu Nav Global, Toolbar Local y Footer */
+  height: calc(100vh - 175px); 
+  background-color: #f5f5f5;
+  overflow: hidden !important; /* Esto mata definitivamente el scroll exterior */
+}
+
+.centered-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto; 
+}
+
+/* =========================================
+   FASE 1: ESCÁNER Y CARRITO
+========================================= */
+.scanner-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.scanner-header {
+  background: white;
+  padding: 10px 15px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.camera-container {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+  border: 3px solid #3f51b5;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #000;
+}
+
+.camera-video {
+  width: 100%;
+  max-height: 15vh; 
+  display: block;
+  object-fit: cover;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  max-width: 500px;
+  margin: 10px auto 0;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px;
+  font-size: 1.1em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.error-box {
+  max-width: 500px;
+  margin: 10px auto 0;
+  background: #ffebee;
+  color: #c62828;
+  padding: 8px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.cart-scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.cart-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.empty-cart {
+  text-align: center;
+  padding: 50px 20px;
+  color: #888;
+}
+
+.empty-cart h1 {
+  font-size: 4em;
+  margin: 0;
+  opacity: 0.5;
+}
+
+.cart-item-card {
+  margin-bottom: 12px;
+  padding: 15px;
+}
+
+.cart-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.item-prices {
+  margin-top: 5px;
+}
+
+.price-strike {
+  text-decoration: line-through;
+  color: gray;
+  font-size: 0.9em;
+}
+
+.price-discount {
+  margin-left: 8px;
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.price-normal {
+  font-weight: bold;
+  color: #333;
+}
+
+.item-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0f0f0;
+  border-radius: 20px;
+  padding: 2px;
+}
+
+.qty-text {
+  font-weight: bold;
+  min-width: 25px;
+  text-align: center;
+}
+
+.item-total {
+  font-size: 1.2em;
+  min-width: 80px;
+  text-align: right;
+  font-weight: bold;
+}
+
+.totals-card {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #e3f2fd;
+  border: 2px solid #90caf9;
+}
+
+.totals-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  color: #555;
+}
+
+.totals-divider {
+  border: 0;
+  border-top: 1px solid #bbdefb;
+  margin: 15px 0;
+}
+
+.final-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.final-total-label {
+  margin: 0;
+  color: #1565c0;
+}
+
+.final-total-value {
+  margin: 0;
+  color: #1565c0;
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.btn-pay {
+  width: 100%;
+  height: 60px;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+/* =========================================
+   FASE 2, 3 Y 4: TARJETAS CENTRALES
+========================================= */
+.checkout-card, .boleta-card {
+  width: 100%;
+  max-width: 500px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  margin: auto;
+  box-sizing: border-box;
+
+  /* 🔥 EL SECRETO ANTI-SUPERPOSICIÓN: Convertir la tarjeta en Flexbox y usar gap */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Esta es la muralla invisible entre cada texto/botón */
+}
+
+.checkout-subtitle {
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+  margin: 0; /* Quitamos márgenes manuales porque usamos gap */
+}
+
+.checkout-total, .cash-total-value {
+  font-size: 4em;
+  color: #1565c0;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1; /* 🔥 Evita que la "caja invisible" del número alto invada al vecino */
+}
+
+.checkout-items-text {
+  color: #888;
+  margin: 0;
+}
+
+.checkout-question {
+  font-weight: bold;
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.payment-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%; /* Obliga a los botones a usar todo el ancho de la tarjeta */
+}
+
+.btn-efectivo {
+  height: 80px;
+  background-color: #4caf50 !important;
+  color: white !important;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
+.btn-tarjeta {
+  height: 80px;
+  background-color: #2196f3 !important;
+  color: white !important;
+  font-size: 1.4em;
+  font-weight: bold;
+}
+
+.btn-volver {
+  color: #757575;
+  font-size: 1.1em;
+  margin-top: 10px;
+}
+
+/* CALCULADORA DE EFECTIVO */
+.cash-title {
+  color: #4caf50;
+  font-weight: bold;
+  margin: 0;
+}
+
+.cash-total-box {
+  text-align: center;
+  width: 100%;
+}
+
+.cash-total-label {
+  color: #666;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.cash-input-group {
+  text-align: center;
+  width: 100%;
+}
+
+.cash-label {
+  font-weight: bold;
+  color: #555;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.cash-input {
+  width: 100%;
+  padding: 15px;
+  font-size: 2em;
+  text-align: center;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.change-box {
+  background-color: #f1f8e9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 2px dashed #8bc34a;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.change-label {
+  margin: 0 0 10px 0;
+  color: #555;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.change-value {
+  font-size: 3em;
+  margin: 0;
+  font-weight: 900;
+  line-height: 1; /* 🔥 Evita solapamiento */
+}
+
+.change-error {
+  color: #c62828;
+  margin: 10px 0 0;
+  font-size: 0.9em;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 10px;
+  background: #eee;
+}
+
+.btn-confirm {
+  flex: 2;
+  padding: 10px;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+/* SIMULADOR DE TARJETA */
+.card-icon {
+  font-size: 5em;
+  margin: 0;
+  line-height: 1; /* 🔥 Resuelve solapamiento del ícono */
+}
+
+.card-title {
+  color: #333;
+  margin: 0;
+}
+
+.card-instructions {
+  color: #666;
+  font-size: 1.2em;
+  margin: 0;
+}
+
+.dev-panel {
+  border-top: 2px dashed #ddd;
+  padding-top: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+  width: 100%;
+}
+
+.dev-label {
+  font-size: 0.85em;
+  color: #888;
+  text-transform: uppercase;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 15px;
+}
+
+.dev-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 0 15px 15px;
+}
+
+.btn-reject {
+  background-color: #f44336 !important;
+  color: white !important;
+  flex: 1;
+}
+
+.btn-approve {
+  background-color: #4caf50 !important;
+  color: white !important;
+  flex: 1;
+}
+
+.btn-cancel-full {
+  color: #757575;
+  width: 100%;
+}
+
+/* BOLETA FINAL */
+.success-icon {
+  font-size: 4em;
+  margin: 0;
+  color: #4caf50;
+  line-height: 1;
+}
+
+.success-title {
+  color: #2e7d32;
+  font-weight: bold;
+  margin: 0;
+}
+
+.success-desc {
+  color: #666;
+  margin: 0;
+}
+
+.vuelto-reminder {
+  background: #e8f5e9;
+  padding: 15px;
+  border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.vuelto-text {
+  color: #2e7d32;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.boleta-container {
+  background: #f9f9f9;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: left;
+  max-height: 35vh;
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.final-buttons {
+  display: flex;
+  gap: 15px;
+  width: 100%;
+}
+
+.btn-print {
+  flex: 1;
+  height: 60px;
+  background-color: #607d8b !important;
+  color: white !important;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.btn-new {
+  flex: 1;
+  height: 60px;
+  font-size: 1.2em;
+  font-weight: bold;
+}

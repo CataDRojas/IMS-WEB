@@ -1,4 +1,5 @@
-<div class="productos-container"> <header class="header-section">
+<div class="productos-container">
+  <header class="header-section">
     <div class="header-title-container">
       <h2>👥 Panel de Usuarios</h2>
     </div>
@@ -20,7 +21,11 @@
             {{ u.usuarioNombre }}
           </mat-panel-title>
           <mat-panel-description>
-            <span class="badge" [class.badge-activo]="u.usuarioActivo" [class.badge-inactivo]="!u.usuarioActivo">
+            <span
+              class="badge"
+              [class.badge-activo]="u.usuarioActivo"
+              [class.badge-inactivo]="!u.usuarioActivo"
+            >
               {{ u.usuarioActivo ? 'Activo' : 'Inactivo' }}
             </span>
           </mat-panel-description>
@@ -29,13 +34,16 @@
         <div class="product-details-grid">
           <div class="detail-item">
             <span class="detail-label">RUN</span>
-            <span class="detail-value">{{ u.usuarioRun ? u.usuarioRun + '-' + u.usuarioDV : 'Vacío' }}</span>
+            <span class="detail-value"
+              >{{ u.usuarioRun ? u.usuarioRun + '-' + u.usuarioDV : 'Vacío'
+              }}</span
+            >
           </div>
           <div class="detail-item">
             <span class="detail-label">Rol</span>
             <span class="rol-tag">{{ u.rolNombre }}</span>
           </div>
-          <div class="detail-item full-width" style="grid-column: span 2;">
+          <div class="detail-item full-width" style="grid-column: span 2">
             <span class="detail-label">Correo</span>
             <span class="detail-value">{{ u.usuarioEmail }}</span>
           </div>
@@ -44,10 +52,11 @@
             <button (click)="editarUsuario(u)" class="btn-edit-small">
               <mat-icon>edit</mat-icon> Editar
             </button>
-            <button 
-              *ngIf="u.usuarioEmail !== 'admin@ims.cl'" 
-              (click)="eliminarUsuario(u.usuarioId)" 
-              class="btn-deactivate">
+            <button
+              *ngIf="u.usuarioEmail !== 'admin@ims.cl'"
+              (click)="eliminarUsuario(u.usuarioId)"
+              class="btn-deactivate"
+            >
               <mat-icon>delete</mat-icon> Eliminar
             </button>
           </div>
@@ -73,22 +82,30 @@
           <td><strong>{{ u.usuarioNombre }}</strong></td>
           <td>{{ u.usuarioRun ? u.usuarioRun + '-' + u.usuarioDV : '—' }}</td>
           <td>{{ u.usuarioEmail }}</td>
-          <td><span class="rol-tag
-            ">{{ u.rolNombre }}</span></td>
+          <td><span class="rol-tag">{{ u.rolNombre }}</span></td>
           <td>
-            <span class="badge" [class.badge-activo]="u.usuarioActivo" [class.badge-inactivo]="!u.usuarioActivo">
+            <span
+              class="badge"
+              [class.badge-activo]="u.usuarioActivo"
+              [class.badge-inactivo]="!u.usuarioActivo"
+            >
               {{ u.usuarioActivo ? 'Activo' : 'Inactivo' }}
             </span>
           </td>
           <td class="table-actions">
-            <button class="btn-icon edit" (click)="editarUsuario(u)" title="Editar">
+            <button
+              class="btn-icon edit"
+              (click)="editarUsuario(u)"
+              title="Editar"
+            >
               <mat-icon>edit</mat-icon>
             </button>
-            <button 
-              class="btn-icon deactivate" 
+            <button
+              class="btn-icon deactivate"
               *ngIf="u.usuarioEmail !== 'admin@ims.cl'"
-              (click)="eliminarUsuario(u.usuarioId)" 
-              title="Eliminar">
+              (click)="eliminarUsuario(u.usuarioId)"
+              title="Eliminar"
+            >
               <mat-icon>delete</mat-icon>
             </button>
           </td>
@@ -101,7 +118,10 @@
     <div class="modal-card">
       <header class="modal-header">
         <h3>
-          <mat-icon>{{ usuarioActual.usuarioId ? 'manage_accounts' : 'person_add' }}</mat-icon>
+          <mat-icon
+            >{{ usuarioActual.usuarioId ? 'manage_accounts' : 'person_add'
+            }}</mat-icon
+          >
           {{ usuarioActual.usuarioId ? 'Editar Usuario' : 'Nuevo Usuario' }}
         </h3>
         <button class="btn-close-x" (click)="cancelar()">×</button>
@@ -111,27 +131,53 @@
         <form class="form-grid">
           <div class="form-group full-width">
             <label>Nombre Completo</label>
-            <input type="text" [(ngModel)]="usuarioActual.usuarioNombre" name="usuarioNombre" placeholder="Ej: Juan Pérez">
+            <input
+              type="text"
+              [(ngModel)]="usuarioActual.usuarioNombre"
+              name="usuarioNombre"
+              placeholder="Ej: Juan Pérez"
+            />
           </div>
 
           <div class="form-group">
             <label>RUN (Sin puntos)</label>
-            <input type="text" [(ngModel)]="usuarioActual.usuarioRun" name="usuarioRun" placeholder="12345678">
+            <input
+              type="text"
+              [(ngModel)]="usuarioActual.usuarioRun"
+              name="usuarioRun"
+              placeholder="12345678"
+            />
           </div>
 
           <div class="form-group">
             <label>DV</label>
-            <input type="text" [(ngModel)]="usuarioActual.usuarioDV" name="usuarioDV" maxlength="1" placeholder="K">
+            <input
+              type="text"
+              [(ngModel)]="usuarioActual.usuarioDV"
+              name="usuarioDV"
+              maxlength="1"
+              placeholder="K"
+            />
           </div>
 
           <div class="form-group">
             <label>Email</label>
-            <input type="email" [(ngModel)]="usuarioActual.usuarioEmail" name="usuarioEmail" placeholder="usuario@empresa.com">
+            <input
+              type="email"
+              [(ngModel)]="usuarioActual.usuarioEmail"
+              name="usuarioEmail"
+              placeholder="usuario@empresa.com"
+            />
           </div>
 
           <div class="form-group">
             <label>Contraseña</label>
-            <input type="password" [(ngModel)]="usuarioActual.usuarioPassword" name="usuarioPassword" placeholder="••••••••">
+            <input
+              type="password"
+              [(ngModel)]="usuarioActual.usuarioPassword"
+              name="usuarioPassword"
+              placeholder="••••••••"
+            />
           </div>
 
           <div class="form-group">
@@ -145,7 +191,11 @@
 
           <div class="form-group checkbox-group">
             <label class="checkbox-container">
-              <input type="checkbox" [(ngModel)]="usuarioActual.usuarioActivo" name="usuarioActivo">
+              <input
+                type="checkbox"
+                [(ngModel)]="usuarioActual.usuarioActivo"
+                name="usuarioActivo"
+              />
               <span>Usuario Activo</span>
             </label>
           </div>
@@ -153,10 +203,18 @@
       </div>
 
       <footer class="modal-footer">
-        <button type="button" class="btn-modal btn-modal-cancel" (click)="cancelar()">
+        <button
+          type="button"
+          class="btn-modal btn-modal-cancel"
+          (click)="cancelar()"
+        >
           Cancelar
         </button>
-        <button type="button" class="btn-modal btn-modal-save" (click)="guardarUsuario()">
+        <button
+          type="button"
+          class="btn-modal btn-modal-save"
+          (click)="guardarUsuario()"
+        >
           <mat-icon>save</mat-icon> Guardar
         </button>
       </footer>

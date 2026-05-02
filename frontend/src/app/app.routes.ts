@@ -8,8 +8,7 @@ import { RolesList } from './pages/roles/roles-list/roles-list';
 import { authGuard } from './guards/auth-guard';
 import { permisosGuard } from './guards/permisos-guard';
 
-import { VentasHistorial } from './pages/ventas/ventas-historial/ventas-historial';
-import { VentasForm } from './pages/ventas/ventas-form/ventas-form';
+import { VentasForm } from './pages/ventas/ventas';
 import { NOT_FOUND } from '@angular/core/primitives/di';
 
 import { NotFound } from './pages/not-found/not-found';
@@ -27,6 +26,7 @@ import { InventarioHistorial } from './pages/inventario/inventario-historial/inv
 // IMPORTS DE LUGARES 
 import { LugaresComponent } from './pages/lugares/lugares-list/lugares-list';
 import { ConfiguracionSistema } from './pages/configuracion-sistema/configuracion-sistema';
+import { VentasHistorial } from './pages/ventas/ventas-historial/ventas-historial';
 
 
 
@@ -64,23 +64,15 @@ export const routes: Routes = [
 // =========================
 {
   path: 'ventas',
+  component: VentasForm,
   canActivate: [authGuard, permisosGuard],
   data: { requiredPermisos: ['VENTA_READ', 'VENTA_MANAGE'] },
-  children: [
-    {
-      path: '',
-      component: VentasHistorial // 🔥 hub is now default
-    },
-    {
-      path: 'form',
-      component: VentasForm
-    },
-    {
-      path: 'historial',
-      redirectTo: '',
-      pathMatch: 'full'
-    }
-  ]
+},
+{
+  path: 'ventas-historial',
+  component: VentasHistorial,
+  canActivate: [authGuard, permisosGuard],
+  data: { requiredPermisos: ['VENTA_READ', 'VENTA_MANAGE'] },
 },
 
   // =========================

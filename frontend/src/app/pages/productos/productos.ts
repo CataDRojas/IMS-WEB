@@ -9,14 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinner } from '@angular/material/progress-spinner';
 
 import { ProductoService, Producto } from '../../services/producto/producto';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatExpansionModule, MatProgressSpinner, MatExpansionPanel, MatIconModule, MatButtonModule],
+  imports: [CommonModule, FormsModule, MatExpansionModule, MatExpansionPanel, MatIconModule, MatButtonModule],
   templateUrl: './productos.html',
   styleUrls: ['./productos.css']
 })

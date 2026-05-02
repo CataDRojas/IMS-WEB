@@ -27,8 +27,6 @@ import { Subject, debounceTime, Subscription } from 'rxjs';
 })
 export class VentasHistorial implements OnInit, OnDestroy {
 
-  estado: 'hub' | 'list' = 'hub';
-
   ventas: any[] = [];
   cargando = false;
 
@@ -66,6 +64,7 @@ export class VentasHistorial implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.cargarVentas();
 
     this.usuarioSub = this.usuarioChange$
       .pipe(debounceTime(400))
@@ -86,16 +85,12 @@ export class VentasHistorial implements OnInit, OnDestroy {
   }
 
   verHistorial() {
-    this.estado = 'list';
     this.paginaActual = 1;
     this.cargarVentas();
   }
 
 volver() {
-  if (this.estado === 'list') {
-    this.estado = 'hub';
-    return;
-  }
+  this.location.back();
 
   // HUB is treated as a root screen → always go home
   this.router.navigate(['/home']); // or whatever your real home route is

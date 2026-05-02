@@ -1,0 +1,294 @@
+/* =========================================
+   CABECERA (HEADER)
+========================================= */
+.header-section {
+  display: flex;
+  justify-content: center; /* Título a la izquierda, botones a la derecha */
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.header-title-container h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+/* =========================================
+   DISEÑO GENÉRICO DE HISTORIAL 
+   (Reutilizable para Inventario)
+========================================= */
+
+/* CONTENEDOR PRINCIPAL */
+.historial-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  box-sizing: border-box;
+  
+}
+
+.historial-title {
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+/* FILTROS RESPONSIVOS */
+.historial-filtros {
+  display: grid;
+  /* La magia responsiva: crea columnas automáticas que no bajan de 150px */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.filtro-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filtro-acciones {
+  display: flex;
+  gap: 10px;
+  /* En PC se alinea al final, en móvil ocupa su fila entera */
+  justify-content: flex-start; 
+}
+
+/* =========================================
+   BOTONES DE ACCIÓN (FILTROS)
+========================================= */
+.filtro-acciones {
+  display: flex;
+  gap: 10px;
+  width: 100%; /* Asegura que tome todo el espacio disponible */
+}
+
+.btn-accion {
+  flex: 1; /* Se dividen el espacio 50/50 por defecto */
+  height: 45px !important; /* Un toque más altos para los dedos en celular */
+  border-radius: 8px !important; /* Bordes redondeados modernos */
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-contenido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.05em;
+  font-weight: bold;
+}
+
+/* 🎨 Colores Personalizados */
+.btn-filtrar-color {
+  background-color: #52b3ac !important; /* El color de tu navbar global */
+  color: white !important;
+  border: none !important;
+}
+.btn-filtrar-color:hover:not([disabled]) {
+  background-color: #429690 !important; /* Más oscuro al pasar el mouse */
+  transform: translateY(-1px);
+}
+
+.btn-limpiar-color {
+  background-color: #f1f5f9 !important; /* Gris súper clarito de fondo */
+  color: #64748b !important; /* Texto gris/azulado (igual que tu footer) */
+  border: 1px solid #cbd5e1 !important;
+}
+.btn-limpiar-color:hover:not([disabled]) {
+  background-color: #e2e8f0 !important;
+}
+
+/* 📱 Responsividad Extrema para Celulares Angostos */
+@media (max-width: 480px) {
+  .filtro-acciones {
+    flex-direction: column; /* Apila los botones uno sobre otro */
+  }
+  .btn-accion {
+    width: 100%; /* Ocupan todo el ancho del celular */
+  }
+}
+
+/* ESTADO Y CARGA */
+.estado-mensaje {
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* TARJETAS DE HISTORIAL (LISTA) */
+.historial-card {
+  margin-bottom: 15px;
+  border-radius: 8px !important; /* Forza bordes redondeados */
+  transition: all 0.2s ease-in-out;
+}
+
+.historial-card:hover {
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1) !important;
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  flex-wrap: wrap; /* Permite que colapse en móvil */
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  gap: 15px;
+  background: white;
+  border-radius: 8px !important;
+}
+
+.header-principal {
+  flex: 1 1 200px; /* Crece si hay espacio, mínimo 200px */
+}
+
+.folio-text {
+  font-size: 1.2em;
+  color: #1565c0;
+  margin-bottom: 3px;
+}
+
+.fecha-text {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.user-text {
+  font-size: 0.85em;
+  color: #999;
+  margin-top: 3px;
+}
+
+.header-montos {
+  text-align: right;
+}
+
+.total-text {
+  font-size: 1.3em;
+  color: #666
+}
+
+/* =========================================
+   ESTILOS DINÁMICOS DE PAGO
+========================================= */
+.metodo-text {
+  font-size: 0.9em;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 20px; /* Un poco más redondo para que parezca una "píldora" */
+  display: inline-block;
+  margin-top: 5px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Sombra sutil para darle relieve */
+}
+
+.metodo-efectivo {
+  background-color: #e8f5e9; /* Fondo verde clarito */
+  color: #2e7d32; /* Letra verde oscuro */
+  border: 1px solid #c8e6c9;
+}
+
+.metodo-tarjeta {
+  background-color: #ffee95; /* Fondo amarillito dorado */
+  color: #ed8e4a; /* Letra dorada oscura */
+  border: 1px solid #ffecb3;
+}
+
+.arrow-icon {
+  font-size: 1.2em;
+  color: #aaa;
+  margin-left: 10px;
+}
+
+/* DETALLE DESPLEGABLE */
+.card-detalle {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+
+.detalle-resumen {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px dashed #ddd;
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-label {
+  font-size: 0.85em;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.resumen-valor {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.producto-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.producto-fila:last-child {
+  border-bottom: none;
+}
+
+.producto-info {
+  flex: 1;
+}
+
+.producto-nombre {
+  font-weight: bold;
+  color: #444;
+}
+
+.producto-meta {
+  font-size: 0.85em;
+  color: #777;
+}
+
+.producto-total {
+  font-weight: bold;
+  text-align: right;
+}
+
+/* PAGINACIÓN */
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+  padding: 10px;
+}
+
+.paginacion-texto {
+  font-weight: bold;
+  color: #555;
+}
