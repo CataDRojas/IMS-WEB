@@ -5,7 +5,7 @@
     <div class="nav-content">
       <div class="header-left">
       <button class="btn-base btn-go-home" (click)="irAlHome()">
-        <mat-icon>arrow_back</mat-icon>
+        <mat-icon>home</mat-icon>
       </button>
     </div>
       <img
@@ -21,9 +21,11 @@
     <router-outlet></router-outlet>
   </main>
 
-  <footer class="main-footer">
-    <p>© IMS Web 2026 - GRANDE EL GRUPO 3</p>
-  </footer>
+  @if (router.url !== '/ventas') {
+    <footer class="main-footer">
+      <p>© IMS Web 2026 - GRANDE EL GRUPO 3</p>
+    </footer>
+  }
 </div>
 } @else {
 <router-outlet></router-outlet>

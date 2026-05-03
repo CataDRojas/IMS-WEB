@@ -2,3 +2,52 @@
 
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/*ESTILOS PARA LAS ALERTAS DE ERRORES*/
+/* =========================================
+   SNACKBARS PERSONALIZADOS (NOTIFICACIONES)
+========================================= */
+.snackbar-exito {
+  --mdc-snackbar-container-color: #10b981 !important; /* Verde Esmeralda */
+  --mdc-snackbar-supporting-text-color: white !important;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.snackbar-error {
+  --mdc-snackbar-container-color: #ef4444 !important; /* Rojo */
+  --mdc-snackbar-supporting-text-color: white !important;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.snackbar-info {
+  --mdc-snackbar-container-color: #3b82f6 !important; /* Azul */
+  --mdc-snackbar-supporting-text-color: white !important;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* Color del botón "Cerrar" */
+.snackbar-exito .mat-mdc-button,
+.snackbar-error .mat-mdc-button,
+.snackbar-info .mat-mdc-button {
+  color: white !important;
+  opacity: 0.9;
+}
+
+.snackbar-alerta {
+  --mdc-snackbar-container-color: #f59e0b !important; /* Naranja/Amarillo de precaución */
+  --mdc-snackbar-supporting-text-color: white !important;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* Y no olvides agregar la nueva clase a la regla del botón Cerrar para que se vea blanco */
+.snackbar-exito .mat-mdc-button,
+.snackbar-error .mat-mdc-button,
+.snackbar-info .mat-mdc-button,
+.snackbar-alerta .mat-mdc-button {
+  color: white !important;
+  opacity: 0.9;
+}

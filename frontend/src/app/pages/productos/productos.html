@@ -30,32 +30,57 @@
       </div>
     </div>
   </header>
+  <!-- FILTROS -->
   <div class="filter-panel" *ngIf="showFilters">
-    <input
-      type="text"
-      placeholder="Buscar por nombre"
-      [(ngModel)]="filtros.nombre"
-      (input)="aplicarFiltros()"
-    />
+    <div class="filter-grid">
+      
+      <!-- Búsqueda por texto -->
+      <div class="filter-group filter-search">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Buscar producto..."
+          [(ngModel)]="filtros.nombre"
+          (input)="aplicarFiltros()"
+        />
+      </div>
 
-    <select [(ngModel)]="filtros.categoriaId" (change)="aplicarFiltros()">
-      <option [ngValue]="null">Todas las categorías</option>
-      <option *ngFor="let cat of categorias" [ngValue]="cat.categoriaId">
-        {{ cat.categoriaNombre }}
-      </option>
-    </select>
+      <!-- Selectores -->
+      <div class="filter-group">
+        <select [(ngModel)]="filtros.categoriaId" (change)="aplicarFiltros()">
+          <option [ngValue]="null">Todas las categorías</option>
+          <option *ngFor="let cat of categorias" [ngValue]="cat.categoriaId">
+            {{ cat.categoriaNombre }}
+          </option>
+        </select>
+      </div>
 
-    <select [(ngModel)]="filtros.activo" (change)="aplicarFiltros()">
-      <option value="">Todos</option>
-      <option value="true">Activos</option>
-      <option value="false">Inactivos</option>
-    </select>
-    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer">
-      <input type="checkbox" [(ngModel)]="filtros.critico" (change)="aplicarFiltros()" />
-      Solo stock crítico
-    </label>
+      <div class="filter-group">
+        <select [(ngModel)]="filtros.activo" (change)="aplicarFiltros()">
+          <option value="">Todos los estados</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
+      </div>
 
-    <button (click)="limpiarFiltros()">Limpiar</button>
+      <!-- Switch y Botón Limpiar -->
+      <div class="filter-actions-row">
+        
+        <label class="modern-switch-container">
+          <div class="modern-switch-mini">
+            <input type="checkbox" [(ngModel)]="filtros.critico" (change)="aplicarFiltros()" />
+            <span class="slider-mini round"></span>
+          </div>
+          <span class="switch-text">Solo stock crítico</span>
+        </label>
+
+        <button class="btn-clear-filters" (click)="limpiarFiltros()" title="Limpiar todos los filtros">
+          <mat-icon>filter_alt_off</mat-icon> Limpiar
+        </button>
+
+      </div>
+
+    </div>
   </div>
   <!-- VISTA TELEFONO -->
   <div class="mobile-list">

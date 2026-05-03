@@ -1,112 +1,111 @@
-<mat-toolbar color="primary" style="height: 64px; flex-shrink: 0; padding: 0 15px;">
-  
-  <button mat-button (click)="volver()" style="color: white; font-size: 1.1em;">
-    ⬅ Salir
-  </button>
-  
-  <span class="toolbar-title">CAJA REGISTRADORA</span>
-
-</mat-toolbar>
-
 <!-- CONTENEDOR PRINCIPAL -->
 <div class="pos-container">
 
   <!-- ======================================================= -->
-  <!-- ESTADO 1: ESCANEAR (Cámara fija arriba, Carrito abajo)  -->
+  <!-- ESTADO 1: ESCANEAR (Vista POS Híbrida)                  -->
   <!-- ======================================================= -->
-  <div *ngIf="estadoCaja === 'ESCANEAR'" class="scanner-view">
+  <div *ngIf="estadoCaja === 'ESCANEAR'" class="pos-desktop-view">
 
-    <!-- CABECERA FIJA -->
-    <div class="scanner-header">
-      <div class="camera-container">
+    <div class="pos-main-workspace">
+      <!-- BÚSQUEDA GIGANTE -->
+      <div class="search-section">
+        <div class="search-bar-modern">
+          
+          <!-- Envolvemos el input y el ícono juntos -->
+          <div class="input-wrapper-modern">
+            <mat-icon class="search-icon">barcode_reader</mat-icon>
+            <input [(ngModel)]="codigo" 
+                   placeholder="Escanea o tipea el código..." 
+                   (keyup.enter)="buscarProducto()"
+                   class="search-input-modern" 
+                   autofocus />
+          </div>
+
+          <button class="btn-base btn-new" (click)="buscarProducto()">
+            <mat-icon>search</mat-icon> Buscar
+          </button>
+          
+        </div>
+        <div *ngIf="errorMessage" class="error-box">
+          <mat-icon>error_outline</mat-icon> {{ errorMessage }}
+        </div>
+      </div>
+
+      <!-- CÁMARA (Fija en móvil, Flotante en escritorio) -->
+      <div class="camera-section">
+        <div class="camera-header-mini">
+          <mat-icon>videocam</mat-icon> Escáner Activo
+        </div>
         <video #videoElement class="camera-video"></video>
       </div>
 
-      <div class="search-bar">
-        <input [(ngModel)]="codigo" 
-               placeholder="Tipea el código manual..." 
-               (keyup.enter)="buscarProducto()"
-               class="search-input" />
-        <button mat-raised-button color="primary" (click)="buscarProducto()">
-          Buscar
-        </button>
-      </div>
-
-      <div *ngIf="errorMessage" class="error-box">
-        <strong>Error:</strong> {{ errorMessage }}
-      </div>
-    </div>
-
-    <!-- ÁREA CON SCROLL (CARRITO) -->
-    <div class="cart-scroll-area">
-      <div class="cart-container">
-
-        <!-- CARRITO VACÍO -->
-        <div *ngIf="detalles.length === 0" class="empty-cart">
-          <h1 class="empty-cart-icon">🛒</h1>
-          <h2>Escanea un producto para comenzar</h2>
+      <!-- LISTA DE CARRITO (OCUPA EL RESTO DEL ESPACIO) -->
+      <div class="cart-scroll-area">
+        
+        <div *ngIf="detalles.length === 0" class="empty-cart-modern">
+          <div class="empty-state-content">
+            <mat-icon class="huge-icon">shopping_cart_checkout</mat-icon>
+            <h2>Listo para cobrar</h2>
+            <p>Pasa el lector de código de barras o busca un producto para comenzar.</p>
+          </div>
         </div>
 
-        <!-- CARRITO CON PRODUCTOS -->
-        <div *ngIf="detalles.length > 0">
-          
-          <mat-card *ngFor="let d of detalles" class="cart-item-card">
-            <div class="cart-item-row">
-              
-              <div class="item-info">
-                <strong class="item-name">{{d.productoNombre}}</strong>
-                <div class="item-prices">
-                  <ng-container *ngIf="d.movimientoDetalleDescuentoAplicado > 0; else normalPrice">
-                    <span class="price-strike">${{d.movimientoDetallePrecioBase | number:'1.0-0'}}</span>
-                    <span class="price-discount">${{d.movimientoDetallePrecioUnitario | number:'1.0-0'}}</span>
-                  </ng-container>
-                  <ng-template #normalPrice>
-                    <span class="price-normal">${{d.movimientoDetallePrecioBase | number:'1.0-0'}}</span>
-                  </ng-template>
-                </div>
+        <div *ngIf="detalles.length > 0" class="cart-items-wrapper">
+          <!-- ... (Tus productos con el ngFor quedan exactamente igual aquí) ... -->
+          <div *ngFor="let d of detalles" class="cart-item-row-modern">
+            <div class="item-name-col">
+              <strong class="item-name">{{d.productoNombre}}</strong>
+              <div class="item-prices">
+                <ng-container *ngIf="d.movimientoDetalleDescuentoAplicado > 0; else normalPrice">
+                  <span class="price-strike">${{d.movimientoDetallePrecioBase | number:'1.0-0'}}</span>
+                  <span class="price-discount">${{d.movimientoDetallePrecioUnitario | number:'1.0-0'}} (Desc.)</span>
+                </ng-container>
+                <ng-template #normalPrice>
+                  <span class="price-normal">${{d.movimientoDetallePrecioBase | number:'1.0-0'}} c/u</span>
+                </ng-template>
               </div>
-
-              <div class="item-controls">
-                <div class="qty-controls">
-                  <button mat-mini-fab color="primary" class="qty-btn" style="transform: scale(0.8);" (click)="disminuirDetalle(d)">-</button>
-                  <span class="qty-text">{{d.movimientoDetalleCantidad}}</span>
-                  <button mat-mini-fab color="primary" class="qty-btn" style="transform: scale(0.8);" (click)="aumentarDetalle(d)">+</button>
-                </div>
-                
-                <strong class="item-total">${{d.movimientoDetallePrecioTotal | number:'1.0-0'}}</strong>
-
-                <button mat-icon-button color="warn" (click)="eliminarDetalle(d)" title="Quitar producto">❌</button>
+            </div>
+            <div class="item-qty-col">
+              <div class="qty-controls">
+                <button class="qty-btn" (click)="disminuirDetalle(d)">-</button>
+                <span class="qty-text">{{d.movimientoDetalleCantidad}}</span>
+                <button class="qty-btn" (click)="aumentarDetalle(d)">+</button>
               </div>
-
             </div>
-          </mat-card>
-
-          <!-- TOTALES CARRITO -->
-          <mat-card class="totals-card">
-            <div class="totals-row">
-              <span>Subtotal:</span>
-              <span>${{total | number:'1.0-0'}}</span>
+            <div class="item-total-col">
+              <strong class="item-total">${{d.movimientoDetallePrecioTotal | number:'1.0-0'}}</strong>
             </div>
-            <div class="totals-row">
-              <span>IVA ({{ivaPct}}%):</span>
-              <span>${{iva | number:'1.0-0'}}</span>
+            <div class="item-action-col">
+              <button class="btn-icon delete" (click)="eliminarDetalle(d)">
+                <mat-icon>delete</mat-icon>
+              </button>
             </div>
-            
-            <hr class="totals-divider">
-            
-            <div class="final-total-row">
-              <h2 class="final-total-label">Total a Pagar:</h2>
-              <h1 class="final-total-value">${{totalFinal | number:'1.0-0'}}</h1>
-            </div>
-
-            <button mat-raised-button color="primary" class="btn-pay" (click)="irACheckout()">
-              IR A PAGAR ➡
-            </button>
-          </mat-card>
-
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- BARRA INFERIOR DE PAGO -->
+    <div class="bottom-payment-bar">
+      <div class="payment-summary-data">
+        <div class="summary-item">
+          <span>Subtotal</span>
+          <strong>${{total | number:'1.0-0'}}</strong>
+        </div>
+        <div class="summary-item">
+          <span>IVA ({{ivaPct}}%)</span>
+          <strong>${{iva | number:'1.0-0'}}</strong>
+        </div>
+        <div class="summary-total-massive">
+          <span>Total a Pagar</span>
+          <h1>${{totalFinal | number:'1.0-0'}}</h1>
+        </div>
+      </div>
+      <button class="btn-pay-massive" (click)="irACheckout()" [disabled]="detalles.length === 0">
+        PAGAR <mat-icon>arrow_forward_ios</mat-icon>
+      </button>
+    </div>
+
   </div>
 
   <!-- ======================================================= -->
@@ -114,7 +113,6 @@
   <!-- ======================================================= -->
   <div *ngIf="estadoCaja === 'CHECKOUT'" class="centered-view">
     <mat-card class="checkout-card">
-      
       <span class="checkout-subtitle">Total de la Venta</span>
       <h1 class="checkout-total">${{totalFinal | number:'1.0-0'}}</h1>
       
@@ -125,18 +123,17 @@
       <p class="checkout-question">¿Cómo desea pagar?</p>
 
       <div class="payment-buttons">
-        <button mat-raised-button class="btn-efectivo" (click)="seleccionarEfectivo()">
-          💵 EFECTIVO
+        <button class="btn-pago btn-efectivo" (click)="seleccionarEfectivo()">
+          <span class="icon">💵</span> EFECTIVO
         </button>
-        <button mat-raised-button class="btn-tarjeta" (click)="seleccionarTarjeta()">
-          💳 TARJETA (TRANSBANK)
+        <button class="btn-pago btn-tarjeta" (click)="seleccionarTarjeta()">
+          <span class="icon">💳</span> TARJETA (TRANSBANK)
         </button>
       </div>
 
       <button mat-button class="btn-volver" (click)="volverAEscanear()">
         ⬅ Volver al carrito / Seguir escaneando
       </button>
-
     </mat-card>
   </div>
 
@@ -187,7 +184,6 @@
   <!-- ======================================================= -->
   <div *ngIf="estadoCaja === 'TARJETA'" class="centered-view">
     <mat-card class="checkout-card">
-      
       <div><h1 class="card-icon">💳</h1></div>
       <h2 class="card-title">Cobrando ${{totalFinal | number:'1.0-0'}}</h2>
       <p class="card-instructions">Siga las instrucciones en el terminal (POS)...</p>
@@ -207,7 +203,6 @@
       <button mat-button class="btn-cancel-full" (click)="cancelarPago()">
         Cancelar Operación
       </button>
-
     </mat-card>
   </div>
 
@@ -216,7 +211,6 @@
   <!-- ======================================================= -->
   <div *ngIf="estadoCaja === 'BOLETA'" class="centered-view">
     <mat-card class="boleta-card">
-      
       <h1 class="success-icon">✅</h1>
       <h2 class="success-title">¡Venta Exitosa!</h2>
       <p class="success-desc">El inventario ha sido actualizado correctamente.</p>
@@ -233,11 +227,10 @@
         <button mat-raised-button class="btn-print" (click)="imprimirBoletaFisica()">
           🖨️ IMPRIMIR
         </button>
-        <button mat-raised-button color="primary" class="btn-new" (click)="nuevaVenta()">
+        <button mat-raised-button color="primary" class="btn-new-sale" (click)="nuevaVenta()">
           ✨ NUEVA VENTA
         </button>
       </div>
-
     </mat-card>
   </div>
 

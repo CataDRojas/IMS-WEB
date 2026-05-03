@@ -44,20 +44,22 @@
 
   .header-actions-container {
     width: 100%;
-    display: flex;
-    justify-content: center;
   }
 
   .actions-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Obliga a crear 2 columnas idénticas */
+    gap: 10px;
     width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
   }
 
   /* Ajuste de botones en móvil */
-  .btn-base {
-    padding: 10px 14px !important;
-    font-size: 0.85rem;
+  .actions-group .btn-base {
+    width: 100%;
+    justify-content: center; /* Centra el icono y el texto en el botón */
+    padding: 12px 5px !important; /* Botones un poco más altos para el dedo */
+    font-size: 0.8rem; /* Letra un pelín más pequeña para que todo quepa bien */
+    box-sizing: border-box;
   }
 }
 
@@ -118,6 +120,16 @@
 .btn-new:hover {
   background-color: #2563eb;
   transform: translateY(-2px);
+}
+
+/* Botón de Filtros */
+.btn-filter {
+  background-color: #f8fafc;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+.btn-filter:hover {
+  background-color: #e2e8f0;
 }
 
 /* VISTA MÓVIL */
@@ -434,6 +446,184 @@ tr:hover td {
   font-size: 1.5rem;
   color: #94a3b8;
   cursor: pointer;
+}
+
+/* =========================================
+   PANEL DE FILTROS ELEGANTE
+========================================= */
+.filter-panel {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px;
+}
+
+/* GRUPOS DE INPUT/SELECT */
+.filter-group {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+}
+
+.filter-group input,
+.filter-group select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #334155;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+/* Icono de búsqueda dentro del input */
+.filter-search input {
+  padding-left: 40px; /* Hacemos espacio para la lupa */
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 20px;
+  pointer-events: none; /* Para que no bloquee el click al input */
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* FILA DE ACCIONES (SWITCH + LIMPIAR) */
+.filter-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 250px;
+  justify-content: space-between;
+}
+
+/* SWITCH MINI PARA STOCK CRÍTICO */
+.modern-switch-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  padding: 8px 12px;
+  background: #fff1f2; /* Fondo rojizo suave por ser alerta */
+  border-radius: 10px;
+  border: 1px solid #ffe4e6;
+  transition: background 0.2s;
+}
+
+.modern-switch-container:hover {
+  background: #ffe4e6;
+}
+
+.switch-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #e11d48;
+}
+
+.modern-switch-mini {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+}
+
+.modern-switch-mini input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.modern-switch-mini .slider-mini {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #cbd5e1;
+  transition: .3s;
+}
+
+.modern-switch-mini .slider-mini:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+.modern-switch-mini .slider-mini.round { border-radius: 34px; }
+
+/* Cuando está activo (Rojo crítico) */
+.modern-switch-mini input:checked + .slider-mini {
+  background-color: #ef4444; 
+}
+
+.modern-switch-mini input:checked + .slider-mini:before {
+  transform: translateX(18px);
+}
+
+/* BOTÓN LIMPIAR */
+.btn-clear-filters {
+  background-color: transparent;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-filters:hover {
+  background-color: #f1f5f9;
+  color: #334155;
+  border-style: solid;
+}
+
+/* RESPONSIVE MÓVIL */
+@media (max-width: 768px) {
+  .filter-actions-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .btn-clear-filters {
+    justify-content: center;
+  }
 }
 
 /* BODY & GRID */

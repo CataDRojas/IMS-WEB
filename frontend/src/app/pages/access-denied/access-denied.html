@@ -1,4 +1,11 @@
-<h1>Access denied</h1>
-<p>You don’t have permission to access this page.</p>
-
-<button (click)="goHome()">Go home</button>
+<div class="error-page-container">
+  <div class="error-content">
+    <div class="error-icon">🚫</div>
+    <h1 class="error-title">Acceso Denegado</h1>
+    <p class="error-message">No tienes los permisos necesarios para acceder a este módulo del sistema.</p>
+    
+    <button mat-raised-button class="btn-home" (click)="goHome()">
+      <mat-icon>home</mat-icon> Volver al Inicio
+    </button>
+  </div>
+</div>

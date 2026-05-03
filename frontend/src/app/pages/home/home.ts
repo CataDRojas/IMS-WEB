@@ -4,12 +4,16 @@ import { RouterLink } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Auth } from '../../services/auth';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog';
+
 
 //Angular material
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+
 
 @Component({
   selector: 'app-home',
@@ -28,7 +32,7 @@ export class Home {
   rolUsuario = localStorage.getItem('rol_ims') ?? 'Invitado';
   permisosUsuario: string[] = [];
 
-  constructor(private auth: Auth) {
+  constructor(private auth: Auth, private dialog: MatDialog) {
     const stored = localStorage.getItem('permisos_ims');
 
     try {
@@ -43,8 +47,22 @@ export class Home {
   }
 
   logout() {
-    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-      this.auth.logout();
-    }
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        titulo: 'Cerrar Sesión',
+        mensaje: '¿Estás seguro que deseas cerrar sesión y salir del sistema?',
+        textoConfirmar: 'Sí, cerrar sesión',
+        colorBoton: '#ef4444', // Rojo 
+        icono: 'logout',
+        colorIcono: '#ef4444'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(resultado => {
+      if (resultado) {
+        this.auth.logout();
+      }
+    });
   }
 }

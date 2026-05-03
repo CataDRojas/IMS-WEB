@@ -5,10 +5,10 @@
   margin: 0 auto;
 }
 
-/* DISEÑO PARA ESCRITORIO (Default) */
+/* DISEÑO PARA ESCRITORIO */
 .header-section {
   display: flex;
-  justify-content: space-between; /* Título a la izquierda, botones a la derecha */
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
   gap: 20px;
@@ -67,7 +67,6 @@
   }
   */
 }
-
 
 /* --- ESTILOS COMPARTIDOS BOTONES EDITAR Y ELIMINAR--- */
 .mobile-actions button,
@@ -155,8 +154,8 @@
 }
 
 .btn-new {
-  background-color: #3b82f6; 
-  color: white; 
+  background-color: #3b82f6;
+  color: white;
   box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 .btn-new:hover {
@@ -164,17 +163,30 @@
   transform: translateY(-2px);
 }
 
-/* BADGES */
+/* =========================================
+   BADGES (ETIQUETAS)
+========================================= */
 .badge {
   padding: 4px 12px;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
+  
+  /* Magia de truncamiento: */
+  display: inline-block; 
+  max-width: 100%; /* Tomará hasta donde su contenedor padre lo deje */
+  box-sizing: border-box; /* Para que el padding no rompa el ancho */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
 }
+
 .badge-info {
   background: #e0f2fe;
   color: #0369a1;
 }
+
 .text-muted {
   color: #94a3b8;
   font-style: italic;
@@ -356,14 +368,57 @@ select:focus {
   color: #15803d;
 }
 
-/* HEADER ACORDEÓN FIX */
-::ng-deep .mat-content {
-  justify-content: space-between !important;
-  align-items: center;
+/* =========================================
+   HEADER ACORDEÓN FIX (ALINEACIÓN PERFECTA)
+========================================= */
+::ng-deep .mat-expansion-panel {
+  margin-bottom: 12px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden;
 }
+
+::ng-deep .mat-expansion-panel-header {
+  padding: 16px 20px !important;
+  height: auto !important;
+}
+
+/* El contenedor interno */
+::ng-deep .mat-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-right: 8px !important;
+  gap: 15px !important; /* Espacio obligatorio entre título y badge */
+  overflow: hidden !important; /* CRÍTICO: evita desbordamientos */
+}
+
+/* TÍTULO: Le permitimos crecer, pero obligamos a que se pueda encoger */
+::ng-deep .mat-expansion-panel-header-title {
+  flex: 1 1 auto !important; 
+  min-width: 0 !important; /* 🔥 LA MAGIA: Obliga a Flexbox a cortar el texto largo */
+  margin-right: 0 !important;
+}
+
+/* DESCRIPCIÓN (BADGE): Le damos máximo la mitad de la pantalla */
+::ng-deep .mat-expansion-panel-header-description {
+  flex: 0 0 auto !important; /* No crece, se ajusta a su contenido */
+  max-width: 50% !important; /* Límite para que no aplaste al título */
+  margin-right: 0 !important;
+  justify-content: flex-end !important;
+}
+
+/* El texto de la categoría */
 .product-title {
   font-weight: 700;
   color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 !important;
+  display: block; /* Necesario para que funcione el corte de texto */
 }
 
 /* Botones de acción en tabla (Iconos) */
@@ -402,7 +457,7 @@ select:focus {
   margin-top: 24px;
   padding: 16px;
   background: #f0f9ff;
-  border: 1px solid #bae6fd;;
+  border: 1px solid #bae6fd;
   border-radius: 12px;
 }
 
@@ -410,7 +465,7 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #0369a1;;
+  color: #0369a1;
   font-weight: 700;
   margin-bottom: 4px;
 }

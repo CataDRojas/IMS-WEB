@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Location } from '@angular/common';
+import { MatIcon } from '@angular/material/icon';
 
 import { PagoTarjeta } from '../../services/pago-tarjeta';
 import { VentasService } from '../../services/ventas/ventas';
@@ -28,7 +29,8 @@ import { ApiError } from '../../core/errors/api-error';
     MatButtonModule,
     MatCardModule,
     MatToolbarModule,
-    BoletaPrintComponent
+    BoletaPrintComponent,
+    MatIcon
   ],
   templateUrl: './ventas.html',
   styleUrls: ['./ventas.css']

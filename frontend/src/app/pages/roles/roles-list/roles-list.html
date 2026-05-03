@@ -18,9 +18,6 @@
       <mat-expansion-panel *ngFor="let rol of roles">
         <mat-expansion-panel-header>
           <mat-panel-title class="product-title">{{ rol.rolNombre }}</mat-panel-title>
-          <mat-panel-description>
-            ID: {{ rol.rolId }}
-          </mat-panel-description>
         </mat-expansion-panel-header>
 
         <div class="product-details-grid">
@@ -50,7 +47,6 @@
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>Nombre del Rol</th>
           <th>Permisos Principales</th>
           <th>Acciones</th>
@@ -58,7 +54,6 @@
       </thead>
       <tbody>
         <tr *ngFor="let rol of roles">
-          <td>#{{ rol.rolId }}</td>
           <td><strong>{{ rol.rolNombre }}</strong></td>
           <td>
             <div class="tags-truncated">

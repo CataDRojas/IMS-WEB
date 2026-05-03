@@ -1,103 +1,236 @@
-/* =========================
-   CARD LAYOUT
-========================= */
-.config-form-card,
-.config-view-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+/* =========================================
+   CONTENEDOR PRINCIPAL
+========================================= */
+.config-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-/* =========================
-   FORM GROUPS (UNIFIED FEEL)
-========================= */
+/* =========================================
+   CABECERA (HEADER)
+========================================= */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.header-title-container h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+}
+
+.actions-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* Botones Cabecera */
+.btn-edit {
+  background-color: #3b82f6 !important; /* Azul llamativo */
+  color: white !important;
+  border-radius: 8px !important;
+  height: 42px;
+  padding: 0 20px !important;
+  font-weight: bold;
+}
+
+.btn-volver {
+  color: #64748b !important;
+  border-color: #cbd5e1 !important;
+  border-radius: 8px !important;
+  height: 42px;
+}
+
+/* =========================================
+   TARJETA DEL FORMULARIO
+========================================= */
+.config-form-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-bottom: 25px;
+}
+
+.vertical-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-/* label styling */
-.form-group label,
-.config-row label {
-  font-size: 12px;
-  color: #666;
+.form-group label {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.95rem;
 }
 
-/* =========================
-   INPUTS (CLEAN + CONSISTENT)
-========================= */
-.vertical-form input {
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  padding: 10px 12px;
+/* Ajuste sutil al tamaño de los íconos del label */
+.form-group label mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #94a3b8;
+}
+
+.form-group input {
   width: 100%;
+  height: 48px;
+  padding: 12px 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  box-sizing: border-box;
+  transition: all 0.2s ease-in-out;
+  color: #334155;
+  font-family: inherit;
+}
+
+/* Efecto al hacer clic en el input */
+.form-group input:focus:not(.is-readonly) {
   outline: none;
-  transition: all 0.2s ease;
-  background: #fff;
+  border-color: #52b3ac; /* Tu verde característico */
+  box-shadow: 0 0 0 3px rgba(82, 179, 172, 0.15);
 }
 
-/* readonly look (important for unified UX) */
-.vertical-form input[readonly] {
-  background: #f6f7f9;
-  color: #555;
-  cursor: default;
+/* MODO SOLO LECTURA (Cuando el botón editar no se ha presionado) */
+.is-readonly {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
 }
 
-/* focus state only when editable */
-.vertical-form input:not([readonly]):focus {
-  border-color: #1e88e5;
-  box-shadow: 0 0 0 2px rgba(30,136,229,0.15);
+.is-readonly:focus {
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
 }
 
-/* =========================
-   SPLIT ROWS (RUN / DV)
-========================= */
-.split {
+/* Columnas divididas (Para el RUN y el DV) */
+.form-group-split {
+  display: grid;
+  grid-template-columns: 3fr 1fr; /* El RUN ocupa 3 partes, el DV 1 parte */
+  gap: 15px;
+}
+
+/* Mensajes de Error */
+.field-error {
+  color: #ef4444;
+  font-size: 0.85rem;
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
-.split > div {
-  flex: 1;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-.btn-cancel {
-  background: #e53935;
-  color: white;
-}
-
-.btn-save {
-  background: #1e88e5;
-  color: white;
+/* --- BOTONES BASE --- */
+.btn-base {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
 }
 
 .btn-edit {
-  background: #1e88e5;
+  background-color: #3b82f6;
   color: white;
-  border-radius: 10px;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
 }
 
-/* =========================
-   ERROR (FIELD LEVEL, NOT GLOBAL)
-========================= */
-.field-error {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #b00020;
+.btn-edit:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px -2px rgba(59, 130, 246, 0.4);
 }
 
-/* optional subtle emphasis */
-.field-error span {
-  display: block;
+/* =========================================
+   BOTONES DE ACCIÓN (GUARDAR / CANCELAR)
+========================================= */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.btn-cancel {
+  color: #64748b !important;
+  font-weight: bold !important;
+  border-radius: 8px !important;
+  height: 48px;
+  padding: 0 25px !important;
+  background-color: #f1f5f9 !important;
+}
+
+.btn-save {
+  background-color: #3b82f6 !important; /* Verde Esmeralda */
+  color: white !important;
+  font-weight: bold !important;
+  border-radius: 8px !important;
+  height: 48px;
+  padding: 0 25px !important;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-save:disabled {
+  background-color: #9ca3af !important;
+  color: #f3f4f6 !important;
+}
+
+/* =========================================
+   RESPONSIVIDAD MÓVIL
+========================================= */
+@media (max-width: 600px) {
+  .header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  .actions-group {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .header-title-container h2 {
+    font-size: 1.5rem;
+  }
+  
+  .btn-volver {
+    flex: 1;
+  }
+
+  .form-group-split {
+    grid-template-columns: 2fr 1fr; /* Le da un poco más de aire al DV en móvil */
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel, .btn-save {
+    width: 100%;
+  }
 }

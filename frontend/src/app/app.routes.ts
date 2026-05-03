@@ -13,12 +13,12 @@ import { NotFound } from "./pages/not-found/not-found";
 import { AccessDenied } from "./pages/access-denied/access-denied";
 import { CategoriasComponent } from "./pages/categorias/categorias";
 import { ProductosComponent } from "./pages/productos/productos";
+import { VentasHistorial } from "./pages/ventas/ventas-historial/ventas-historial";
 import { DescuentosListComponent } from "./pages/descuentos/descuentos-list/descuentos-list";
 import { InventarioForm } from "./pages/inventario/inventario-form/inventario-form";
 import { RecepcionForm } from "./pages/recepcion/recepcion-form/recepcion-form";
 import { LugaresComponent } from "./pages/lugares/lugares-list/lugares-list";
 import { ConfiguracionSistema } from "./pages/configuracion-sistema/configuracion-sistema";
-import { VentasHistorial } from "./pages/ventas/ventas-historial/ventas-historial";
 
 export const routes: Routes = [
   { path: "", redirectTo: "login", pathMatch: "full" },
