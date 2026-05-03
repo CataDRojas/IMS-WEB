@@ -13,6 +13,8 @@ import com.ims_web.inventory.service.ProductoService;
 import com.ims_web.inventory.service.MovimientoLugarService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.ims_web.inventory.entity.Categoria;
+import com.ims_web.inventory.service.CategoriaService;
 
 import java.util.List;
 
@@ -25,20 +27,22 @@ public class MovimientoDetalleController {
     private final DescuentoService descuentoService;
     private final ProductoService productoService;
     private final MovimientoLugarService movimientoLugarService;
-
+    private final CategoriaService categoriaService;
 
     public MovimientoDetalleController(
             MovimientoDetalleService service,
             ConfiguracionService configuracionService,
             DescuentoService descuentoService,
             ProductoService productoService,
-            MovimientoLugarService movimientoLugarService
+            MovimientoLugarService movimientoLugarService,
+            CategoriaService categoriaService
     ) {
         this.service = service;
         this.configuracionService = configuracionService;
         this.descuentoService = descuentoService;
         this.productoService = productoService;
         this.movimientoLugarService = movimientoLugarService;
+        this.categoriaService = categoriaService;
     }
 
     // =========================
@@ -161,4 +165,21 @@ public class MovimientoDetalleController {
     public MovimientoLugar getMovimientoLugarById(@PathVariable Long id) {
         return movimientoLugarService.getById(id);
     }
+    // =========================
+    // CATEGORIAS (READ BRIDGE)
+    // =========================
+
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @GetMapping("/categorias")
+    public List<Categoria> getCategorias() {
+        return categoriaService.getAll();
+    }
+
+    @PreAuthorize("hasAnyAuthority('VENTA_READ', 'INVENTARIO_READ')")
+    @GetMapping("/categorias/{id}")
+    public Categoria getCategoriaById(@PathVariable Long id) {
+        return categoriaService.getById(id);
+    }
+
+
 }

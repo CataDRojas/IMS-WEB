@@ -221,39 +221,34 @@ editarProducto(prod: any): void {
 
   if (!prod.productoId) return;
 
-  const base = this.productosBase.find(p => p.productoId === prod.productoId);
+  this.productoService.obtenerProductoPorId(prod.productoId).subscribe({
+    next: (base) => {
 
-  if (!base) {
-    this.mensajeError = 'Producto no encontrado.';
-    return;
-  }
+      // resolve categoriaId
+      let categoriaId = null;
+      if (base.categoria?.categoriaId) {
+        categoriaId = base.categoria.categoriaId;
+      }
 
-  // resolve categoriaId
-  let categoriaId = null;
-  if (base.categoriaNombre) {
-    const cat = this.categorias.find(c => c.categoriaNombre === base.categoriaNombre);
-    if (cat) {
-      categoriaId = cat.categoriaId;
+      // resolve descuentoId (ONLY real product discount)
+      let descuentoId = null;
+      if (base.descuento?.descuentoId) {
+        descuentoId = base.descuento.descuentoId;
+      }
+
+      this.productoActual = {
+        ...base,
+        categoriaId: categoriaId,
+        descuentoId: descuentoId
+      };
+
+      this.mensajeError = '';
+      this.mostrarFormulario = true;
+    },
+    error: () => {
+      this.mensajeError = 'Producto no encontrado.';
     }
-  }
-
-  // resolve descuentoId
-  let descuentoId = null;
-  if (base.descuentoNombre) {
-    const desc = this.descuentos.find(d => d.descuentoNombre === base.descuentoNombre);
-    if (desc) {
-      descuentoId = desc.descuentoId;
-    }
-  }
-
-  this.productoActual = {
-    ...base,
-    categoriaId: categoriaId,
-    descuentoId: descuentoId
-  };
-
-  this.mensajeError = '';
-  this.mostrarFormulario = true;
+  });
 }
 
   cancelar(): void {
