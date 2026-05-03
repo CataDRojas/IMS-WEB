@@ -29,7 +29,7 @@
       [disabled]="cargando"
     >
       <option value="">Todos los tipos</option>
-      <option *ngFor="let t of tiposDisponibles()" [value]="t">
+      <option *ngFor="let t of tiposFiltrados" [value]="t">
         {{getTipoLabel(t)}}
       </option>
     </select>

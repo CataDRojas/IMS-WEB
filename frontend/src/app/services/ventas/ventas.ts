@@ -135,6 +135,18 @@ getMovimientosPaginados(filtros: {
     return this.http.delete(`${this.baseDetalles}/${id}`);
   }
 
+// =========================
+// CATEGORIAS
+// =========================
+
+getCategorias(): Observable<any[]> {
+  return this.http.get<any[]>(`${this.baseDetalles}/categorias`);
+}
+
+getCategoriaById(id: number): Observable<any> {
+  return this.http.get(`${this.baseDetalles}/categorias/${id}`);
+}
+
   // =========================
   // BATCH (OK)
   // =========================

@@ -49,7 +49,8 @@ export class VentasForm implements OnInit, AfterViewInit {
   config: any = null;
   productoEncontrado: any = null;
   detalles: any[] = [];
-
+  categorias: any[] = [];
+  
   total = 0;
   iva = 0;
   totalFinal = 0;
@@ -78,9 +79,14 @@ export class VentasForm implements OnInit, AfterViewInit {
     private boletaService: BoletaService
   ) {}
 
-  ngOnInit() {
-    this.cargarConfiguracion();
-  }
+ngOnInit() {
+  this.cargarConfiguracion();
+
+  this.ventasService.getCategorias().subscribe({
+    next: (cats) => this.categorias = cats,
+    error: () => this.categorias = []
+  });
+}
 
   // 🔥 Encendemos la cámara automáticamente apenas carga la pantalla
   ngAfterViewInit() {
@@ -104,6 +110,19 @@ export class VentasForm implements OnInit, AfterViewInit {
     });
   }
 
+private resolverDescuento(producto: any): any {
+  // 1. Producto
+  if (producto?.descuento) {
+    return producto.descuento;
+  }
+
+  // 2. Categoría (direct object, no lookup)
+  if (producto?.categoria?.descuento) {
+    return producto.categoria.descuento;
+  }
+
+  return null;
+}
   // =========================
   // CAMERA CONTINUA
   // =========================
@@ -157,6 +176,7 @@ export class VentasForm implements OnInit, AfterViewInit {
       next: (prod: any) => {
         this.productoEncontrado = prod;
         this.cantidad = 1;
+        console.log('PRODUCTO:', prod);
         this.agregarProductoLocal(); // Lo agregamos automático al carrito
       },
       error: (err) => {
@@ -195,7 +215,7 @@ export class VentasForm implements OnInit, AfterViewInit {
     
     const base = this.productoEncontrado.productoPrecio;
     const qty = this.cantidad;
-    const desc = this.productoEncontrado?.descuento;
+    const desc = this.resolverDescuento(this.productoEncontrado);
     const descuentoTotal = this.simularDescuento(base, qty, desc);
     
     const existing = this.detalles.find(d => d.productoId === this.productoEncontrado.productoId);

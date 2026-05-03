@@ -37,7 +37,7 @@ export class VentasHistorial implements OnInit, OnDestroy {
   private usuarioChange$ = new Subject<string>();
   private usuarioSub?: Subscription;
   private isLoadingRequest = false;
-
+  tiposFiltrados: string[] = [];
   permisos: string[] = [];
 
   constructor(
@@ -46,16 +46,18 @@ export class VentasHistorial implements OnInit, OnDestroy {
     private location: Location
   ) {}
 
-  ngOnInit() {
-    const permisosRaw = localStorage.getItem('permisos_ims');
-    this.permisos = permisosRaw ? JSON.parse(permisosRaw) : [];
+ngOnInit() {
+  const permisosRaw = localStorage.getItem('permisos_ims');
+  this.permisos = permisosRaw ? JSON.parse(permisosRaw) : [];
 
-    this.usuarioSub = this.usuarioChange$
-      .pipe(debounceTime(400))
-      .subscribe(() => this.aplicarFiltros());
+  this.tiposFiltrados = this.tiposDisponibles();
 
-    this.cargarMovimientos();
-  }
+  this.usuarioSub = this.usuarioChange$
+    .pipe(debounceTime(400))
+    .subscribe(() => this.aplicarFiltros());
+
+  this.cargarMovimientos();
+}
 
   ngOnDestroy() { this.usuarioSub?.unsubscribe(); }
 
@@ -63,17 +65,20 @@ export class VentasHistorial implements OnInit, OnDestroy {
     return this.permisos.includes(p);
   }
 
-  tiposDisponibles(): string[] {
-    const tipos: string[] = [];
-    if (this.tienePermiso('VENTA_READ') || this.tienePermiso('VENTA_MANAGE')) {
-      tipos.push('SALIDA');
-    }
-    if (this.tienePermiso('INVENTARIO_READ') || this.tienePermiso('INVENTARIO_MANAGE')) {
-      tipos.push('ENTRADA');
-      tipos.push('AJUSTE');
-    }
-    return tipos;
+tiposDisponibles(): string[] {
+  const tipos = new Set<string>();
+
+  if (this.tienePermiso('VENTA_READ') || this.tienePermiso('VENTA_MANAGE')) {
+    tipos.add('SALIDA');
   }
+
+  if (this.tienePermiso('INVENTARIO_READ') || this.tienePermiso('INVENTARIO_MANAGE')) {
+    tipos.add('ENTRADA');
+    tipos.add('AJUSTE');
+  }
+
+  return Array.from(tipos);
+}
 
   getTipoLabel(tipo: string): string {
     switch (tipo) {
