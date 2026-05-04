@@ -58,7 +58,7 @@
               <div class="item-prices">
                 <ng-container *ngIf="d.movimientoDetalleDescuentoAplicado > 0; else normalPrice">
                   <span class="price-strike">${{d.movimientoDetallePrecioBase | number:'1.0-0'}}</span>
-                  <span class="price-discount">${{d.movimientoDetallePrecioUnitario | number:'1.0-0'}} (Desc.)</span>
+                  <span class="price-discount">${{d.movimientoDetallePrecioUnitario | number:'1.0-0'}}</span>
                 </ng-container>
                 <ng-template #normalPrice>
                   <span class="price-normal">${{d.movimientoDetallePrecioBase | number:'1.0-0'}} c/u</span>

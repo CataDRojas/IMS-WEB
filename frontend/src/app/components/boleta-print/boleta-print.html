@@ -1,39 +1,52 @@
-<div class="boleta">
+<div class="ticket">
+  
+  <div class="text-center">
+    <h2>{{boleta.empresa?.nombre || 'EMPRESA'}}</h2>
+    <p>RUT: {{boleta.empresa?.rut || '-'}}</p>
+    <p>{{boleta.empresa?.direccion || ''}}</p>
+  </div>
 
-  <h3>{{boleta.empresa.nombre}}</h3>
-  <div>RUT: {{getRut()}}</div>
-  <div>{{boleta.empresa.direccion}}</div>
+  <hr class="dashed">
 
-  <hr>
+  <div class="header-info">
+    <p><strong>Folio:</strong> {{boleta.folio}}</p>
+    <!-- Si tienes problemas con el pipe date, puedes dejar la interpolación normal -->
+    <p><strong>Fecha:</strong> {{ boleta.fecha | date:'dd/MM/yyyy HH:mm' }}</p>
+  </div>
 
-  <div>Folio: {{boleta.folio}}</div>
-  <div>Fecha: {{formatFecha(boleta.fecha)}}</div>
+  <hr class="dashed">
 
-  <hr>
-
-  <div *ngFor="let item of boleta.items" class="item">
-    <div>{{item.nombre}}</div>
-    <div>{{item.cantidad}} x {{item.precioUnitario | number:'1.0-0'}}</div>
-    <div *ngIf="item.descuento > 0">
-      Desc: -{{item.descuento | number:'1.0-0'}}
-    </div>
-    <div class="total-item">
-      {{item.total | number:'1.0-0'}}
+  <div class="items-list">
+    <div *ngFor="let item of boleta.items" class="item-row">
+      <div class="item-name">
+        {{item.nombre}} <br>
+        <span class="item-qty-price">{{item.cantidad}} x ${{item.precioUnitario | number:'1.0-0'}}</span>
+        <span *ngIf="item.descuento > 0" class="item-qty-price"><br>Desc: -${{item.descuento | number:'1.0-0'}}</span>
+      </div>
+      <div class="item-total">${{item.total | number:'1.0-0'}}</div>
     </div>
   </div>
 
-  <hr>
+  <hr class="dashed">
 
-  <div>Subtotal: {{boleta.subtotal | number:'1.0-0'}}</div>
-
-  <div *ngIf="boleta.descuentoGlobal > 0">
-    Descuento: -{{boleta.descuentoGlobal | number:'1.0-0'}}
+  <div class="totals-wrapper">
+    <div class="total-row"><span>Subtotal:</span> <span>${{boleta.subtotal | number:'1.0-0'}}</span></div>
+    <div *ngIf="boleta.descuentoGlobal > 0" class="total-row"><span>Descuento:</span> <span>-${{boleta.descuentoGlobal | number:'1.0-0'}}</span></div>
+    <div class="total-row"><span>IVA:</span> <span>${{boleta.iva | number:'1.0-0'}}</span></div>
+    
+    <div class="total-row final"><span>TOTAL:</span> <span>${{boleta.total | number:'1.0-0'}}</span></div>
   </div>
 
-  <div>IVA: {{boleta.iva | number:'1.0-0'}}</div>
+  <hr class="dashed">
 
-  <h2>Total: {{boleta.total | number:'1.0-0'}}</h2>
+  <div class="text-center">
+    <p>Método de Pago: <strong>{{boleta.metodoPago}}</strong></p>
+    <p *ngIf="boleta.vuelto > 0">Vuelto: <strong>${{boleta.vuelto | number:'1.0-0'}}</strong></p>
+  </div>
 
-  <div>Método de pago: {{boleta.metodoPago}}</div>
+  <div class="footer-msg text-center">
+    <p>¡Gracias por su compra!</p>
+    <p>Conserve esta boleta como comprobante</p>
+  </div>
 
 </div>
