@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms'; // Añadido ReactiveForms
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 
 // ANGULAR MATERIALS
 import { MatIconModule } from '@angular/material/icon';
@@ -16,7 +16,7 @@ import { DescuentosService, Descuento } from '../../../services/descuento/descue
   standalone: true,
   imports: [
     CommonModule, 
-    ReactiveFormsModule, // Necesario para el modal
+    ReactiveFormsModule,
     MatIconModule, 
     MatButtonModule, 
     MatExpansionModule, 
@@ -59,7 +59,6 @@ export class DescuentosListComponent implements OnInit {
       descuentoActivo: [true]
     });
 
-    // UX Hook para limpiar valor secundario
     this.form.get('descuentoTipo')?.valueChanges.subscribe(tipo => {
       if (tipo !== 'MULTIPLICATIVO') {
         this.form.patchValue({ descuentoValorSecundario: null });
@@ -78,7 +77,6 @@ export class DescuentosListComponent implements OnInit {
     });
   }
 
-  // Cambiamos navegación por apertura de modal
   create(): void {
     this.descuentoActualId = undefined;
     this.form.reset({ descuentoTipo: 'PORCENTAJE', descuentoActivo: true, descuentoValor: 0 });
@@ -135,7 +133,6 @@ export class DescuentosListComponent implements OnInit {
       return `$${descuento.descuentoValor}`;
     }
 
-    // Para MULTIPLICATIVO u otros
     return `x${descuento.descuentoValor}`;
   }
 

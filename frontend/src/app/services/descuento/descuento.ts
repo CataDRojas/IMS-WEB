@@ -7,8 +7,6 @@ export interface Descuento {
   descuentoNombre: string;
   descuentoTipo: 'FLAT' | 'PORCENTAJE' | 'MULTIPLICATIVO';
   descuentoValor: number;
-
-  // NEW FIELD (backend aligned)
   descuentoValorSecundario?: number;
 
   descuentoActivo: boolean;

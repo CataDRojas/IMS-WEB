@@ -2,12 +2,12 @@
 .app-layout-container {
   display: flex;
   flex-direction: column;
-  min-height: 100vh; /* Obliga a que mida al menos el alto de la pantalla */
+  min-height: 100vh;
 }
 
 /* NAVBAR*/
 .main-nav {
-  flex-shrink: 0; /* No deja que el nav se aplaste */
+  flex-shrink: 0; 
   background-color: #52b3ac;
   color: white;
   padding: 0 20px;
@@ -31,7 +31,7 @@
 
 /* CONTENIDO */
 .content-area {
-  flex: 1 0 auto; /* Crece (1), no se encoge (0), base automática */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   background-color: #EAECF0;
@@ -39,16 +39,13 @@
 
 /* FOOTER */
 .main-footer {
-  flex-shrink: 0; /* Asegura que el footer no se aplaste */
+  flex-shrink: 0; 
   background-color: #FEFEFE;
   color: #64748b;
   text-align: center;
-  /* padding: 15px; */
   border-top: 1px solid #e2e8f0;
   font-size: 0.9rem;
 }
-
-/* Ya no necesitas el min-height con calculos manuales de 120px */
 
 .btn-base {
   border: none;

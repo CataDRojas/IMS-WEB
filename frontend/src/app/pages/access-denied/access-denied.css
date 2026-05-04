@@ -5,8 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 120px); /* Descuenta tu nav/footer para quedar al centro */
-  background-color: #f1f5f9; /* Fondo gris súper claro */
+  min-height: calc(100vh - 120px);
+  background-color: #f1f5f9;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -34,7 +34,7 @@
 .error-code {
   font-size: 6rem;
   margin: 0;
-  color: #cbd5e1; /* Gris clarito para el 404 */
+  color: #cbd5e1;
   line-height: 1;
   font-weight: 900;
   letter-spacing: -2px;
@@ -59,7 +59,7 @@
    BOTÓN DE REGRESO
 ========================================= */
 .btn-home {
-  background-color: #52b3ac !important; /* Tu color corporativo */
+  background-color: #52b3ac !important;
   color: white !important;
   font-size: 1.1rem;
   padding: 0 25px !important;

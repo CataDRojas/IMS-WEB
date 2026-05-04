@@ -27,12 +27,11 @@ export class InventarioService {
 
   obtenerLugaresActivos(): Observable<any[]> {
   return this.http.get<any[]>(
-    `${this.apiDetalles}/movimiento-lugares/active`, // ← usa apiDetalles
+    `${this.apiDetalles}/movimiento-lugares/active`,
     { headers: this.getHeaders() }
   );
 }
 
-  // ✅ Solo borradores de AJUSTE
   obtenerBorradores(): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiMovimientos}/pendientes`,
@@ -44,7 +43,7 @@ export class InventarioService {
 
   guardarBorrador(nombre: string, items: any[]): Observable<any> {
     const movimiento = {
-      movimientoTipo: 'AJUSTE', // ✅ AJUSTE
+      movimientoTipo: 'AJUSTE',
       movimientoEstado: 'PENDIENTE',
       movimientoMetodoPago: null,
       movimientoDescripcion: `Inventario: ${nombre}`
@@ -77,7 +76,7 @@ export class InventarioService {
 
   finalizarInventario(nombre: string, items: any[]): Observable<any> {
     const movimiento = {
-      movimientoTipo: 'AJUSTE', // ✅ AJUSTE
+      movimientoTipo: 'AJUSTE',
       movimientoEstado: 'PENDIENTE',
       movimientoMetodoPago: null,
       movimientoDescripcion: `Inventario: ${nombre}`
@@ -123,7 +122,6 @@ export class InventarioService {
     );
   }
 
-  // ✅ Solo AJUSTE para el historial de inventario
   obtenerTodosMovimientosEntrada(): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.apiMovimientos}`,

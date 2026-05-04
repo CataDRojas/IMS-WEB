@@ -1,6 +1,6 @@
 .home-mobile-wrapper {
   padding: 20px;
-  max-width: 600px; /* Centrado en pantallas grandes, ancho total en móvil */
+  max-width: 600px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -130,13 +130,12 @@
 
 /* DISEÑO DEL MENU DE CONFIGURACION */
 
-/* Usamos ::ng-deep porque el menú vive fuera del componente en el HTML real */
 ::ng-deep .mat-mdc-menu-panel {
   border-radius: 16px !important;
   margin-top: 10px;
   min-width: 220px !important;
   background-color: rgba(255, 255, 255, 0.98) !important;
-  backdrop-filter: blur(8px); /* Efecto cristal si el fondo lo permite */
+  backdrop-filter: blur(8px);
   border: 1px solid rgba(226, 232, 240, 0.8);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
               0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
@@ -172,17 +171,12 @@
   margin-right: 12px !important;
 }
 
-/* Color base para los iconos de configuración (Azul/Verde como los de afuera) */
 ::ng-deep .menu-icon {
-  color: #52b3ac !important; /* El color turquesa que usaste en el catálogo */
+  color: #52b3ac !important; 
   margin-right: 12px !important;
-  transform: scale(1.1); /* Un pelín más grandes, pero no tanto como afuera */
+  transform: scale(1.1);
 }
 
-/* Color específico para el icono de Roles (si quieres diferenciarlo) */
-/* ::ng-deep button[routerLink="/roles"] mat-icon { color: #3b82f6 !important; } */
-
-/* Estilo para el botón de Cerrar Sesión (Rojo) */
 ::ng-deep .logout-item mat-icon {
   color: #ef4444 !important;
   margin-right: 12px !important;
@@ -193,7 +187,6 @@
   font-weight: bold !important;
 }
 
-/* Ajuste general para que los iconos del menú no se vean desalineados */
 ::ng-deep .mat-mdc-menu-item .mat-icon {
   vertical-align: middle !important;
 }

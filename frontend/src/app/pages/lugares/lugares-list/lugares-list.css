@@ -46,20 +46,18 @@
   height: auto !important;
 }
 
-/* Ajuste del contenedor interno del header */
 ::ng-deep .mat-content {
   display: flex;
-  justify-content: space-between; /* Empuja el precio a la derecha */
+  justify-content: space-between; 
   align-items: center;
   width: 100%;
-  margin-right: 15px; /* Espacio antes de la flecha del indicador */
+  margin-right: 15px; 
 }
 
-/* Quitamos el comportamiento por defecto que divide el espacio en partes iguales */
 ::ng-deep .mat-expansion-panel-header-title,
 ::ng-deep .mat-expansion-panel-header-description {
-  flex-grow: 0 !important; /* Evita que crezcan 5 veces */
-  flex-basis: auto !important; /* Que ocupen lo que mide su contenido */
+  flex-grow: 0 !important;
+  flex-basis: auto !important;
   margin-right: 0 !important;
 }
 
@@ -239,7 +237,7 @@ tr:hover td {
 /* --- BOTONES ACORDEÓN MÓVIL --- */
 .mobile-actions {
   display: flex;
-  gap: 8px; /* Reducimos un poco el gap para que quepan 3 botones */
+  gap: 8px;
   grid-column: span 2;
   margin-top: 10px;
   padding-top: 15px;
@@ -247,12 +245,12 @@ tr:hover td {
 }
 
 .mobile-actions button {
-  flex: 1; /* Todos crecen igual */
+  flex: 1;
   border: none;
-  padding: 10px; /* Reducimos padding para que quepan mejor */
+  padding: 10px; 
   border-radius: 10px;
   font-weight: 700;
-  font-size: 0.8rem; /* Texto un pelín más pequeño */
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -526,7 +524,7 @@ select[disabled] {
    DISEÑO SWITCH MODERNO (PRIORIDAD)
 ========================================= */
 .toggle-group.critical-stock-box {
-  background: #fffbeb; /* Fondo amarillento suave */
+  background: #fffbeb;
   border: 1px solid #fde68a;
   margin-top: 15px;
 }
@@ -545,7 +543,6 @@ select[disabled] {
   flex: 1;
 }
 
-/* El Interruptor (Switch) */
 .modern-switch {
   position: relative;
   display: inline-block;
@@ -583,7 +580,6 @@ select[disabled] {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Bordes redondeados */
 .modern-switch .slider.round {
   border-radius: 34px;
 }
@@ -592,9 +588,8 @@ select[disabled] {
   border-radius: 50%;
 }
 
-/* Estado Activado (Verde o Turquesa) */
 .modern-switch input:checked + .slider {
-  background-color: #10b981; /* Verde esmeralda */
+  background-color: #10b981;
 }
 
 .modern-switch input:checked + .slider:before {

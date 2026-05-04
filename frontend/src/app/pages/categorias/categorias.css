@@ -28,7 +28,7 @@
 /* --- CONFIGURACIÓN PARA MÓVIL --- */
 @media (max-width: 767px) {
   .header-section {
-    flex-direction: column; /* Apilamos: Título arriba, Botones abajo */
+    flex-direction: column;
     justify-content: center;
     text-align: center;
     gap: 15px;
@@ -45,27 +45,20 @@
   .header-actions-container {
     width: 100%;
     display: flex;
-    justify-content: center; /* Centra los botones horizontalmente */
+    justify-content: center;
   }
 
   .actions-group {
     width: 100%;
-    justify-content: center; /* Asegura que el grupo de botones esté centrado */
-    flex-wrap: wrap; /* Por si los botones son muy anchos, que bajen con gracia */
+    justify-content: center;
+    flex-wrap: wrap;
   }
 
-  /* Ajuste de botones en móvil */
   .btn-base {
     padding: 10px 14px !important;
     font-size: 0.85rem;
   }
 
-  /* Opcional: si quieres ocultar el texto en móvil para ganar espacio */
-  /*
-  .actions-group button span {
-    display: none;
-  }
-  */
 }
 
 /* --- ESTILOS COMPARTIDOS BOTONES EDITAR Y ELIMINAR--- */
@@ -117,7 +110,7 @@
 }
 
 .mobile-actions button {
-  flex: 1; /* Mitad y mitad */
+  flex: 1;
   padding: 12px;
   border-radius: 12px;
   font-weight: 700;
@@ -171,11 +164,9 @@
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: bold;
-  
-  /* Magia de truncamiento: */
   display: inline-block; 
-  max-width: 100%; /* Tomará hasta donde su contenedor padre lo deje */
-  box-sizing: border-box; /* Para que el padding no rompa el ancho */
+  max-width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -242,9 +233,9 @@ tr:hover td {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Cambiado de 100vw a 100% para evitar scroll horizontal */
+  width: 100%;
   height: 100%;
-  background: rgba(15, 23, 42, 0.6); /* Color pizarra traslúcido */
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -391,21 +382,19 @@ select:focus {
   align-items: center !important;
   width: 100% !important;
   margin-right: 8px !important;
-  gap: 15px !important; /* Espacio obligatorio entre título y badge */
-  overflow: hidden !important; /* CRÍTICO: evita desbordamientos */
+  gap: 15px !important;
+  overflow: hidden !important;
 }
 
-/* TÍTULO: Le permitimos crecer, pero obligamos a que se pueda encoger */
 ::ng-deep .mat-expansion-panel-header-title {
   flex: 1 1 auto !important; 
-  min-width: 0 !important; /* 🔥 LA MAGIA: Obliga a Flexbox a cortar el texto largo */
+  min-width: 0 !important;
   margin-right: 0 !important;
 }
 
-/* DESCRIPCIÓN (BADGE): Le damos máximo la mitad de la pantalla */
 ::ng-deep .mat-expansion-panel-header-description {
-  flex: 0 0 auto !important; /* No crece, se ajusta a su contenido */
-  max-width: 50% !important; /* Límite para que no aplaste al título */
+  flex: 0 0 auto !important;
+  max-width: 50% !important;
   margin-right: 0 !important;
   justify-content: flex-end !important;
 }
@@ -418,7 +407,7 @@ select:focus {
   text-overflow: ellipsis;
   white-space: nowrap;
   margin: 0 !important;
-  display: block; /* Necesario para que funcione el corte de texto */
+  display: block;
 }
 
 /* Botones de acción en tabla (Iconos) */
@@ -499,19 +488,19 @@ select:focus {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
-  flex: 1; /* En móvil, ambos botones miden lo mismo */
+  flex: 1;
 }
 
 /* Botón Cancelar */
 .btn-modal-cancel {
-  background-color: #f1f5f9; /* Un gris muy claro tirado a azul */
-  color: #64748b; /* Texto en un gris medio para que sea legible */
-  border: 1px solid #e2e8f0; /* Un borde sutil para darle forma */
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
 }
 
 .btn-modal-cancel:hover {
   background-color: #e2e8f0;
-  color: #1e293b; /* El texto se oscurece al pasar el mouse */
+  color: #1e293b;
 }
 
 /* Botón Guardar / Actualizar */
@@ -537,7 +526,7 @@ select:focus {
 .btn-modal:active {
   transform: scale(0.96);
 }
-/* Limitar ancho de botones en escritorio para que no se vean gigantes */
+
 @media (min-width: 601px) {
   .btn-modal {
     flex: none;

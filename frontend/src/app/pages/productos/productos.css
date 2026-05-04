@@ -48,7 +48,7 @@
 
   .actions-group {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Obliga a crear 2 columnas idénticas */
+    grid-template-columns: 1fr 1fr; 
     gap: 10px;
     width: 100%;
   }
@@ -56,9 +56,9 @@
   /* Ajuste de botones en móvil */
   .actions-group .btn-base {
     width: 100%;
-    justify-content: center; /* Centra el icono y el texto en el botón */
-    padding: 12px 5px !important; /* Botones un poco más altos para el dedo */
-    font-size: 0.8rem; /* Letra un pelín más pequeña para que todo quepa bien */
+    justify-content: center;
+    padding: 12px 5px !important;
+    font-size: 0.8rem; 
     box-sizing: border-box;
   }
 }
@@ -122,7 +122,6 @@
   transform: translateY(-2px);
 }
 
-/* Botón de Filtros */
 .btn-filter {
   background-color: #f8fafc;
   color: #334155;
@@ -504,7 +503,7 @@ tr:hover td {
   transform: translateY(-50%);
   color: #94a3b8;
   font-size: 20px;
-  pointer-events: none; /* Para que no bloquee el click al input */
+  pointer-events: none;
 }
 
 .filter-group input:focus,
@@ -532,7 +531,7 @@ tr:hover td {
   gap: 10px;
   cursor: pointer;
   padding: 8px 12px;
-  background: #fff1f2; /* Fondo rojizo suave por ser alerta */
+  background: #fff1f2;
   border-radius: 10px;
   border: 1px solid #ffe4e6;
   transition: background 0.2s;
@@ -754,7 +753,7 @@ select:focus {
 
 .stock-warning-icon {
   font-size: 18px;
-  color: #ff9800; /* amber warning */
+  color: #ff9800;
 }
 
 .stock-cell {
@@ -786,7 +785,7 @@ select:focus {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
-  flex: 1; /* En móvil, ambos botones miden lo mismo */
+  flex: 1;
 }
 
 /* Botón Cancelar */
@@ -887,7 +886,7 @@ select:focus {
   align-items: center;
   gap: 8px;
   padding: 2px 0;
-  justify-content: flex-start; /* IMPORTANT: no space-between */
+  justify-content: flex-start;
 }
 
 .stock-location {
@@ -896,7 +895,7 @@ select:focus {
 
 .stock-right {
   font-weight: 600;
-  margin-left: 6px; /* controlled separation */
+  margin-left: 6px; 
 }
 
 .pagination-bar {

@@ -2,9 +2,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Cambiamos a min-height por si el teclado virtual se abre */
+  min-height: 100vh;
   background: #52B3AC;
-  padding: 16px; /* Espacio mínimo para que la card no toque los bordes del cel */
+  padding: 16px;
 }
 
 .login-card {
@@ -14,12 +14,9 @@
   border-radius: 16px;
   background-color: #ffffff;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-  
-  /* Asegura que la card no se pegue arriba si la pantalla es muy chica */
   margin: auto; 
 }
 
-/* Personalizamos el título del login */
 mat-card-title {
   font-family: 'Roboto', sans-serif;
   font-weight: 500;
@@ -37,7 +34,6 @@ mat-card-title {
 .login-logo {
   max-width: 120px;
   height: auto;
-  /* Un filtro por si tu logo es oscuro y quieres que resalte más */
   filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1));
 }
 
@@ -46,29 +42,26 @@ mat-card-title {
   margin-bottom: 15px;
 }
 
-/* Ajuste de color para el botón para que combine con el fondo */
 .btn-login {
   width: 100%;
   padding: 12px;
   font-weight: bold;
   font-size: 1rem;
   margin-top: 10px;
-  background-color: #2F3487 !important; /* Un azul vibrante */
+  background-color: #2F3487 !important;
   color: white !important;
   border-radius: 8px;
 }
 
-/* Para que se vea pro en móviles */
 @media (max-width: 480px) {
   .login-card {
-    /* Mantenemos el diseño de tarjeta pero ajustamos el padding interno */
     padding: 20px;
     margin: 10px; 
-    border-radius: 12px; /* Un poco menos redondeado para aprovechar espacio */
+    border-radius: 12px;
   }
   
   .login-logo {
-    max-width: 250px; /* Logo un poco más pequeño en cel */
+    max-width: 250px;
   }
 }
 
@@ -86,15 +79,12 @@ mat-card-title {
   font-weight: 500;
 }
 
-/* Ajuste para el botón deshabilitado de Javier */
 .btn-login:disabled {
   background-color: #e2e8f0 !important;
   color: #94a3b8 !important;
   cursor: not-allowed;
 }
 
-/* Los mat-error ya vienen con estilo de Material, 
-   pero si quieres que se vean más grandes: */
 mat-error {
   font-weight: 500;
   font-size: 0.8rem;

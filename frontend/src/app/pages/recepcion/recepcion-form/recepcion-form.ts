@@ -329,7 +329,7 @@ export class RecepcionForm implements OnInit {
         titulo: 'Guardar Borrador',
         mensaje: `¿Guardar "${this.recepcionActual.nombre}" como borrador?`,
         textoConfirmar: 'Sí, guardar',
-        colorBoton: '#3b82f6', // Azul
+        colorBoton: '#3b82f6',
         icono: 'save',
         colorIcono: '#3b82f6'
       }
@@ -372,7 +372,7 @@ export class RecepcionForm implements OnInit {
         titulo: 'Confirmar Recepción',
         mensaje: `¿Confirmar la recepción "${this.recepcionActual.nombre}"? Esto sumará el stock a tu bodega.`,
         textoConfirmar: 'Sí, confirmar',
-        colorBoton: '#10b981', // Verde
+        colorBoton: '#10b981',
         icono: 'check_circle',
         colorIcono: '#10b981'
       }
@@ -435,7 +435,7 @@ export class RecepcionForm implements OnInit {
             titulo: 'Salir sin guardar',
             mensaje: '¿Salir sin guardar? Se perderán los productos agregados.',
             textoConfirmar: 'Sí, salir y borrar',
-            colorBoton: '#f59e0b', // Naranja
+            colorBoton: '#f59e0b',
             icono: 'warning',
             colorIcono: '#f59e0b'
           }

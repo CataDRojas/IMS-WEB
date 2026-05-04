@@ -43,11 +43,6 @@
   }
 }
 
-/* =========================================
-   DISEÑO GENÉRICO DE HISTORIAL 
-   (Reutilizable para Inventario)
-========================================= */
-
 /* CONTENEDOR PRINCIPAL */
 .historial-container {
   padding: 20px;
@@ -65,7 +60,6 @@
 /* FILTROS RESPONSIVOS */
 .historial-filtros {
   display: grid;
-  /* 🔥 En escritorio forzamos exactamente 4 columnas iguales */
   grid-template-columns: repeat(4, 1fr); 
   gap: 15px;
   background: white;
@@ -172,7 +166,7 @@
   margin-bottom: 15px;
   border-radius: 8px !important; 
   transition: all 0.2s ease-in-out;
-  padding: 0 !important; /* Limpieza del HTML */
+  padding: 0 !important; 
 }
 
 .card-clicable {

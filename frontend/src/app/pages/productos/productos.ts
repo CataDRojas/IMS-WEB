@@ -49,7 +49,6 @@ paginaActual = 1;
 tamanoPagina = 10;
 totalItems = 0;
 
-// filters (LIST ONLY — do not touch form model)
 filtros = {
   nombre: '',
   categoriaId: null as number | null,
@@ -61,16 +60,15 @@ showFilters: boolean = false;
   constructor(private productoService: ProductoService, private router: Router) {}
 
 ngOnInit(): void {
-  this.cargarDatos(); // form system (unchanged)
+  this.cargarDatos();
   this.cargarListaProductos();
 }
 
   // Función rápida para chequear si es admin
   esAdmin(): boolean {
-    return this.rolUsuario === 'ADMIN'; // Ajusta según el string exacto que envíe tu backend
+    return this.rolUsuario === 'ADMIN';
   }
-  
-  // Para las otras pantallas mantienes tu lógica de permisos si prefieres
+
   tienePermiso(permiso: string): boolean {
     const stored = localStorage.getItem('permisos_ims');
     const permisos = stored ? JSON.parse(stored) : [];
@@ -86,7 +84,7 @@ cargarDatos(): void {
       this.categorias = data.categorias;
       this.descuentos = data.descuentos;
 
-      this.cargarListaProductos(); // list only
+      this.cargarListaProductos();
     },
     error: () => {
       this.mensajeError = 'No se pudo cargar la información del sistema.';
@@ -272,8 +270,6 @@ guardarProducto(): void {
 
   const payloadEnvio = {
     ...productoLimpio,
-
-    // hard guarantee: backend never receives stock (belt + suspenders)
     productoStock: null,
 
     categoria: this.productoActual.categoriaId
@@ -314,7 +310,7 @@ guardarProducto(): void {
     this.productoService.actualizarProducto(prod.productoId, updated).subscribe({
       next: () => {
   this.cargarDatos();
-  this.cargarListaProductos(); // <-- add this
+  this.cargarListaProductos();
 },
       error: () => {
         this.mensajeError = 'No se pudo cambiar el estado.';
@@ -351,24 +347,6 @@ guardarProducto(): void {
     });
   }
 
-//   descargarExcel(): void {
-//   this.productoService.exportarExcel({
-//     nombre: this.filtros.nombre || undefined,
-//     categoriaId: this.filtros.categoriaId || undefined,
-//     activo: this.filtros.activo || undefined,
-//     critico: this.filtros.critico || undefined
-//   }).subscribe({
-//     next: (blob) => {
-//       const url = window.URL.createObjectURL(blob);
-//       const a = document.createElement('a');
-//       a.href = url;
-//       a.download = `Inventario_IMS_${new Date().toISOString().slice(0,10)}.xlsx`;
-//       a.click();
-//       window.URL.revokeObjectURL(url);
-//     },
-//     error: () => { this.mensajeError = 'Error al exportar Excel.'; }
-//   });
-// }
 descargarExcel(): void {
   const filtrosEnvio = {
     nombre: this.filtros.nombre || undefined,
@@ -377,7 +355,7 @@ descargarExcel(): void {
     critico: this.filtros.critico || undefined
   };
 
-  console.log('Filtros al exportar:', filtrosEnvio); // ← agrega esto
+  console.log('Filtros al exportar:', filtrosEnvio);
 
   this.productoService.exportarExcel(filtrosEnvio).subscribe({
     next: (blob) => {

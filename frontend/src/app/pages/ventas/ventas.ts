@@ -39,7 +39,6 @@ export class VentasForm implements OnInit, AfterViewInit {
 
   @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
 
-  // 🔥 MÁQUINA DE ESTADOS (Fase 1: Solo usaremos ESCANEAR por ahora)
   estadoCaja: 'ESCANEAR' | 'CHECKOUT' | 'TARJETA' | 'EFECTIVO' | 'BOLETA' = 'ESCANEAR';
 
   metodoPago: 'EFECTIVO' | 'TARJETA' = 'EFECTIVO';
@@ -59,13 +58,13 @@ export class VentasForm implements OnInit, AfterViewInit {
   montoEntregado: number | null = null;
   vuelto: number = 0;
   datosBoleta: any = null;
-  ventaProcesando = false; // Para evitar doble clic mientras guarda en la BD
+  ventaProcesando = false; 
 
 
   // Variables de la cámara
   codeReader = new BrowserMultiFormatReader();
   controlesCamara: any;
-  escaneandoBloqueado = false; // 🔥 Para evitar escaneos duplicados en 1 segundo
+  escaneandoBloqueado = false; 
 
   errorMessage: string | null = null;
   errorCode: string | null = null;
@@ -88,7 +87,6 @@ ngOnInit() {
   });
 }
 
-  // 🔥 Encendemos la cámara automáticamente apenas carga la pantalla
   ngAfterViewInit() {
     setTimeout(() => {
       this.iniciarCamara();
@@ -111,12 +109,10 @@ ngOnInit() {
   }
 
 private resolverDescuento(producto: any): any {
-  // 1. Producto
   if (producto?.descuento) {
     return producto.descuento;
   }
 
-  // 2. Categoría (direct object, no lookup)
   if (producto?.categoria?.descuento) {
     return producto.categoria.descuento;
   }
@@ -140,7 +136,7 @@ private resolverDescuento(producto: any): any {
   }
 
   manejarEscaneo(codigoEscaneado: string) {
-    this.escaneandoBloqueado = true; // Bloqueamos para no leer 10 veces seguidas
+    this.escaneandoBloqueado = true; 
 
     const beep = new Audio('/sonidos/store-scanner-beep.mp3');
     beep.play().catch(() => {});
@@ -148,10 +144,9 @@ private resolverDescuento(producto: any): any {
     this.codigo = codigoEscaneado.trim();
     this.buscarProducto();
 
-    // Desbloqueamos la cámara después de 1.5 segundos
     setTimeout(() => {
       this.escaneandoBloqueado = false;
-      this.codigo = ''; // Limpiamos el input visualmente
+      this.codigo = ''; 
     }, 1500);
   }
 
@@ -177,18 +172,17 @@ private resolverDescuento(producto: any): any {
         this.productoEncontrado = prod;
         this.cantidad = 1;
         console.log('PRODUCTO:', prod);
-        this.agregarProductoLocal(); // Lo agregamos automático al carrito
+        this.agregarProductoLocal(); 
       },
       error: (err) => {
         this.productoEncontrado = null;
         this.errorMessage = `Producto no encontrado: ${codigoLimpio}`;
-        const errorBeep = new Audio('/assets/sonidos/error-beep.mp3'); // Opcional si tienes un sonido de error
+        const errorBeep = new Audio('/assets/sonidos/error-beep.mp3'); 
         errorBeep.play().catch(() => {});
       }
     });
   }
 
-  // (Mantuve intacta toda tu lógica de simularDescuento, agregarProductoLocal, etc.)
   private simularDescuento(base: number, cantidad: number, desc: any): number {
     if (!desc || desc.descuentoActivo === false) return 0;
     const tipo = desc.descuentoTipo;
@@ -232,7 +226,7 @@ private resolverDescuento(producto: any): any {
         existing.movimientoDetallePrecioUnitario * newQty
       );
     } else {
-      this.detalles.unshift({ // 🔥 unshift lo pone arriba de la lista para que lo veas de inmediato
+      this.detalles.unshift({ 
         productoId: this.productoEncontrado.productoId,
         productoNombre: this.productoEncontrado.productoNombre,
         descuento: desc, 
@@ -247,7 +241,7 @@ private resolverDescuento(producto: any): any {
     }
 
     this.recalcularTotales();
-    this.productoEncontrado = null; // Limpiamos para el siguiente
+    this.productoEncontrado = null;
   }
 
   private recalcularLinea(detalle: any) {
@@ -317,27 +311,24 @@ private resolverDescuento(producto: any): any {
       this.errorMessage = "Debes agregar al menos un producto.";
       return;
     }
-    this.cerrarCamara(); // 📷 Apagamos la cámara al pagar
+    this.cerrarCamara(); 
     this.estadoCaja = 'CHECKOUT';
     this.errorMessage = null;
   }
 
   volverAEscanear() {
     this.estadoCaja = 'ESCANEAR';
-    // Re-encendemos la cámara después de un breve delay para que el HTML se renderice
     setTimeout(() => {
       this.iniciarCamara();
     }, 100);
   }
 
   seleccionarEfectivo() {
-    // Aquí saltaremos a la Fase 3: Calculadora
     this.metodoPago = 'EFECTIVO';
     this.estadoCaja = 'EFECTIVO';
   }
 
   seleccionarTarjeta() {
-    // Aquí saltaremos a la Fase 3: Transbank
     this.metodoPago = 'TARJETA';
     this.estadoCaja = 'TARJETA';
   }
@@ -357,12 +348,12 @@ private resolverDescuento(producto: any): any {
       return;
     }
     this.errorMessage = null;
-    this.finalizarVenta(); // 🔥 Llamamos a la BD
+    this.finalizarVenta(); 
   }
 
   simularPagoAprobado() {
     this.errorMessage = null;
-    this.finalizarVenta(); // 🔥 Llamamos a la BD
+    this.finalizarVenta(); 
   }
 
   simularPagoRechazado() {
@@ -381,7 +372,7 @@ private resolverDescuento(producto: any): any {
   // FASE 4: BASE DE DATOS Y BOLETA
   // =========================
   async finalizarVenta() {
-    this.ventaProcesando = true; // Bloqueamos botones
+    this.ventaProcesando = true;
 
     const payload = {
       movimiento: {
@@ -403,14 +394,11 @@ private resolverDescuento(producto: any): any {
     };
 
     try {
-      // 1. Guardar en Base de Datos (Cabecera y Detalles)
       const mov: any = await this.ventasService.createMovimiento(payload).toPromise();
       const movimientoId = mov.movimientoId;
 
-      // 2. Confirmar el movimiento para restar el stock real
       await this.ventasService.confirmarMovimiento(movimientoId).toPromise();
 
-      // 3. Armar los datos para el componente de la Boleta
       this.datosBoleta = {
         movimientoId: movimientoId,
         folio: movimientoId,
@@ -435,7 +423,6 @@ private resolverDescuento(producto: any): any {
         vuelto: this.vuelto
       };
 
-      // 4. Mostrar pantalla de éxito
       this.ventaProcesando = false;
       this.estadoCaja = 'BOLETA';
 
@@ -443,19 +430,17 @@ private resolverDescuento(producto: any): any {
       console.error(err);
       this.ventaProcesando = false;
       this.errorMessage = err?.message || 'Error al guardar la venta en la Base de Datos.';
-      this.estadoCaja = 'CHECKOUT'; // Devolvemos para intentar de nuevo
+      this.estadoCaja = 'CHECKOUT'; 
     }
   }
 
   imprimirBoletaFisica() {
     if (this.datosBoleta) {
-      // Tu servicio que genera el PDF o llama a la impresora térmica
       this.boletaService.print(this.datosBoleta); 
     }
   }
 
   nuevaVenta() {
-    // Reseteamos absolutamente todo a cero
     this.detalles = [];
     this.total = 0;
     this.iva = 0;
@@ -465,7 +450,6 @@ private resolverDescuento(producto: any): any {
     this.datosBoleta = null;
     this.codigo = '';
     
-    // Encendemos la cámara de nuevo
     this.volverAEscanear();
   }
 }

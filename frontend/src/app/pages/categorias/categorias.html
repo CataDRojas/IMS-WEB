@@ -25,13 +25,11 @@
     <mat-accordion>
       <mat-expansion-panel *ngFor="let cat of categorias">
         <mat-expansion-panel-header>
-          <!-- 1. Le agregamos title al nombre de la categoría -->
           <mat-panel-title class="product-title" title="{{ cat.categoriaNombre }}">
             {{ cat.categoriaNombre }}
           </mat-panel-title>
           
           <mat-panel-description>
-            <!-- 2. Le agregamos title al badge del descuento -->
             <span class="badge" 
                   [class.badge-info]="cat.descuento"
                   title="{{ cat.descuento ? cat.descuento.descuentoNombre : 'Sin Desc.' }}">

@@ -12,7 +12,7 @@ export class PagoTarjeta {
     const resumen = this.buildResumen(venta);
 
     alert(
-`💳 PAGO CON TARJETA (SIMULADO)
+`💳 PAGO CON TARJETA
 
 No implementado aún.
 Dependería del sistema externo (Transbank, GetNet, etc.)

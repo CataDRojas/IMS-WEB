@@ -8,7 +8,7 @@
 /* DISEÑO PARA ESCRITORIO (Default) */
 .header-section {
   display: flex;
-  justify-content: space-between; /* Título a la izquierda, botones a la derecha */
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
   gap: 20px;
@@ -28,7 +28,7 @@
 /* --- CONFIGURACIÓN PARA MÓVIL --- */
 @media (max-width: 767px) {
   .header-section {
-    flex-direction: column; /* Apilamos: Título arriba, Botones abajo */
+    flex-direction: column;
     justify-content: center;
     text-align: center;
     gap: 15px;
@@ -45,27 +45,20 @@
   .header-actions-container {
     width: 100%;
     display: flex;
-    justify-content: center; /* Centra los botones horizontalmente */
+    justify-content: center;
   }
 
   .actions-group {
     width: 100%;
-    justify-content: center; /* Asegura que el grupo de botones esté centrado */
-    flex-wrap: wrap; /* Por si los botones son muy anchos, que bajen con gracia */
+    justify-content: center; 
+    flex-wrap: wrap; 
   }
 
-  /* Ajuste de botones en móvil */
   .btn-base {
     padding: 10px 14px !important;
     font-size: 0.85rem;
   }
 
-  /* Opcional: si quieres ocultar el texto en móvil para ganar espacio */
-  /*
-  .actions-group button span {
-    display: none;
-  }
-  */
 }
 
 /* --- ESTILOS COMPARTIDOS BOTONES EDITAR Y ELIMINAR--- */
@@ -143,7 +136,7 @@
 }
 
 .mobile-actions button {
-  flex: 1; /* Mitad y mitad */
+  flex: 1;
   padding: 12px;
   border-radius: 12px;
   font-weight: 700;
@@ -191,17 +184,17 @@
 /* Ajuste del contenedor interno del header */
 ::ng-deep .mat-content {
   display: flex;
-  justify-content: space-between; /* Empuja el precio a la derecha */
+  justify-content: space-between; 
   align-items: center;
   width: 100%;
-  margin-right: 8px; /* Espacio antes de la flecha del indicador */
+  margin-right: 8px;
 }
 
 /* Quitamos el comportamiento por defecto que divide el espacio en partes iguales */
 ::ng-deep .mat-expansion-panel-header-title,
 ::ng-deep .mat-expansion-panel-header-description {
-  flex-grow: 0 !important; /* Evita que crezcan 5 veces */
-  flex-basis: auto !important; /* Que ocupen lo que mide su contenido */
+  flex-grow: 0 !important; 
+  flex-basis: auto !important; 
   margin-right: 0 !important;
 }
 
@@ -214,7 +207,7 @@
 }
 
 .rol-tag {
-  background: #f1f5f9; /* Color neutro para el rol */
+  background: #f1f5f9; 
   color: #475569;
   padding: 4px 10px;
   border-radius: 8px;
@@ -363,7 +356,6 @@ tr:hover td {
   color: #1e293b;
 }
 
-/* Colores específicos para hover en escritorio */
 .btn-icon.edit:hover {
   background-color: #dbeafe;
   color: #2563eb;
@@ -378,14 +370,13 @@ tr:hover td {
 }
 
 /*MODAL*/
-/* MODAL OVERLAY */
 .modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Cambiado de 100vw a 100% para evitar scroll horizontal */
+  width: 100%; 
   height: 100%;
-  background: rgba(15, 23, 42, 0.6); /* Color pizarra traslúcido */
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -458,7 +449,6 @@ tr:hover td {
   gap: 20px;
 }
 
-/* Estilo para el RUN en el formulario */
 .form-row {
   display: grid;
   grid-template-columns: 3fr 1fr;
@@ -596,7 +586,7 @@ select:focus {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s ease;
-  flex: 1; /* En móvil, ambos botones miden lo mismo */
+  flex: 1;
 }
 
 /* Botón Cancelar */
@@ -630,12 +620,10 @@ select:focus {
   box-shadow: none;
 }
 
-/* Efecto de clic para ambos */
 .btn-modal:active {
   transform: scale(0.96);
 }
 
-/* Limitar ancho de botones en escritorio para que no se vean gigantes */
 @media (min-width: 601px) {
   .btn-modal {
     flex: none;
@@ -643,8 +631,6 @@ select:focus {
   }
 }
 
-
-/* Checkbox estilizado */
 .checkbox-container {
   display: flex;
   align-items: center;

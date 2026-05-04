@@ -10,7 +10,7 @@ import { LugarService, MovimientoLugar } from '../../../services/lugar/lugar';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatExpansionModule],
   templateUrl: './lugares-list.html',
-  styleUrls: ['./lugares-list.css'] // Recuerda que puede heredar de productos.css
+  styleUrls: ['./lugares-list.css']
 })
 export class LugaresComponent implements OnInit {
   lugares: MovimientoLugar[] = [];
@@ -97,16 +97,14 @@ const formData: MovimientoLugar = {
   if (!lugar.movimientoLugarId) return;
 
   if (lugar.movimientoLugarActivo) {
-    // Si está activo, desactivamos (Soft-delete)
     this.lugarService.desactivarLugar(lugar.movimientoLugarId).subscribe({
       next: () => {
         console.log('Desactivado con éxito');
-        this.cargarLugares(); // Forzamos la recarga de la lista
+        this.cargarLugares();
       },
       error: (err) => console.error('Error al desactivar', err)
     });
   } else {
-    // Para reactivar, creamos el objeto asegurando el boolean true
     const lugarReactivado: MovimientoLugar = { 
       ...lugar, 
       movimientoLugarActivo: true 

@@ -58,7 +58,7 @@
   font-weight: bold !important;
   border-radius: 12px !important;
   margin-bottom: 30px;
-  background-color: #10b981 !important; /* Verde moderno */
+  background-color: #10b981 !important;
   color: white !important;
 }
 
@@ -87,7 +87,7 @@
   border-radius: 10px !important;
   cursor: pointer;
   transition: transform 0.2s;
-  padding: 0 !important; /* Limpia padding nativo */
+  padding: 0 !important;
 }
 .draft-card:hover {
   transform: translateY(-2px);
@@ -137,7 +137,7 @@
 }
 
 .product-card {
-  border-top: 5px solid #52b3ac !important; /* Color corporativo unificado */
+  border-top: 5px solid #52b3ac !important;
 }
 
 .session-title {

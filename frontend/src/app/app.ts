@@ -9,8 +9,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet,
-    MatIconModule,   // <--- 2. Agrégalo aquí
-    MatButtonModule, // <--- Y aquí para el botón de "Inicio"
+    MatIconModule, 
+    MatButtonModule, 
     MatToolbarModule],
   templateUrl: './app.html',
   styleUrl: './app.css'

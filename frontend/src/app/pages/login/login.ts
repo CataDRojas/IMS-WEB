@@ -16,7 +16,7 @@ import { ApiError } from '../../core/errors/api-error';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule], // 👈 FIX
+  imports: [FormsModule, CommonModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -62,26 +62,21 @@ export class LoginComponent {
       error: (err: ApiError) => {
 
         console.error('Login error:', err);
-
-        // 🔐 Invalid credentials (preferred: backend should return 401)
         if (err.status === 401) {
           this.errorMessage = 'Credenciales incorrectas';
           return;
         }
 
-        // 🔒 Forbidden
         if (err.status === 403) {
           this.errorMessage = 'Acceso denegado';
           return;
         }
 
-        // ⚠️ Backend-defined errors (your GlobalExceptionHandler)
         if (err.message) {
           this.errorMessage = err.message;
           return;
         }
 
-        // 🌐 Fallback
         this.errorMessage = 'Error de conexión o servidor';
       }
     });

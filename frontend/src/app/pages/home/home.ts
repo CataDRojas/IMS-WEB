@@ -53,7 +53,7 @@ export class Home {
         titulo: 'Cerrar Sesión',
         mensaje: '¿Estás seguro que deseas cerrar sesión y salir del sistema?',
         textoConfirmar: 'Sí, cerrar sesión',
-        colorBoton: '#ef4444', // Rojo 
+        colorBoton: '#ef4444',
         icono: 'logout',
         colorIcono: '#ef4444'
       }

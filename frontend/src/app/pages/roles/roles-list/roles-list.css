@@ -38,20 +38,18 @@
   height: auto !important;
 }
 
-/* Ajuste del contenedor interno del header */
 ::ng-deep .mat-content {
   display: flex;
-  justify-content: space-between; /* Empuja el precio a la derecha */
+  justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-right: 15px; /* Espacio antes de la flecha del indicador */
+  margin-right: 15px;
 }
 
-/* Quitamos el comportamiento por defecto que divide el espacio en partes iguales */
 ::ng-deep .mat-expansion-panel-header-title,
 ::ng-deep .mat-expansion-panel-header-description {
-  flex-grow: 0 !important; /* Evita que crezcan 5 veces */
-  flex-basis: auto !important; /* Que ocupen lo que mide su contenido */
+  flex-grow: 0 !important; 
+  flex-basis: auto !important;
   margin-right: 0 !important;
 }
 
@@ -258,9 +256,9 @@ tr:hover td {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%; /* Cambiado de 100vw a 100% para evitar scroll horizontal */
+  width: 100%;
   height: 100%;
-  background: rgba(15, 23, 42, 0.6); /* Color pizarra traslúcido */
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -471,8 +469,6 @@ select[disabled] {
   color: #94a3b8;
   cursor: not-allowed;
 }
-
-/* Hereda de productos.css: .modal-overlay, .modal-card, .btn-base, etc. */
 
 .section-label {
   display: block;

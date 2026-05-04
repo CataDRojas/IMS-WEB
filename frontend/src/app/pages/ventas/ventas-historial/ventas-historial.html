@@ -7,7 +7,6 @@
       <h2>📦 Historial de Movimientos</h2>
     </div>
 
-    <!-- Botones a la derecha -->
     <div class="actions-group">
       <button
         mat-stroked-button
@@ -109,11 +108,8 @@
     class="historial-card card-clicable"
     (click)="toggleExpand(m)"
   >
-    <!-- CABECERA DE LA TARJETA -->
     <div class="card-header">
-      <!-- Izquierda -->
       <div class="header-principal">
-        <!-- Etiquetas dinámicas de Tipo y Estado -->
         <div class="badges-container">
           <span
             class="badge"
@@ -141,9 +137,7 @@
         <div class="user-text">👤 {{m.movimientoUsuarioCreacion}}</div>
       </div>
 
-      <!-- Derecha (Montos o Cantidades) -->
       <div class="header-montos">
-        <!-- Si es Venta (SALIDA) muestra plata -->
         <div *ngIf="m.movimientoTipo === 'SALIDA'">
           <div class="total-text">
             <strong>${{m.movimientoPrecioTotal | number:'1.0-0'}}</strong>
@@ -155,7 +149,6 @@
             {{m.movimientoMetodoPago}}
           </div>
         </div>
-        <!-- Si es Inventario (ENTRADA/AJUSTE) muestra cajas/unidades -->
         <div *ngIf="m.movimientoTipo !== 'SALIDA'">
           <div class="total-text text-unidades">
             <strong>📦 {{calcularTotalUnidades(m.detalles)}} un.</strong>
@@ -174,7 +167,6 @@
       class="card-detalle"
       (click)="$event.stopPropagation()"
     >
-      <!-- Resumen (Solo para salidas/ventas) -->
       <div *ngIf="m.movimientoTipo === 'SALIDA'" class="detalle-resumen">
         <div class="resumen-item">
           <span class="resumen-label">Total Neto</span>
@@ -190,7 +182,6 @@
         </div>
       </div>
 
-      <!-- Lista de Productos -->
       <div class="detalle-titulo">
         Detalle de Productos:
       </div>

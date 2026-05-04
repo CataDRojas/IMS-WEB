@@ -39,7 +39,6 @@ export const ALL_PERMISSIONS: string[] = Object.keys(PERMISSION_LABELS);
   templateUrl: './roles-list.html',
   styleUrl: './roles-list.css'
 })
-// ... imports necesarios ...
 
 export class RolesList implements OnInit {
   roles: Rol[] = [];
@@ -75,7 +74,7 @@ export class RolesList implements OnInit {
   }
 
   editar(rol: Rol) {
-    this.rolActual = JSON.parse(JSON.stringify(rol)); // Clonamos para no editar en vivo la tabla
+    this.rolActual = JSON.parse(JSON.stringify(rol));
     this.mostrarFormulario = true;
   }
 
