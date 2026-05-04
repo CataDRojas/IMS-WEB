@@ -1,0 +1,265 @@
+<div class="historial-container">
+  <!-- =========================================
+       CABECERA
+  ========================================== -->
+  <header class="header-section">
+    <div class="header-title-container">
+      <h2>📦 Historial de Movimientos</h2>
+    </div>
+
+    <div class="actions-group">
+      <button
+        mat-stroked-button
+        class="btn-exportar"
+        (click)="exportarExcel()"
+      >
+        📊 Exportar Excel
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================
+       SECCIÓN DE FILTROS RESPONSIVA
+  ========================================== -->
+  <div class="historial-filtros">
+    <select
+      class="filtro-input"
+      [(ngModel)]="filtros.tipo"
+      [disabled]="cargando"
+    >
+      <option value="">Todos los tipos</option>
+      <option *ngFor="let t of tiposFiltrados" [value]="t">
+        {{getTipoLabel(t)}}
+      </option>
+    </select>
+
+    <select
+      class="filtro-input"
+      [(ngModel)]="filtros.estado"
+      [disabled]="cargando"
+    >
+      <option value="">Todos los estados</option>
+      <option value="CONFIRMADO">Confirmado</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="ANULADO">Anulado</option>
+    </select>
+
+    <input
+      class="filtro-input"
+      type="date"
+      [(ngModel)]="filtros.desde"
+      [disabled]="cargando"
+    />
+    <input
+      class="filtro-input"
+      type="date"
+      [(ngModel)]="filtros.hasta"
+      [disabled]="cargando"
+    />
+
+    <input
+      class="filtro-input filtro-usuario" 
+      placeholder="👤 Buscar usuario..."
+      [ngModel]="filtros.usuario"
+      (input)="onUsuarioChange($any($event.target).value)"
+      [disabled]="cargando"
+    />
+
+    <div class="filtro-acciones">
+      <button
+        mat-raised-button
+        class="btn-accion btn-filtrar-color"
+        (click)="aplicarFiltros()"
+        [disabled]="cargando"
+      >
+        <div class="btn-contenido">
+          <span>🔍</span>
+          <span>Filtrar</span>
+        </div>
+      </button>
+
+      <button
+        mat-button
+        class="btn-accion btn-limpiar-color"
+        (click)="limpiarFiltros()"
+        [disabled]="cargando"
+      >
+        <div class="btn-contenido">
+          <span>🧹</span>
+          <span>Limpiar</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- =========================================
+       ESTADOS DE CARGA Y VACÍO
+  ========================================== -->
+  <div *ngIf="cargando" class="estado-mensaje">⏳ Cargando movimientos...</div>
+  <div *ngIf="!cargando && movimientos.length === 0" class="estado-mensaje">
+    📭 No hay movimientos para mostrar con estos filtros.
+  </div>
+
+  <!-- =========================================
+       LISTA DE TARJETAS (HISTORIAL)
+  ========================================== -->
+  <mat-card
+    *ngFor="let m of movimientos"
+    class="historial-card card-clicable"
+    (click)="toggleExpand(m)"
+  >
+    <div class="card-header">
+      <div class="header-principal">
+        <div class="badges-container">
+          <span
+            class="badge"
+            [style.background]="getTipoColor(m.movimientoTipo)"
+          >
+            {{getTipoLabel(m.movimientoTipo)}}
+          </span>
+          <span
+            class="badge"
+            [style.background]="getEstadoColor(m.movimientoEstado)"
+          >
+            {{m.movimientoEstado}}
+          </span>
+        </div>
+
+        <div class="folio-text">
+          <strong
+            >{{m.movimientoDescripcion || 'Movimiento #' +
+            m.movimientoId}}</strong
+          >
+        </div>
+        <div class="fecha-text">
+          📅 {{m.movimientoFechaCreacion | date:'dd/MM/yyyy HH:mm'}}
+        </div>
+        <div class="user-text">👤 {{m.movimientoUsuarioCreacion}}</div>
+      </div>
+
+      <div class="header-montos">
+        <div *ngIf="m.movimientoTipo === 'SALIDA'">
+          <div class="total-text">
+            <strong>${{m.movimientoPrecioTotal | number:'1.0-0'}}</strong>
+          </div>
+          <div
+            class="metodo-text"
+            [ngClass]="{'metodo-efectivo': m.movimientoMetodoPago === 'EFECTIVO', 'metodo-tarjeta': m.movimientoMetodoPago === 'TARJETA'}"
+          >
+            {{m.movimientoMetodoPago}}
+          </div>
+        </div>
+        <div *ngIf="m.movimientoTipo !== 'SALIDA'">
+          <div class="total-text text-unidades">
+            <strong>📦 {{calcularTotalUnidades(m.detalles)}} un.</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-icon">{{ m.expandido ? '▲' : '▼' }}</div>
+    </div>
+
+    <!-- =========================================
+         DETALLE DESPLEGABLE
+    ========================================== -->
+    <div
+      *ngIf="m.expandido"
+      class="card-detalle"
+      (click)="$event.stopPropagation()"
+    >
+      <div *ngIf="m.movimientoTipo === 'SALIDA'" class="detalle-resumen">
+        <div class="resumen-item">
+          <span class="resumen-label">Total Neto</span>
+          <span class="resumen-valor"
+            >${{m.movimientoPrecioNeto | number:'1.0-0'}}</span
+          >
+        </div>
+        <div class="resumen-item">
+          <span class="resumen-label">Descuentos</span>
+          <span class="resumen-valor text-descuento"
+            >-${{(m.movimientoDescuento || 0) | number:'1.0-0'}}</span
+          >
+        </div>
+      </div>
+
+      <div class="detalle-titulo">
+        Detalle de Productos:
+      </div>
+
+      <div *ngFor="let d of m.detalles" class="producto-fila">
+        <div class="producto-info">
+          <div class="producto-nombre">{{d.productoNombre}}</div>
+          <div class="producto-meta" *ngIf="d.movimientoLugarNombre">
+            📍 {{d.movimientoLugarNombre}}
+          </div>
+        </div>
+        <div class="producto-total">
+          <div class="producto-cantidad">
+            {{d.movimientoDetalleCantidad *
+            d.movimientoDetalleUnidadesPorPaquete}} un.
+          </div>
+          <div
+            *ngIf="m.movimientoTipo === 'SALIDA'"
+            class="producto-precio"
+          >
+            ${{d.movimientoDetallePrecioTotal | number:'1.0-0'}}
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================================
+           BOTONES DE ACCIÓN (Anular / Reactivar)
+      ========================================== -->
+      <div class="acciones-detalle">
+        <button
+          mat-stroked-button
+          class="btn-anular"
+          *ngIf="m.movimientoTipo === 'ENTRADA' && m.movimientoEstado === 'CONFIRMADO'"
+          (click)="anular(m, $event)"
+        >
+          ❌ Anular recepción
+        </button>
+
+        <button
+          mat-stroked-button
+          class="btn-reactivar"
+          *ngIf="m.movimientoTipo === 'ENTRADA' && m.movimientoEstado === 'ANULADO'"
+          (click)="reactivar(m, $event)"
+        >
+          🔄 Reactivar recepción
+        </button>
+
+        <span
+          class="mensaje-ajuste"
+          *ngIf="m.movimientoTipo === 'AJUSTE' && m.movimientoEstado === 'CONFIRMADO'"
+        >
+          📋 Para corregir este conteo, realiza uno nuevo en el módulo de
+          Inventario.
+        </span>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- =========================================
+       PAGINACIÓN
+  ========================================== -->
+  <div *ngIf="movimientos.length > 0" class="paginacion-container">
+    <button
+      mat-stroked-button
+      (click)="cambiarPagina(-1)"
+      [disabled]="paginaActual <= 1 || cargando"
+    >
+      ◀ Anterior
+    </button>
+    <span class="paginacion-texto">
+      Página {{paginaActual}} de {{totalPaginas || 1}}
+    </span>
+    <button
+      mat-stroked-button
+      (click)="cambiarPagina(1)"
+      [disabled]="paginaActual >= totalPaginas || cargando"
+    >
+      Siguiente ▶
+    </button>
+  </div>
+</div>

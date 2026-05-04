@@ -7,9 +7,18 @@ public class ProductoExcelDTO {
     private String codigo;
     private String nombre;
     private BigDecimal precio;
-    private Integer stock;
+
+    // ❌ no longer an input field
+    // private Integer stock;
+
     private String categoria;
     private Integer cantidadLote;
+
+    private Boolean activo;
+    private Integer criticoNumero;
+
+    // ✔ kept ONLY for export/display purposes
+    private Integer stock;
 
     public String getCodigo() {
         return codigo;
@@ -57,5 +66,21 @@ public class ProductoExcelDTO {
 
     public void setCantidadLote(Integer cantidadLote) {
         this.cantidadLote = cantidadLote;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
+
+    public Integer getCriticoNumero() {
+        return criticoNumero;
+    }
+
+    public void setCriticoNumero(Integer criticoNumero) {
+        this.criticoNumero = criticoNumero;
     }
 }

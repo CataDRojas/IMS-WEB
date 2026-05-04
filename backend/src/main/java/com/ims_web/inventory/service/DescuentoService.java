@@ -33,6 +33,7 @@ public class DescuentoService {
 
     @Transactional
     public Descuento createDescuento(Descuento descuento, String currentUser) {
+
         validateDescuento(descuento);
         checkUniqueNombre(descuento.getDescuentoNombre(), null);
 
@@ -43,8 +44,11 @@ public class DescuentoService {
 
     @Transactional
     public Descuento updateDescuento(Descuento descuento, String currentUser) {
+
         Descuento existing = repo.findById(descuento.getDescuentoId())
-                .orElseThrow(() -> new EntityNotFoundException("Descuento with ID " + descuento.getDescuentoId() + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Descuento with ID " + descuento.getDescuentoId() + " not found"
+                ));
 
         validateDescuento(descuento);
         checkUniqueNombre(descuento.getDescuentoNombre(), descuento.getDescuentoId());
@@ -52,7 +56,11 @@ public class DescuentoService {
         existing.setDescuentoNombre(descuento.getDescuentoNombre());
         existing.setDescuentoActivo(descuento.getDescuentoActivo());
         existing.setDescuentoTipo(descuento.getDescuentoTipo());
+
         existing.setDescuentoValor(descuento.getDescuentoValor());
+
+        // NEW FIELD
+        existing.setDescuentoValorSecundario(descuento.getDescuentoValorSecundario());
 
         AuditHelper.setModificationAudit(existing, currentUser);
 
@@ -67,10 +75,13 @@ public class DescuentoService {
     }
 
     private void validateDescuento(Descuento descuento) {
+
         String tipo = descuento.getDescuentoTipo();
+
         if (!List.of("FLAT", "PORCENTAJE", "MULTIPLICATIVO").contains(tipo)) {
             throw new IllegalArgumentException("Invalid DescuentoTipo: " + tipo);
         }
+
         if (descuento.getDescuentoValor() == null) {
             throw new IllegalArgumentException("DescuentoValor cannot be null");
         }
@@ -79,19 +90,36 @@ public class DescuentoService {
 
         switch (tipo) {
             case "MULTIPLICATIVO":
-                if (valor <= 0) throw new IllegalArgumentException("MULTIPLICATIVO DescuentoValor must be > 0");
+                if (valor <= 0)
+                    throw new IllegalArgumentException("MULTIPLICATIVO DescuentoValor must be > 0");
+
+                // NEW RULE (optional but safe)
+                if (descuento.getDescuentoValorSecundario() == null ||
+                        descuento.getDescuentoValorSecundario().doubleValue() <= 0) {
+                    throw new IllegalArgumentException(
+                            "MULTIPLICATIVO requires DescuentoValorSecundario (> 0)"
+                    );
+                }
                 break;
+
             case "FLAT":
-                if (valor < 0) throw new IllegalArgumentException("FLAT DescuentoValor must be >= 0");
+                if (valor < 0)
+                    throw new IllegalArgumentException("FLAT DescuentoValor must be >= 0");
                 break;
+
             case "PORCENTAJE":
-                if (valor < 0 || valor > 100) throw new IllegalArgumentException("PORCENTAJE DescuentoValor must be between 0 and 100");
+                if (valor < 0 || valor > 100)
+                    throw new IllegalArgumentException("PORCENTAJE DescuentoValor must be between 0 and 100");
                 break;
         }
     }
 
     private void checkUniqueNombre(String nombre, Long idToExclude) {
-        boolean exists = repo.existsByDescuentoNombreIgnoreCaseAndDescuentoIdNot(nombre, idToExclude == null ? -1L : idToExclude);
+        boolean exists = repo.existsByDescuentoNombreIgnoreCaseAndDescuentoIdNot(
+                nombre,
+                idToExclude == null ? -1L : idToExclude
+        );
+
         if (exists) {
             throw new IllegalArgumentException("DescuentoNombre must be unique");
         }

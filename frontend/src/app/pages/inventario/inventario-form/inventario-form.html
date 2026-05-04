@@ -1,84 +1,161 @@
-<mat-toolbar color="primary">
-  <button mat-button (click)="volver()">⬅ Volver</button>
-  <span style="flex: 1; text-align: center">INVENTARIO</span>
-  <span>📤</span>
-</mat-toolbar>
+<div class="app-container">
+  
+  <!-- CABECERA -->
+  <header class="header-section">
+    <button mat-stroked-button class="btn-volver" (click)="volver()">
+      ⬅ Volver
+    </button>
+    <div class="header-title-container">
+      <h2>📋 Inventario IMS</h2>
+    </div>
+    
+  </header>
 
-<div class="container">
-  <div *ngIf="estado === 'inicio'">
-    <button mat-raised-button color="primary" (click)="estado='agregar'">
-      📷 ESCANEAR PRODUCTO
+  <!-- ==================== ESTADO: INICIO ==================== -->
+  <div *ngIf="estado === 'inicio'" class="fade-in">
+    
+    <button mat-raised-button class="btn-main-action" (click)="iniciarNuevo()">
+      <span class="icon-large">➕</span> NUEVO INVENTARIO
     </button>
 
-    <button mat-stroked-button (click)="estado='agregar'">✏️ INGRESAR CÓDIGO</button>
-  </div>
+    <div *ngIf="inventariosBD.length > 0" class="draft-section">
+      <h3 class="draft-title bd-title">📋 Continuar inventario:</h3>
+      
+      <mat-card *ngFor="let inv of inventariosBD" class="draft-card bd-card" (click)="seleccionarInventario(inv)">
+        <div class="draft-content">
+          <div class="draft-info">
+            <strong>{{inv.nombre}}</strong>
+            <span class="draft-meta bd-meta">💾 BD · {{inv.lista.length}} prod. · {{ mapTipoToUI(inv.tipo) }}</span>
+          </div>
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarInventarioBD(inv)">🗑️</button>
+        </div>
+      </mat-card>
+    </div>
 
-  <div *ngIf="estado === 'agregar'">
-    <mat-card>
-      <input matInput placeholder="Código de barras" [(ngModel)]="codigo" />
-      <button mat-button (click)="buscarProducto()">Buscar</button>
-    </mat-card>
-
-    <mat-card *ngIf="productoEncontrado">
-      <h2>{{productoEncontrado.productoNombre}}</h2>
-      <p>{{productoEncontrado.categoria?.categoriaNombre}}</p>
-      <p><strong>Stock actual:</strong> {{productoEncontrado.productoStock}}</p>
-
-      <div>
-        <button mat-stroked-button (click)="disminuir()">-</button>
-        <span style="margin: 0 15px; font-size: 1.2rem">{{cantidad}}</span>
-        <button mat-stroked-button (click)="aumentar()">+</button>
-      </div>
-
-      <button mat-button color="warn" (click)="reset()">Cancelar</button>
-      <button mat-raised-button color="primary" (click)="agregarProducto()">
-        Agregar a la lista
-      </button>
-    </mat-card>
-  </div>
-
-  <div *ngIf="estado === 'lista'">
-    <h2>PRODUCTOS INGRESADOS</h2>
-
-    <mat-card
-      *ngFor="let item of lista"
-      (click)="seleccionarParaEditar(item)"
-      style="margin-bottom: 10px; cursor: pointer"
-    >
-      <h3>{{item.productoNombre}}</h3>
-      <p>{{item.categoria?.categoriaNombre}}</p>
-      <strong>Cantidad a ingresar: {{item.cantidadAgregada}}</strong>
-    </mat-card>
-
-    <div
-      class="acciones"
-      style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px"
-    >
-      <button mat-button (click)="estado='agregar'; reset()">➕ Agregar más productos</button>
-      <button mat-stroked-button (click)="guardar()">Guardar borrador</button>
-      <button mat-raised-button color="primary" (click)="finalizar()">
-        Finalizar y Enviar a BD
-      </button>
+    <div *ngIf="inventariosLocales.length > 0" class="draft-section">
+      <h3 class="draft-title local-title">📝 Borradores locales:</h3>
+      
+      <mat-card *ngFor="let inv of inventariosLocales" class="draft-card local-card" (click)="seleccionarInventario(inv)">
+        <div class="draft-content">
+          <div class="draft-info">
+            <strong>{{inv.nombre}}</strong>
+            <span class="draft-meta local-meta">📱 Local · {{inv.lista.length}} prod. · {{ mapTipoToUI(inv.tipo) }}</span>
+          </div>
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarInventarioLocal(inv)">🗑️</button>
+        </div>
+      </mat-card>
     </div>
   </div>
 
-  <div *ngIf="estado === 'editar'">
-    <mat-card>
-      <h2>Editando: {{productoEditando.productoNombre}}</h2>
-      <p>{{productoEditando.categoria?.categoriaNombre}}</p>
+  <!-- ==================== ESTADO: AGREGAR ==================== -->
+  <div *ngIf="estado === 'agregar'" class="fade-in">
+    
+    <mat-card class="form-card">
+      <h3 class="session-title">
+        Sesión: <span>{{inventarioActual?.nombre}}</span>
+        <small class="session-badge">({{ mapTipoToUI(inventarioActual?.tipo) }})</small>
+      </h3>
+      
+      <div *ngIf="!productoEditando" class="search-bar-row">
+        <input type="text" class="custom-input" [(ngModel)]="codigo" placeholder="Escanear o escribir código..." (keyup.enter)="buscarProducto()" />
+        <button mat-mini-fab color="primary" (click)="buscarProducto()">🔍</button>
+        <button mat-mini-fab class="btn-camera" (click)="abrirEscaner()">📷</button>
+      </div>
+      
+      <div *ngIf="escanerAbierto" class="scanner-container">
+        <video #videoElement class="scanner-video"></video>
+        <button mat-button color="warn" class="btn-close-scanner" (click)="cerrarEscaner()">Cerrar Cámara</button>
+      </div>
+    </mat-card>
 
-      <div>
-        <button mat-stroked-button (click)="disminuir()">-</button>
-        <span style="margin: 0 15px; font-size: 1.2rem">{{cantidad}}</span>
-        <button mat-stroked-button (click)="aumentar()">+</button>
+    <mat-card *ngIf="productoEncontrado" class="product-card">
+      <h2 class="product-name">{{productoEncontrado.productoNombre}}</h2>
+      <div class="product-price">💰 Precio: ${{productoEncontrado.productoPrecio | number}}</div>
+
+      <div class="grid-2-col">
+        <mat-form-field appearance="outline">
+          <mat-label>Ubicación</mat-label>
+          <mat-select [(ngModel)]="lugarSeleccionado">
+            <mat-option *ngFor="let l of lugares" [value]="l">{{l.movimientoLugarDescripcion}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Unid. por caja</mat-label>
+          <input matInput type="number" [(ngModel)]="loteEditable" min="1" (input)="calcularPorCajas()" />
+        </mat-form-field>
       </div>
 
-      <button mat-button color="warn" (click)="eliminar(productoEditando); estado='lista'">
-        Sacar de la lista
-      </button>
-      <button mat-raised-button color="primary" (click)="modificarProducto()">
-        Modificar cantidad
-      </button>
+      <div class="calculator-box">
+        <div class="calc-row">
+          <label>N° de cajas:</label>
+          <div class="qty-controls small-controls">
+            <button mat-mini-fab color="primary" class="mini-btn" (click)="cajas = cajas > 0 ? cajas - 1 : 0; calcularPorCajas()">-</button>
+            <input type="number" class="qty-input small-input" [(ngModel)]="cajas" min="0" (input)="calcularPorCajas()" />
+            <button mat-mini-fab color="primary" class="mini-btn" (click)="cajas = cajas + 1; calcularPorCajas()">+</button>
+          </div>
+          <span class="calc-hint">× {{loteEditable}} = {{cajas * loteEditable}} un.</span>
+        </div>
+        
+        <hr class="calc-divider" />
+        
+        <label class="total-label">Unidades totales:</label>
+        <div class="qty-controls large-controls">
+          <button mat-fab color="primary" (click)="disminuir()">-</button>
+          <input type="number" class="qty-input large-input" [(ngModel)]="cantidad" min="1" (input)="calcularPorUnidades()" />
+          <button mat-fab color="primary" (click)="aumentar()">+</button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button mat-button color="warn" class="btn-flex" (click)="volver()">Cancelar</button>
+        <button mat-raised-button color="primary" class="btn-flex highlight" (click)="agregarProducto()">
+          {{ productoEditando ? '✏️ Actualizar' : '➕ Agregar al Conteo' }}
+        </button>
+      </div>
     </mat-card>
+  </div>
+
+  <!-- ==================== ESTADO: LISTA ==================== -->
+  <div *ngIf="estado === 'lista'" class="fade-in">
+    
+    <div class="list-header">
+      <h3>
+        📦 {{inventarioActual?.nombre}}
+        <span class="session-badge-small">({{ mapTipoToUI(inventarioActual?.tipo) }})</span>
+      </h3>
+      <button mat-button color="warn" (click)="inventarioActual?.esBD ? eliminarInventarioBD(inventarioActual) : eliminarInventarioLocal(inventarioActual)">
+        🗑️ Vaciar
+      </button>
+    </div>
+
+    <div *ngIf="inventarioActual?.lista.length === 0" class="empty-state">
+      📭 No hay productos aún. Escanea el primero.
+    </div>
+
+    <mat-card *ngFor="let item of inventarioActual?.lista" class="item-card item-inventario" (click)="seleccionarParaEditar(item)">
+      <div class="item-content">
+        <div class="item-info">
+          <strong>{{item.productoNombre}}</strong>
+          <span class="item-meta">📍 {{item.lugarNombre}} | Lote: {{item.productoCantidadLote}}</span>
+        </div>
+        <div class="item-actions">
+          <div class="item-qty">{{item.cantidadAgregada}} un.</div>
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarIndividual(item)">🗑️</button>
+        </div>
+      </div>
+    </mat-card>
+
+    <div class="bottom-actions-column">
+      <button mat-stroked-button color="primary" class="btn-tall" (click)="estado='agregar'; reset()">
+        ➕ ESCANEAR OTRO
+      </button>
+      <button *ngIf="!inventarioActual?.esBD" mat-stroked-button class="btn-tall btn-draft" (click)="guardarBorrador()">
+        💾 GUARDAR BORRADOR
+      </button>
+      <button mat-raised-button color="primary" class="btn-tall btn-confirm" (click)="finalizar()">
+        🚀 FINALIZAR INVENTARIO
+      </button>
+    </div>
   </div>
 </div>

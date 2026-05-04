@@ -3,13 +3,18 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+//ANGULAR MATERIALS
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatExpansionModule } from '@angular/material/expansion';
+
 import { CategoriaService, Categoria } from '../../services/categoria/categoria';
 import { DescuentosService, Descuento } from '../../services/descuento/descuento';
 
 @Component({
   selector: 'app-categorias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule, MatExpansionModule],
   templateUrl: './categorias.html',
   styleUrls: ['./categorias.css']
 })
@@ -25,6 +30,9 @@ export class CategoriasComponent implements OnInit {
   mensajeError = '';
   mensajeExito = '';
 
+  // Capturamos el rol
+  rolUsuario = localStorage.getItem('rol_ims') ?? 'Invitado';
+
   constructor(
     private categoriaService: CategoriaService, 
     private descuentoService: DescuentosService,
@@ -34,6 +42,10 @@ export class CategoriasComponent implements OnInit {
   ngOnInit(): void {
     this.cargarCategorias();
     this.cargarDescuentos();
+  }
+
+  esAdmin(): boolean {
+    return this.rolUsuario === 'ADMIN';
   }
 
   // CARGA DE DATOS

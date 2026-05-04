@@ -6,6 +6,8 @@ export interface MovimientoLugar {
   movimientoLugarId?: number;
   movimientoLugarDescripcion: string;
   movimientoLugarActivo: boolean;
+
+  movimientoLugarPrioridad: boolean;
 }
 
 @Injectable({

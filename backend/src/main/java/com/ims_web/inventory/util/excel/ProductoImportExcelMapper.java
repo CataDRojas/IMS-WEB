@@ -26,16 +26,13 @@ public class ProductoImportExcelMapper {
             dto.setNombre(getString(row.getCell(1)));
             dto.setPrecio(getBigDecimal(row.getCell(2)));
 
-            // STOCK
-            dto.setStock(getInteger(row.getCell(3)));
+            // ❌ STOCK REMOVED (DB is source of truth)
 
-            // CATEGORIA
-            dto.setCategoria(getString(row.getCell(4)));
-
-            // CANTIDAD POR LOTE
+            dto.setCriticoNumero(getInteger(row.getCell(4)));
             dto.setCantidadLote(getInteger(row.getCell(5)));
+            dto.setCategoria(getString(row.getCell(6)));
+            dto.setActivo(getBoolean(row.getCell(7)));
 
-            // PARA SALTARSE LAS FILAS VACIAS
             if (dto.getCodigo() == null && dto.getNombre() == null) {
                 continue;
             }
@@ -61,21 +58,26 @@ public class ProductoImportExcelMapper {
                 row.createCell(2).setCellValue(dto.getPrecio().doubleValue());
             }
 
-            // STOCK
+            // ✔ STOCK remains EXPORT ONLY (snapshot)
             row.createCell(3).setCellValue(
                     dto.getStock() != null ? dto.getStock() : 0
             );
 
-            // CATEGORIA
-            row.createCell(4).setCellValue(nvl(dto.getCategoria()));
+            row.createCell(4).setCellValue(
+                    dto.getCriticoNumero() != null ? dto.getCriticoNumero() : 0
+            );
 
-            // CANTIDAD POR LOTE
             row.createCell(5).setCellValue(
                     dto.getCantidadLote() != null ? dto.getCantidadLote() : 1
             );
+
+            row.createCell(6).setCellValue(nvl(dto.getCategoria()));
+
+            row.createCell(7).setCellValue(
+                    dto.getActivo() != null ? dto.getActivo() : true
+            );
         }
     }
-
 
     private String getString(Cell cell) {
         if (cell == null) return null;
@@ -114,6 +116,17 @@ public class ProductoImportExcelMapper {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private Boolean getBoolean(Cell cell) {
+        if (cell == null) return null;
+
+        return switch (cell.getCellType()) {
+            case BOOLEAN -> cell.getBooleanCellValue();
+            case STRING -> Boolean.parseBoolean(cell.getStringCellValue().trim());
+            case NUMERIC -> cell.getNumericCellValue() != 0;
+            default -> null;
+        };
     }
 
     private String nvl(String value) {

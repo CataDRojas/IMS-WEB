@@ -1,0 +1,535 @@
+/* CONTENEDOR PRINCIPAL */
+.categorias-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* DISEÑO PARA ESCRITORIO */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.header-title-container h2 {
+  margin: 0;
+  font-size: 1.5em;
+  color: #1e293b;
+}
+
+.actions-group {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- CONFIGURACIÓN PARA MÓVIL --- */
+@media (max-width: 767px) {
+  .header-section {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .header-title-container {
+    width: 100%;
+  }
+
+  .header-title-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .header-actions-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .actions-group {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-base {
+    padding: 10px 14px !important;
+    font-size: 0.85rem;
+  }
+
+}
+
+/* --- ESTILOS COMPARTIDOS BOTONES EDITAR Y ELIMINAR--- */
+.mobile-actions button,
+.btn-icon {
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* BOTONES ESTILIZADOS */
+.btn-base {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-base:hover {
+  transform: translateY(-2px);
+  filter: brightness(0.95);
+}
+
+.btn-base:active {
+  transform: scale(0.98);
+}
+
+/* VISTA MÓVIL (EXPANSION PANELS) */
+.mobile-list {
+  display: block;
+}
+
+/* --- VISTA MÓVIL (Botones en Acordeón) --- */
+.mobile-actions {
+  display: flex;
+  gap: 10px;
+  grid-column: span 2;
+  margin-top: 10px;
+  padding-top: 15px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.mobile-actions button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  gap: 8px;
+}
+
+/* Botón Editar Móvil */
+.btn-edit-small {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+/* REUTILIZACIÓN DE BOTONES */
+.btn-base {
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-base:hover {
+  transform: translateY(-2px);
+  filter: brightness(0.95);
+}
+
+.btn-base:active {
+  transform: scale(0.98);
+}
+
+.btn-new {
+  background-color: #3b82f6;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+}
+.btn-new:hover {
+  background-color: #2563eb;
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   BADGES (ETIQUETAS)
+========================================= */
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: inline-block; 
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.badge-info {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.text-muted {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* TABLA */
+.desktop-table {
+  display: none;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+@media (min-width: 768px) {
+  .desktop-table {
+    display: block;
+  }
+  .mobile-list {
+    display: none;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f8fafc;
+  padding: 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+tr:hover td {
+  background-color: #fbfcfe;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.modal-card {
+  background: white;
+  width: 100%;
+  max-width: 650px;
+  max-height: 90vh;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* HEADER */
+.modal-header {
+  padding: 20px 24px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #1e293b;
+  font-size: 1.25rem;
+}
+
+.btn-close-x {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+/* BODY & GRID */
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+/* INPUTS */
+input,
+select {
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  transition: all 0.2s;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* ALERTAS */
+.alert {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+.alert-error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.alert-success {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* =========================================
+   HEADER ACORDEÓN FIX (ALINEACIÓN PERFECTA)
+========================================= */
+::ng-deep .mat-expansion-panel {
+  margin-bottom: 12px !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden;
+}
+
+::ng-deep .mat-expansion-panel-header {
+  padding: 16px 20px !important;
+  height: auto !important;
+}
+
+/* El contenedor interno */
+::ng-deep .mat-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin-right: 8px !important;
+  gap: 15px !important;
+  overflow: hidden !important;
+}
+
+::ng-deep .mat-expansion-panel-header-title {
+  flex: 1 1 auto !important; 
+  min-width: 0 !important;
+  margin-right: 0 !important;
+}
+
+::ng-deep .mat-expansion-panel-header-description {
+  flex: 0 0 auto !important;
+  max-width: 50% !important;
+  margin-right: 0 !important;
+  justify-content: flex-end !important;
+}
+
+/* El texto de la categoría */
+.product-title {
+  font-weight: 700;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0 !important;
+  display: block;
+}
+
+/* Botones de acción en tabla (Iconos) */
+.btn-icon {
+  border: none;
+  background: #f1f5f9;
+  color: #475569;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-right: 5px;
+}
+
+.btn-icon:hover {
+  background: #c9cdff;
+  color: #2f3487;
+  transform: translateY(-2px);
+}
+
+.btn-icon.delete:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.btn-icon mat-icon {
+  font-size: 20px;
+}
+
+/* BOX CRÍTICO MODAL */
+.critical-stock-box {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+}
+
+.critical-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0369a1;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.critical-stock-box p {
+  font-size: 0.8rem;
+  color: #9f1239;
+  margin-bottom: 12px;
+}
+
+/* FOOTER */
+.modal-footer {
+  padding: 20px 24px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* --- DISEÑO DE BOTONES DEL FOOTER --- */
+.btn-modal {
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+/* Botón Cancelar */
+.btn-modal-cancel {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-modal-cancel:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Botón Guardar / Actualizar */
+.btn-modal-save {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.btn-modal-save:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+}
+
+.btn-modal-save:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Efecto al hacer click */
+.btn-modal:active {
+  transform: scale(0.96);
+}
+
+@media (min-width: 601px) {
+  .btn-modal {
+    flex: none;
+    min-width: 140px;
+  }
+}

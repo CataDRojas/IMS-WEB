@@ -1,0 +1,87 @@
+<div class="config-container">
+
+  <!-- =========================================
+       CABECERA
+  ========================================== -->
+  <header class="header-section">
+    <div class="header-title-container">
+      <h2>⚙️ Configuración General</h2>
+    </div>
+    <div class="actions-group">
+      <button *ngIf="!editando" mat-raised-button class="btn-base btn-edit" (click)="activarEdicion()">
+        <mat-icon>edit</mat-icon> Editar
+      </button>
+    </div>
+  </header>
+
+  <!-- =========================================
+       TARJETA DEL FORMULARIO
+  ========================================== -->
+  <div class="config-form-card">
+    
+    <form [formGroup]="configForm" class="vertical-form">
+
+      <!-- EMPRESA -->
+      <div class="form-group">
+        <label>
+          <mat-icon>business</mat-icon> Nombre de Empresa
+        </label>
+        <input type="text" formControlName="empresaNombre" [readonly]="!editando" [class.is-readonly]="!editando" />
+      </div>
+
+      <!-- DIRECCIÓN -->
+      <div class="form-group">
+        <label>
+          <mat-icon>location_on</mat-icon> Dirección
+        </label>
+        <input type="text" formControlName="empresaDireccion" [readonly]="!editando" [class.is-readonly]="!editando" />
+      </div>
+
+      <!-- RUN Y DV DIVIDIDO EN 2 COLUMNAS -->
+      <div class="form-group-split">
+        <div class="form-group">
+          <label>
+            <mat-icon>tag</mat-icon> RUN
+          </label>
+          <input type="text" formControlName="empresaRun" [readonly]="!editando" [class.is-readonly]="!editando" placeholder="Ej: 12345678" />
+        </div>
+
+        <div class="form-group">
+          <label>DV</label>
+          <input type="text" formControlName="empresaDV" maxlength="1" [readonly]="!editando" [class.is-readonly]="!editando" placeholder="K" style="text-align: center;" />
+        </div>
+      </div>
+
+      <!-- IVA -->
+      <div class="form-group">
+        <label>
+          <mat-icon>percent</mat-icon> IVA (%)
+        </label>
+        <input type="number" formControlName="iva" min="0" max="100" [readonly]="!editando" [class.is-readonly]="!editando" />
+
+        <!-- 🔴 ERRORES DE VALIDACIÓN -->
+        <div class="field-error" *ngIf="editando && ivaControl?.invalid && ivaControl?.touched">
+          <span *ngIf="ivaControl?.errors?.['required']">El IVA es obligatorio.</span>
+          <span *ngIf="ivaControl?.errors?.['min']">El IVA no puede ser menor a 0.</span>
+          <span *ngIf="ivaControl?.errors?.['max']">El IVA no puede ser mayor a 100.</span>
+        </div>
+      </div>
+
+    </form>
+
+  </div>
+
+  <!-- =========================================
+       ACCIONES GUARDAR / CANCELAR
+  ========================================== -->
+  <div class="form-actions" *ngIf="editando">
+    <button mat-button class="btn-cancel" type="button" (click)="cancelarEdicion()">
+      Cancelar
+    </button>
+
+    <button mat-raised-button class="btn-save" type="button" (click)="guardar()" [disabled]="configForm.invalid || loading">
+      <mat-icon>save</mat-icon> Guardar Cambios
+    </button>
+  </div>
+
+</div>

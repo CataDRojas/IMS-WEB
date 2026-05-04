@@ -1,0 +1,75 @@
+.ticket {
+  width: 100%;
+  max-width: 80mm; /* Simula el ancho exacto del papel térmico */
+  margin: 0 auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  color: #000;
+  background: white;
+  padding: 10px;
+  line-height: 1.4;
+}
+
+.text-center { text-align: center; }
+
+h2 { 
+  font-size: 18px; 
+  margin: 0 0 5px 0; 
+  text-transform: uppercase; 
+  font-weight: bold; 
+}
+
+p { margin: 0; }
+
+hr.dashed {
+  border: none;
+  border-top: 1px dashed #000;
+  margin: 12px 0;
+}
+
+.header-info p { margin-bottom: 3px; }
+
+/* Contenedor Flexbox para que el precio jamás se desalinee */
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.item-name { 
+  flex: 1; 
+  padding-right: 10px; 
+  word-break: break-word; 
+}
+
+.item-qty-price { 
+  color: #555; 
+  font-size: 11px; 
+  display: inline-block; 
+  margin-top: 2px;
+}
+
+.item-total { font-weight: bold; }
+
+.totals-wrapper { margin-top: 10px; }
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.total-row.final {
+  font-size: 18px;
+  font-weight: bold;
+  border-top: 1px solid #000;
+  padding-top: 6px;
+  margin-top: 6px;
+}
+
+.footer-msg { 
+  margin-top: 20px; 
+  font-size: 11px; 
+  color: #444; 
+}

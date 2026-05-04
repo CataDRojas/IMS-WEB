@@ -28,9 +28,9 @@ public class ProductoExcelImporter {
 
             Row header = sheet.getRow(0);
 
-            if (header == null || header.getPhysicalNumberOfCells() < 6) {
+            if (header == null || header.getPhysicalNumberOfCells() < 8) {
                 throw new RuntimeException(
-                        "Invalid Excel format: expected 6 columns (codigo, nombre, precio, stock, categoria, cantidadLote)"
+                        "Invalid Excel format: expected 8 columns (codigo, nombre, precio, categoria, cantidadLote, activo, criticoNumero)"
                 );
             }
 

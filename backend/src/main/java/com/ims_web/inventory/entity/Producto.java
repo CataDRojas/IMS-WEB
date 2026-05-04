@@ -32,8 +32,8 @@ public class Producto implements Auditable {
     private Boolean productoActivo = true;
 
     @Setter
-    @Column(name = "ProductoStock", nullable = false)
-    private Integer productoStock;
+    @Column(name = "ProductoStock", nullable = true)
+    private Integer productoStock = 0;
 
     @Column(name = "ProductoStockCritico", nullable = false, insertable = false, updatable = false, columnDefinition = "boolean default false")
     private Boolean productoStockCritico;

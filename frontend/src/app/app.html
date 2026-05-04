@@ -1,1 +1,32 @@
+@if (router.url !== '/login') {
+<div class="app-layout-container">
+  @if (router.url !== '/home' && router.url !== '/') {
+  <nav class="main-nav">
+    <div class="nav-content">
+      <div class="header-left">
+      <button class="btn-base btn-go-home" (click)="irAlHome()">
+        <mat-icon>home</mat-icon>
+      </button>
+    </div>
+      <img
+        src="/imagenes/banner-ims.png"
+        alt="Logo Banner"
+        class="nav-logo"
+      />
+    </div>
+  </nav>
+  }
+
+  <main class="content-area">
+    <router-outlet></router-outlet>
+  </main>
+
+  @if (router.url !== '/ventas') {
+    <footer class="main-footer">
+      <p>© IMS Web 2026 - GRANDE EL GRUPO 3</p>
+    </footer>
+  }
+</div>
+} @else {
 <router-outlet></router-outlet>
+}

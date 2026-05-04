@@ -1,0 +1,158 @@
+<div class="app-container">
+  
+  <!-- CABECERA -->
+  <header class="header-section">
+    <button mat-stroked-button class="btn-volver" (click)="volver()">
+      ⬅ Volver
+    </button>
+    <div class="header-title-container">
+      <h2>📥 Recepción IMS</h2>
+    </div>
+  </header>
+
+  <!-- ==================== ESTADO: INICIO ==================== -->
+  <div *ngIf="estado === 'inicio'" class="fade-in">
+    
+    <button mat-raised-button class="btn-main-action" (click)="iniciarNuevo()">
+      <span class="icon-large">➕</span> NUEVA RECEPCIÓN
+    </button>
+
+    <div *ngIf="recepcionesBD.length > 0" class="draft-section">
+      <h3 class="draft-title bd-title">📋 Continuar recepción:</h3>
+      
+      <mat-card *ngFor="let rec of recepcionesBD" class="draft-card bd-card" (click)="seleccionarRecepcion(rec)">
+        <div class="draft-content">
+          <div class="draft-info">
+            <strong>{{rec.nombre}}</strong>
+            <span class="draft-meta bd-meta">💾 BD · {{rec.lista.length}} productos</span>
+          </div>
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarRecepcionBD(rec)">
+            🗑️
+          </button>
+        </div>
+      </mat-card>
+    </div>
+
+    <div *ngIf="recepcionesLocales.length > 0" class="draft-section">
+      <h3 class="draft-title local-title">📝 Borradores locales:</h3>
+      
+      <mat-card *ngFor="let rec of recepcionesLocales" class="draft-card local-card" (click)="seleccionarRecepcion(rec)">
+        <div class="draft-content">
+          <div class="draft-info">
+            <strong>{{rec.nombre}}</strong>
+            <span class="draft-meta local-meta">📱 Local · {{rec.lista.length}} productos</span>
+          </div>
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarRecepcionLocal(rec)">
+            🗑️
+          </button>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- ==================== ESTADO: AGREGAR ==================== -->
+  <div *ngIf="estado === 'agregar'" class="fade-in">
+    
+    <mat-card class="form-card">
+      <h3 class="session-title">Recepción: <span>{{recepcionActual?.nombre}}</span></h3>
+      
+      <div *ngIf="!productoEditando" class="search-bar-row">
+        <input type="text" class="custom-input" [(ngModel)]="codigo" placeholder="Escanear o escribir código..." (keyup.enter)="buscarProducto()" />
+        <button mat-mini-fab color="primary" (click)="buscarProducto()">🔍</button>
+        <button mat-mini-fab class="btn-camera" (click)="abrirEscaner()">📷</button>
+      </div>
+      
+      <div *ngIf="escanerAbierto" class="scanner-container">
+        <video #videoElement class="scanner-video"></video>
+        <button mat-button color="warn" class="btn-close-scanner" (click)="cerrarEscaner()">Cerrar Cámara</button>
+      </div>
+    </mat-card>
+
+    <mat-card *ngIf="productoEncontrado" class="product-card">
+      <h2 class="product-name">{{productoEncontrado.productoNombre}}</h2>
+      <div class="product-price">💰 Precio: ${{productoEncontrado.productoPrecio | number}}</div>
+
+      <div class="grid-2-col">
+        <mat-form-field appearance="outline">
+          <mat-label>Ubicación</mat-label>
+          <mat-select [(ngModel)]="lugarSeleccionado">
+            <mat-option *ngFor="let l of lugares" [value]="l">{{l.movimientoLugarDescripcion}}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Unid. por caja</mat-label>
+          <input matInput type="number" [(ngModel)]="loteEditable" min="1" (input)="calcularPorCajas()" />
+        </mat-form-field>
+      </div>
+
+      <div class="calculator-box">
+        <div class="calc-row">
+          <label>N° de cajas:</label>
+          <div class="qty-controls small-controls">
+            <button mat-mini-fab color="primary" class="mini-btn" (click)="cajas = cajas > 0 ? cajas - 1 : 0; calcularPorCajas()">-</button>
+            <input type="number" class="qty-input small-input" [(ngModel)]="cajas" min="0" (input)="calcularPorCajas()" />
+            <button mat-mini-fab color="primary" class="mini-btn" (click)="cajas = cajas + 1; calcularPorCajas()">+</button>
+          </div>
+          <span class="calc-hint">× {{loteEditable}} = {{cajas * loteEditable}} un.</span>
+        </div>
+        
+        <hr class="calc-divider" />
+        
+        <label class="total-label">Unidades totales:</label>
+        <div class="qty-controls large-controls">
+          <button mat-fab color="primary" (click)="disminuir()">-</button>
+          <input type="number" class="qty-input large-input" [(ngModel)]="cantidad" min="1" (input)="calcularPorUnidades()" />
+          <button mat-fab color="primary" (click)="aumentar()">+</button>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button mat-button color="warn" class="btn-flex" (click)="volver()">Cancelar</button>
+        <button mat-raised-button color="primary" class="btn-flex highlight" (click)="agregarProducto()">
+          {{ productoEditando ? '✏️ Actualizar' : '➕ Agregar a Lista' }}
+        </button>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- ==================== ESTADO: LISTA ==================== -->
+  <div *ngIf="estado === 'lista'" class="fade-in">
+    
+    <div class="list-header">
+      <h3>📦 {{recepcionActual?.nombre}}</h3>
+      <button mat-button color="warn" (click)="recepcionActual?.esBD ? eliminarRecepcionBD(recepcionActual) : eliminarRecepcionLocal(recepcionActual)">
+        🗑️ Vaciar
+      </button>
+    </div>
+
+    <div *ngIf="recepcionActual?.lista.length === 0" class="empty-state">
+      📭 No hay productos aún. Escanea el primero.
+    </div>
+
+    <mat-card *ngFor="let item of recepcionActual?.lista" class="item-card item-recepcion" (click)="seleccionarParaEditar(item)">
+      <div class="item-content">
+        <div class="item-info">
+          <strong>{{item.productoNombre}}</strong>
+          <span class="item-meta">📍 {{item.lugarNombre}} | Lote: {{item.productoCantidadLote}}</span>
+        </div>
+        <div class="item-actions">
+          <div class="item-qty">{{item.cantidadAgregada}} un.</div>
+          <button mat-icon-button color="warn" (click)="$event.stopPropagation(); eliminarIndividual(item)">🗑️</button>
+        </div>
+      </div>
+    </mat-card>
+
+    <div class="bottom-actions-column">
+      <button mat-stroked-button color="primary" class="btn-tall" (click)="estado='agregar'; reset()">
+        ➕ ESCANEAR OTRO
+      </button>
+      <button *ngIf="!recepcionActual?.esBD" mat-stroked-button class="btn-tall btn-draft" (click)="guardarBorrador()">
+        💾 GUARDAR BORRADOR
+      </button>
+      <button mat-raised-button color="primary" class="btn-tall btn-confirm" (click)="finalizar()">
+        ✅ CONFIRMAR RECEPCIÓN
+      </button>
+    </div>
+  </div>
+</div>

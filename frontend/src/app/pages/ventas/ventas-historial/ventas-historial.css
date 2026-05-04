@@ -1,0 +1,398 @@
+/* =========================================
+   CABECERA (HEADER)
+========================================= */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+.header-title-container h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.actions-group {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-exportar {
+  color: #2e7d32 !important;
+  border-color: #8bc34a !important;
+}
+
+/* --- RESPONSIVE HEADER --- */
+@media (max-width: 767px) {
+  .header-section {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .header-title-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .actions-group {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* CONTENEDOR PRINCIPAL */
+.historial-container {
+  padding: 20px;
+  max-width: 900px;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+.historial-title {
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+/* FILTROS RESPONSIVOS */
+.historial-filtros {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 15px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin-bottom: 25px;
+  align-items: center;
+}
+
+.filtro-input {
+  width: 100%;
+  height: 48px;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.filtro-usuario {
+  grid-column: 1 / -1; 
+}
+
+/* =========================================
+   BOTONES DE ACCIÓN (FILTROS)
+========================================= */
+.filtro-acciones {
+  grid-column: 1 / -1; 
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end; 
+  padding-top: 10px;
+  margin-top: 5px;
+  border-top: 1px dashed #eee; 
+}
+
+.btn-accion {
+  min-width: 140px; 
+  height: 48px !important; 
+  padding: 0 20px !important; 
+  border-radius: 8px !important; 
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-contenido {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; 
+  font-size: 1.05em;
+  font-weight: 600;
+  line-height: 1; 
+}
+
+/* 🎨 Colores Personalizados */
+.btn-filtrar-color {
+  background-color: #52b3ac !important; 
+  color: white !important;
+  border: none !important;
+}
+.btn-filtrar-color:hover:not([disabled]) {
+  background-color: #429690 !important; 
+  transform: translateY(-1px);
+}
+
+.btn-limpiar-color {
+  background-color: #f1f5f9 !important; 
+  color: #64748b !important; 
+  border: 1px solid #cbd5e1 !important;
+}
+.btn-limpiar-color:hover:not([disabled]) {
+  background-color: #e2e8f0 !important;
+}
+
+/* 📱 Responsividad Extrema para Celulares */
+@media (max-width: 600px) {
+  
+  .historial-filtros {
+    grid-template-columns: 1fr 1fr; 
+  }
+
+  .filtro-acciones {
+    flex-direction: column; 
+  }
+  
+  .btn-accion {
+    width: 100%; 
+  }
+}
+
+/* ESTADO Y CARGA */
+.estado-mensaje {
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* TARJETAS DE HISTORIAL (LISTA) */
+.historial-card {
+  margin-bottom: 15px;
+  border-radius: 8px !important; 
+  transition: all 0.2s ease-in-out;
+  padding: 0 !important; 
+}
+
+.card-clicable {
+  cursor: pointer;
+}
+
+.historial-card:hover {
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  flex-wrap: wrap; 
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  gap: 15px;
+  background: white;
+  border-radius: 8px !important;
+}
+
+.header-principal {
+  flex: 1 1 200px; 
+}
+
+/* Banderitas (Badges) */
+.badges-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  font-size: 0.8em;
+  font-weight: bold;
+  padding: 4px 10px;
+  border-radius: 12px;
+  color: white;
+}
+
+.folio-text {
+  font-size: 1.2em;
+  color: #1565c0;
+  margin-bottom: 3px;
+}
+
+.fecha-text {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.user-text {
+  font-size: 0.85em;
+  color: #999;
+  margin-top: 3px;
+}
+
+.header-montos {
+  text-align: right;
+}
+
+.total-text {
+  font-size: 1.3em;
+  color: #666;
+}
+
+.text-unidades {
+  color: #455a64;
+}
+
+/* =========================================
+   ESTILOS DINÁMICOS DE PAGO
+========================================= */
+.metodo-text {
+  font-size: 0.9em;
+  font-weight: bold;
+  padding: 4px 12px;
+  border-radius: 20px; 
+  display: inline-block;
+  margin-top: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
+}
+
+.metodo-efectivo {
+  background-color: #e8f5e9; 
+  color: #2e7d32; 
+  border: 1px solid #c8e6c9;
+}
+
+.metodo-tarjeta {
+  background-color: #ffee95; 
+  color: #ed8e4a; 
+  border: 1px solid #ffecb3;
+}
+
+.arrow-icon {
+  font-size: 1.2em;
+  color: #aaa;
+  margin-left: 10px;
+}
+
+/* DETALLE DESPLEGABLE */
+.card-detalle {
+  padding: 20px;
+  border-top: 1px solid #eee;
+  background: #fafafa;
+}
+
+.detalle-resumen {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px dashed #ddd;
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-label {
+  font-size: 0.85em;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.resumen-valor {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #333;
+}
+
+.text-descuento {
+  color: #c62828;
+}
+
+.detalle-titulo {
+  margin-bottom: 10px;
+  font-weight: bold;
+  color: #555;
+}
+
+.producto-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.producto-fila:last-child {
+  border-bottom: none;
+}
+
+.producto-info {
+  flex: 1;
+}
+
+.producto-nombre {
+  font-weight: bold;
+  color: #444;
+}
+
+.producto-meta {
+  font-size: 0.85em;
+  color: #777;
+}
+
+.producto-total {
+  text-align: right;
+}
+
+.producto-cantidad {
+  font-weight: bold;
+  color: #333;
+}
+
+.producto-precio {
+  font-size: 0.85em;
+  color: #666;
+}
+
+/* BOTONES DE ACCIÓN (Anular/Reactivar) */
+.acciones-detalle {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-anular {
+  color: #d32f2f !important;
+  border-color: #ef9a9a !important;
+  background-color: #ffebee !important;
+}
+
+.btn-reactivar {
+  color: #1976d2 !important;
+  border-color: #90caf9 !important;
+  background-color: #e3f2fd !important;
+}
+
+.mensaje-ajuste {
+  font-size: 0.85em;
+  color: #888;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+}
+
+/* PAGINACIÓN */
+.paginacion-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+  padding: 10px;
+}
+
+.paginacion-texto {
+  font-weight: bold;
+  color: #555;
+}

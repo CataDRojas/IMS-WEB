@@ -5,6 +5,11 @@ import { forkJoin, map } from 'rxjs';
 import { UsuarioService } from '../../services/usuario/usuario';
 import { Router } from '@angular/router';
 
+//angular materials
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatExpansionModule } from '@angular/material/expansion';
+
 export interface Rol {
   rolId: number;
   rolNombre: string;
@@ -41,7 +46,7 @@ interface UsuarioView extends Usuario {
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatIconModule, MatButtonModule, MatExpansionModule],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })

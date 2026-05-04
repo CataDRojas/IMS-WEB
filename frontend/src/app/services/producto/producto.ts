@@ -25,10 +25,40 @@ export interface Producto {
   descuento?: any;
 }
 
+export interface ProductoStockLugar {
+  movimientoLugarId: number;
+  movimientoLugarDescripcion: string;
+  stock: number;
+  prioridad: boolean;
+}
+
 export interface ProductoUiData {
   productos: Producto[];
   categorias: any[];
   descuentos: any[];
+}
+
+export interface ProductoDetalle {
+  productoId: number;
+  productoNombre: string;
+  productoCodigo: string;
+  productoPrecio: number;
+
+  productoStock: number;
+  stockPorLugar: ProductoStockLugar[];
+}
+
+export interface ProductoList {
+  productoId: number;
+  productoNombre: string;
+  productoCodigo: string;
+
+  productoPrecio: number;
+  productoStock: number;
+  productoActivo: boolean;
+
+  categoriaNombre?: string | null;
+  descuentoNombre?: string | null;
 }
 
 @Injectable({
@@ -82,8 +112,14 @@ export class ProductoService {
     });
   }
 
-  // EXCEL
+  obtenerDetalleProducto(id: number): Observable<ProductoDetalle> {
+    return this.http.get<ProductoDetalle>(
+      `${this.apiUrl}/${id}/detalle`,
+      { headers: this.getHeaders() }
+    );
+  }
 
+  // EXCEL
   importarExcel(archivo: File): Observable<string> {
     const formData = new FormData();
     formData.append('file', archivo);
@@ -98,13 +134,23 @@ export class ProductoService {
     );
   }
 
-  exportarExcel(): Observable<Blob> {
-    return this.http.get(
-      `${this.apiUrl}/export-excel`,
-      {
-        headers: this.getHeaders(),
-        responseType: 'blob'
-      }
-    );
-  }
+  exportarExcel(filtros?: {
+  nombre?: string;
+  categoriaId?: number | null;
+  activo?: string;
+  critico?: boolean;
+}): Observable<Blob> {
+  const params: any = {};
+  if (filtros?.nombre) params.nombre = filtros.nombre;
+  if (filtros?.categoriaId) params.categoriaId = filtros.categoriaId;
+  if (filtros?.activo && filtros.activo !== '' && filtros.activo !== 'undefined') 
+    params.activo = filtros.activo;
+  if (filtros?.critico) params.critico = filtros.critico;
+
+  return this.http.get(`${this.apiUrl}/export-excel`, {
+    headers: this.getHeaders(),
+    params,
+    responseType: 'blob'
+  });
+}
 }

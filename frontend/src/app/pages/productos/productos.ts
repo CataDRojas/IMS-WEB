@@ -4,12 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BrowserMultiFormatReader } from '@zxing/browser'; // CAMARA 
 
+//Angular Materials
+import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { MatButtonModule } from '@angular/material/button';
+
 import { ProductoService, Producto } from '../../services/producto/producto';
 
 @Component({
   selector: 'app-productos',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MatExpansionModule, MatExpansionPanel, MatIconModule, MatButtonModule],
   templateUrl: './productos.html',
   styleUrls: ['./productos.css']
 })
@@ -18,8 +24,10 @@ export class ProductosComponent implements OnInit {
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   productos: Producto[] = [];
+  productosBase: Producto[] = [];
   categorias: any[] = [];
   descuentos: any[] = [];
+  rolUsuario = localStorage.getItem('rol_ims') ?? 'Invitado';
 
   mostrarFormulario = false;
 
@@ -28,26 +36,147 @@ export class ProductosComponent implements OnInit {
 
   productoActual: Producto = this.generarProductoVacio();
 
+  stockDetalleMap: Record<number, any[]> = {};
+  productoExpandido: Record<number, boolean> = {};
+  cargandoStock: Record<number, boolean> = {};
+
+// =========================
+// LIST CONTROL (ONLY UI STATE)
+// =========================
+
+// pagination
+paginaActual = 1;
+tamanoPagina = 10;
+totalItems = 0;
+
+filtros = {
+  nombre: '',
+  categoriaId: null as number | null,
+  activo: '', // '' | 'true' | 'false'
+  critico: false
+};
+showFilters: boolean = false;
+
   constructor(private productoService: ProductoService, private router: Router) {}
 
-  ngOnInit(): void {
-    this.cargarDatos();
+ngOnInit(): void {
+  this.cargarDatos();
+  this.cargarListaProductos();
+}
+
+  // Función rápida para chequear si es admin
+  esAdmin(): boolean {
+    return this.rolUsuario === 'ADMIN';
+  }
+
+  tienePermiso(permiso: string): boolean {
+    const stored = localStorage.getItem('permisos_ims');
+    const permisos = stored ? JSON.parse(stored) : [];
+    return permisos.includes(permiso);
   }
 
   // CARGA DE DATOS
 
-  cargarDatos(): void {
-    this.productoService.obtenerUiData().subscribe({
-      next: (data) => {
-        this.productos = data.productos;
-        this.categorias = data.categorias;
-        this.descuentos = data.descuentos;
-      },
-      error: () => {
-        this.mensajeError = 'No se pudo cargar la información del sistema.';
-      }
-    });
+cargarDatos(): void {
+  this.productoService.obtenerUiData().subscribe({
+    next: (data) => {
+      this.productosBase = data.productos;
+      this.categorias = data.categorias;
+      this.descuentos = data.descuentos;
+
+      this.cargarListaProductos();
+    },
+    error: () => {
+      this.mensajeError = 'No se pudo cargar la información del sistema.';
+    }
+  });
+}
+
+cargarListaProductos(): void {
+
+  const productos = [...this.productosBase];
+
+  let filtrados = productos;
+
+  // nombre filter
+  if (this.filtros.nombre?.trim()) {
+    filtrados = filtrados.filter(p =>
+      p.productoNombre
+        .toLowerCase()
+        .includes(this.filtros.nombre.toLowerCase())
+    );
   }
+console.log('FILTER:', this.filtros.categoriaId);
+console.log('SAMPLE PRODUCT CATEGORY:', filtrados[0]?.categoria);
+  // categoria filter
+  if (this.filtros.categoriaId) {
+    filtrados = filtrados.filter(p =>
+      p.categoriaId === this.filtros.categoriaId
+    );
+  }
+
+  // activo filter
+  if (this.filtros.activo !== '') {
+    const activo = this.filtros.activo === 'true';
+    filtrados = filtrados.filter(p =>
+      p.productoActivo === activo
+    );
+  }
+
+  if (this.filtros.critico) {
+    filtrados = filtrados.filter(p => p.productoStockCritico === true);
+  }
+
+  // IMPORTANT: update total BEFORE pagination math
+  this.totalItems = filtrados.length;
+
+  // clamp page if filters reduced dataset
+  const maxPage = Math.max(1, Math.ceil(this.totalItems / this.tamanoPagina));
+
+  if (this.paginaActual > maxPage) {
+    this.paginaActual = maxPage;
+  }
+
+  // pagination
+  const start = (this.paginaActual - 1) * this.tamanoPagina;
+  const end = start + this.tamanoPagina;
+
+  this.productos = filtrados.slice(start, end);
+}
+
+
+
+toggleDetalleStock(prod: Producto): void {
+
+  if (!prod.productoId) return;
+
+  const id = prod.productoId;
+
+  // toggle close
+  if (this.productoExpandido[id]) {
+    this.productoExpandido[id] = false;
+    return;
+  }
+
+  this.productoExpandido[id] = true;
+
+  // already loaded → no refetch
+  if (this.stockDetalleMap[id]) return;
+
+  this.cargandoStock[id] = true;
+
+  this.productoService.obtenerDetalleProducto(id).subscribe({
+    next: (detalle) => {
+      this.stockDetalleMap[id] = detalle.stockPorLugar;
+      this.cargandoStock[id] = false;
+    },
+    error: () => {
+      this.mensajeError = 'Error al cargar stock por lugar.';
+      this.cargandoStock[id] = false;
+    }
+  });
+}
+
 
   generarProductoVacio(): Producto {
     return {
@@ -76,16 +205,49 @@ export class ProductosComponent implements OnInit {
     this.mostrarFormulario = true;
   }
 
-  editarProducto(prod: any): void {
-    this.productoActual = { 
-      ...prod,
-      categoriaId: prod.categoria ? prod.categoria.categoriaId : null,
-      descuentoId: prod.descuento ? prod.descuento.descuentoId : null
-    };
-    
-    this.mensajeError = '';
-    this.mostrarFormulario = true;
+getDescuentoNombre(prod: any): string {
+
+  // product-level discount (DTO)
+  if (prod.descuentoNombre) {
+    return prod.descuentoNombre;
   }
+
+  return '—';
+}
+
+editarProducto(prod: any): void {
+
+  if (!prod.productoId) return;
+
+  this.productoService.obtenerProductoPorId(prod.productoId).subscribe({
+    next: (base) => {
+
+      // resolve categoriaId
+      let categoriaId = null;
+      if (base.categoria?.categoriaId) {
+        categoriaId = base.categoria.categoriaId;
+      }
+
+      // resolve descuentoId (ONLY real product discount)
+      let descuentoId = null;
+      if (base.descuento?.descuentoId) {
+        descuentoId = base.descuento.descuentoId;
+      }
+
+      this.productoActual = {
+        ...base,
+        categoriaId: categoriaId,
+        descuentoId: descuentoId
+      };
+
+      this.mensajeError = '';
+      this.mostrarFormulario = true;
+    },
+    error: () => {
+      this.mensajeError = 'Producto no encontrado.';
+    }
+  });
+}
 
   cancelar(): void {
     this.mostrarFormulario = false;
@@ -93,36 +255,48 @@ export class ProductosComponent implements OnInit {
 
   // GUARDAR PRODUCTO
 
-  guardarProducto(): void {
+guardarProducto(): void {
 
-    const { 
-      categoriaId, categoriaNombre, 
-      descuentoId, descuentoNombre, descuentoPorcentaje, 
-      productoStockCritico,
-      ...productoLimpio 
-    } = this.productoActual;
+  const {
+    categoriaId,
+    categoriaNombre,
+    descuentoId,
+    descuentoNombre,
+    descuentoPorcentaje,
+    productoStock,
+    productoStockCritico,
+    ...productoLimpio
+  } = this.productoActual;
 
-    const payloadEnvio = {
-      ...productoLimpio,
-      categoria: this.productoActual.categoriaId ? { categoriaId: this.productoActual.categoriaId } : null,
-      descuento: this.productoActual.descuentoId ? { descuentoId: this.productoActual.descuentoId } : null
-    };
+  const payloadEnvio = {
+    ...productoLimpio,
+    productoStock: null,
 
-    const request$ = this.productoActual.productoId
-      ? this.productoService.actualizarProducto(this.productoActual.productoId, payloadEnvio as any)
-      : this.productoService.crearProducto(payloadEnvio as any);
+    categoria: this.productoActual.categoriaId
+      ? { categoriaId: this.productoActual.categoriaId }
+      : null,
 
-    request$.subscribe({
-      next: () => {
-        this.mostrarFormulario = false;
-        this.cargarDatos();
-      },
-      error: (err) => {
-        console.error('Error del backend:', err);
-        this.mensajeError = 'Error al guardar producto. Revisa los datos.';
-      }
-    });
-  }
+    descuento: this.productoActual.descuentoId
+      ? { descuentoId: this.productoActual.descuentoId }
+      : null
+  };
+
+  const request$ = this.productoActual.productoId
+    ? this.productoService.actualizarProducto(this.productoActual.productoId, payloadEnvio as any)
+    : this.productoService.crearProducto(payloadEnvio as any);
+
+  request$.subscribe({
+    next: () => {
+      this.mostrarFormulario = false;
+      this.cargarDatos();
+      this.cargarListaProductos();
+    },
+    error: (err) => {
+      console.error('Error del backend:', err);
+      this.mensajeError = 'Error al guardar producto. Revisa los datos.';
+    }
+  });
+}
 
   cambiarEstado(prod: Producto): void {
 
@@ -134,7 +308,10 @@ export class ProductosComponent implements OnInit {
     };
 
     this.productoService.actualizarProducto(prod.productoId, updated).subscribe({
-      next: () => this.cargarDatos(),
+      next: () => {
+  this.cargarDatos();
+  this.cargarListaProductos();
+},
       error: () => {
         this.mensajeError = 'No se pudo cambiar el estado.';
       }
@@ -160,6 +337,7 @@ export class ProductosComponent implements OnInit {
       next: () => {
         this.mensajeExito = 'Importación exitosa';
         this.cargarDatos();
+        this.cargarListaProductos();
         event.target.value = '';
       },
       error: () => {
@@ -169,25 +347,69 @@ export class ProductosComponent implements OnInit {
     });
   }
 
-  descargarExcel(): void {
+descargarExcel(): void {
+  const filtrosEnvio = {
+    nombre: this.filtros.nombre || undefined,
+    categoriaId: this.filtros.categoriaId || undefined,
+    activo: this.filtros.activo && this.filtros.activo !== '' ? this.filtros.activo : undefined,
+    critico: this.filtros.critico || undefined
+  };
 
-    this.productoService.exportarExcel().subscribe({
-      next: (blob) => {
+  console.log('Filtros al exportar:', filtrosEnvio);
 
-        const url = window.URL.createObjectURL(blob);
+  this.productoService.exportarExcel(filtrosEnvio).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Inventario_IMS_${new Date().toISOString().slice(0,10)}.xlsx`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: () => { this.mensajeError = 'Error al exportar Excel.'; }
+  });
+}
 
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Inventario_IMS.xlsx';
-        a.click();
 
-        window.URL.revokeObjectURL(url);
-      },
-      error: () => {
-        this.mensajeError = 'Error al exportar Excel.';
-      }
-    });
-  }
+// =========================
+// LIST FILTERING
+// =========================
+
+aplicarFiltros(): void {
+  this.paginaActual = 1;
+  this.cargarListaProductos();
+}
+
+limpiarFiltros(): void {
+  this.filtros = {
+    nombre: '',
+    categoriaId: null,
+    activo: '',
+    critico: false
+  };
+
+  this.paginaActual = 1;
+  this.cargarListaProductos();
+}
+
+
+
+// =========================
+// PAGINATION
+// =========================
+
+cambiarPagina(delta: number): void {
+  const nueva = this.paginaActual + delta;
+
+  if (nueva < 1) return;
+
+  this.paginaActual = nueva;
+  this.cargarListaProductos();
+}
+
+totalPaginas(): number {
+  return Math.ceil(this.totalItems / this.tamanoPagina) || 1;
+}
 
   // CAMARA
 

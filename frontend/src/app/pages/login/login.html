@@ -1,15 +1,59 @@
-<form class="login-form" (ngSubmit)="iniciarSesion()">
-      
-      <div class="form-group">
-        <label for="email">Usuario / Correo</label>
-        <input type="text" id="email" name="email" [(ngModel)]="credenciales.email" placeholder="ejemplo@empresa.com" required>
-      </div>
+<div class="login-container">
+  <mat-card class="login-card">
+    
+    <div class="logo-container">
+      <img src="/imagenes/banner-ims.png" alt="IMS Logo" class="login-logo">
+    </div>
 
-      <div class="form-group">
-        <label for="password">Contraseña</label>
-        <input type="password" id="password" name="password" [(ngModel)]="credenciales.password" placeholder="Ingresa tu contraseña" required>
-      </div>
+    <mat-card-header>
+      <mat-card-title>Iniciar Sesión</mat-card-title>
+    </mat-card-header>
 
-      <button type="submit" class="btn-login">Iniciar Sesión</button>
-      
-    </form>
+    <mat-card-content>
+      <form class="login-form" (ngSubmit)="iniciarSesion()" #form="ngForm">
+        
+        <div *ngIf="errorMessage" class="error-box-global">
+          <mat-icon>error</mat-icon> {{ errorMessage }}
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Usuario / Correo</mat-label>
+          <input matInput 
+                 type="email" 
+                 name="email" 
+                 [(ngModel)]="credenciales.email" 
+                 placeholder="ejemplo@empresa.com" 
+                 required
+                 #emailModel="ngModel">
+          <mat-icon matSuffix>person</mat-icon>
+          <mat-error *ngIf="emailModel.invalid && emailModel.touched">
+            El correo es obligatorio
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Contraseña</mat-label>
+          <input matInput 
+                 type="password" 
+                 name="password" 
+                 [(ngModel)]="credenciales.password" 
+                 placeholder="Ingresa tu contraseña" 
+                 required
+                 #passwordModel="ngModel">
+          <mat-icon matSuffix>lock</mat-icon>
+          <mat-error *ngIf="passwordModel.invalid && passwordModel.touched">
+            La contraseña es obligatoria
+          </mat-error>
+        </mat-form-field>
+
+        <button mat-flat-button 
+                type="submit" 
+                class="btn-login" 
+                [disabled]="form.invalid">
+          Iniciar sesión
+        </button>
+        
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

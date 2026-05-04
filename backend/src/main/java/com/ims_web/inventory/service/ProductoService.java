@@ -1,10 +1,11 @@
 package com.ims_web.inventory.service;
 
+import com.ims_web.inventory.dto.ProductoDetalleDTO;
 import com.ims_web.inventory.dto.ProductoExcelDTO;
-import com.ims_web.inventory.entity.Categoria;
-import com.ims_web.inventory.entity.Producto;
-import com.ims_web.inventory.repository.CategoriaRepository;
-import com.ims_web.inventory.repository.ProductoRepository;
+import com.ims_web.inventory.dto.ProductoStockLugarDTO;
+import com.ims_web.inventory.dto.ProductoListDTO;
+import com.ims_web.inventory.entity.*;
+import com.ims_web.inventory.repository.*;
 import com.ims_web.inventory.util.AuditHelper;
 import com.ims_web.inventory.util.excel.ProductoExcelExporter;
 import com.ims_web.inventory.util.excel.ProductoExcelImporter;
@@ -13,6 +14,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.io.ByteArrayOutputStream;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -25,17 +27,22 @@ public class ProductoService {
     private final ProductoExcelImporter excelImporter;
     private final ProductoExcelExporter excelExporter;
     private final CategoriaRepository categoriaRepo;
+    private final MovimientoLugarRepository movimientoLugarRepo;
+    private final MovimientoLugarProductoRepository mlpRepo;
 
     public ProductoService(
             ProductoRepository repo,
             ProductoExcelImporter excelImporter,
             ProductoExcelExporter excelExporter,
-            CategoriaRepository categoriaRepo
-    ) {
+            CategoriaRepository categoriaRepo,
+            MovimientoLugarRepository movimientoLugarRepo,
+            MovimientoLugarProductoRepository mlpRepo) {
         this.repo = repo;
         this.excelImporter = excelImporter;
         this.excelExporter = excelExporter;
         this.categoriaRepo = categoriaRepo;
+        this.movimientoLugarRepo = movimientoLugarRepo;
+        this.mlpRepo = mlpRepo;
     }
 
     public List<Producto> getAllProductos() {
@@ -71,8 +78,16 @@ public class ProductoService {
 
         AuditHelper.setCreationAudit(producto, currentUser);
 
-        return repo.save(producto);
+        Producto saved = repo.save(producto);
+
+        ensureProductoInAllLugares(saved);
+
+        return saved;
     }
+
+    // =========================
+    // UPDATE
+    // =========================
 
     @Transactional
     public Producto updateProducto(Producto producto, String currentUser) {
@@ -95,7 +110,6 @@ public class ProductoService {
         existing.setProductoNombre(producto.getProductoNombre());
         existing.setProductoDesc(producto.getProductoDesc());
         existing.setProductoActivo(producto.getProductoActivo());
-
         existing.setProductoCriticoNumero(producto.getProductoCriticoNumero());
         existing.setProductoPrecio(producto.getProductoPrecio());
         existing.setProductoCantidadLote(producto.getProductoCantidadLote());
@@ -109,7 +123,6 @@ public class ProductoService {
     }
 
     private void validateProducto(Producto producto) {
-
         if (producto.getProductoPrecio() == null ||
                 producto.getProductoPrecio().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Precio cannot be negative");
@@ -119,9 +132,8 @@ public class ProductoService {
     // =========================
     // EXCEL IMPORT
     // =========================
-
     @Transactional
-    public void importFromExcel(MultipartFile file) {
+    public void importFromExcel(MultipartFile file, String currentUser) {
 
         try (InputStream inputStream = file.getInputStream()) {
 
@@ -129,10 +141,12 @@ public class ProductoService {
 
             for (ProductoExcelDTO dto : productos) {
 
-                // 🔥 ESCUDOS ANTI-CAÍDAS (Evitan el Error 500 por filas vacías)
-                if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty()) continue;
-                if (dto.getNombre() == null || dto.getNombre().trim().isEmpty()) continue;
-                if (dto.getPrecio() == null) continue;
+                if (dto.getCodigo() == null || dto.getCodigo().trim().isEmpty())
+                    continue;
+                if (dto.getNombre() == null || dto.getNombre().trim().isEmpty())
+                    continue;
+                if (dto.getPrecio() == null)
+                    continue;
 
                 Integer cantidadLote = dto.getCantidadLote() != null ? dto.getCantidadLote() : 1;
 
@@ -145,7 +159,9 @@ public class ProductoService {
                             .orElseGet(() -> {
                                 Categoria nuevaCat = new Categoria();
                                 nuevaCat.setCategoriaNombre(catNombre);
-                                AuditHelper.setCreationAudit(nuevaCat, "EXCEL_IMPORT");
+
+                                AuditHelper.setCreationAudit(nuevaCat, currentUser);
+
                                 return categoriaRepo.save(nuevaCat);
                             });
                 }
@@ -160,13 +176,9 @@ public class ProductoService {
                     existing.setProductoNombre(dto.getNombre());
                     existing.setProductoPrecio(dto.getPrecio());
                     existing.setProductoCodigo(dto.getCodigo());
-
-                    if (dto.getStock() != null) {
-                        existing.setProductoStock(dto.getStock());
-                    }
-
                     existing.setCategoria(categoria);
                     existing.setProductoCantidadLote(cantidadLote);
+                    existing.setProductoCriticoNumero(dto.getCriticoNumero() != null ? dto.getCriticoNumero() : 0);
 
                     repo.save(existing);
 
@@ -177,22 +189,49 @@ public class ProductoService {
                     nuevoProducto.setProductoCodigo(dto.getCodigo());
                     nuevoProducto.setProductoNombre(dto.getNombre());
                     nuevoProducto.setProductoPrecio(dto.getPrecio());
-
-                    nuevoProducto.setProductoStock(
-                            dto.getStock() != null ? dto.getStock() : 0
-                    );
-
                     nuevoProducto.setProductoCantidadLote(cantidadLote);
                     nuevoProducto.setCategoria(categoria);
+                    nuevoProducto.setProductoCriticoNumero(dto.getCriticoNumero() != null ? dto.getCriticoNumero() : 0);
 
-                    AuditHelper.setCreationAudit(nuevoProducto, "EXCEL_IMPORT");
+                    AuditHelper.setCreationAudit(nuevoProducto, currentUser);
 
-                    repo.save(nuevoProducto);
+                    Producto saved = repo.save(nuevoProducto);
+
+                    ensureProductoInAllLugares(saved);
                 }
             }
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to import Excel file", e);
+        }
+    }
+    // =========================
+    // GRID CONSISTENCY CORE
+    // =========================
+
+    private void ensureProductoInAllLugares(Producto producto) {
+
+        List<Long> existingLugarIds = mlpRepo
+                .findByProducto_ProductoId(producto.getProductoId())
+                .stream()
+                .map(mlp -> mlp.getMovimientoLugar().getMovimientoLugarId())
+                .toList();
+
+        List<MovimientoLugar> lugares = movimientoLugarRepo.findAll();
+
+        List<MovimientoLugarProducto> toCreate = lugares.stream()
+                .filter(l -> !existingLugarIds.contains(l.getMovimientoLugarId()))
+                .map(lugar -> {
+                    MovimientoLugarProducto mlp = new MovimientoLugarProducto();
+                    mlp.setMovimientoLugar(lugar);
+                    mlp.setProducto(producto);
+                    mlp.setMovimientoLugarProductoStock(0);
+                    return mlp;
+                })
+                .toList();
+
+        if (!toCreate.isEmpty()) {
+            mlpRepo.saveAll(toCreate);
         }
     }
 
@@ -211,12 +250,139 @@ public class ProductoService {
             dto.setPrecio(p.getProductoPrecio());
             dto.setStock(p.getProductoStock());
             dto.setCategoria(
-                    p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null
-            );
+                    p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null);
             dto.setCantidadLote(p.getProductoCantidadLote());
+            dto.setCriticoNumero(p.getProductoCriticoNumero());
             return dto;
         }).toList();
 
         return excelExporter.exportProductos(dtos);
+    }
+
+    // =========================
+    // DETALLE
+    // =========================
+
+    @Transactional(readOnly = true)
+    public ProductoDetalleDTO getProductoDetalle(Long id) {
+
+        Producto producto = repo.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Producto not found"));
+
+        List<MovimientoLugarProducto> relaciones = mlpRepo.findByProducto_ProductoId(id);
+
+        List<ProductoStockLugarDTO> stockPorLugar = relaciones.stream().map(mlp -> {
+            ProductoStockLugarDTO dto = new ProductoStockLugarDTO();
+
+            dto.setMovimientoLugarId(mlp.getMovimientoLugar().getMovimientoLugarId());
+            dto.setMovimientoLugarDescripcion(mlp.getMovimientoLugar().getMovimientoLugarDescripcion());
+            dto.setStock(mlp.getMovimientoLugarProductoStock());
+            dto.setPrioridad(mlp.getMovimientoLugar().getMovimientoLugarPrioridad());
+
+            return dto;
+        }).toList();
+
+        ProductoDetalleDTO dto = new ProductoDetalleDTO();
+
+        dto.setProductoId(producto.getProductoId());
+        dto.setProductoNombre(producto.getProductoNombre());
+        dto.setProductoCodigo(producto.getProductoCodigo());
+        dto.setProductoPrecio(producto.getProductoPrecio());
+        dto.setProductoStock(producto.getProductoStock());
+        dto.setStockPorLugar(stockPorLugar);
+
+        return dto;
+    }
+
+    private String resolveDescuentoNombre(Producto p) {
+
+        if (p.getDescuento() != null && Boolean.TRUE.equals(p.getDescuento().getDescuentoActivo())) {
+            return p.getDescuento().getDescuentoNombre();
+        }
+
+        if (p.getCategoria() != null
+                && p.getCategoria().getDescuento() != null
+                && Boolean.TRUE.equals(p.getCategoria().getDescuento().getDescuentoActivo())) {
+            return p.getCategoria().getDescuento().getDescuentoNombre();
+        }
+
+        return null;
+    }
+
+    private ProductoListDTO toListDTO(Producto p) {
+
+        ProductoListDTO dto = new ProductoListDTO();
+
+        dto.setProductoId(p.getProductoId());
+        dto.setProductoNombre(p.getProductoNombre());
+        dto.setProductoCodigo(p.getProductoCodigo());
+
+        dto.setProductoPrecio(p.getProductoPrecio());
+        dto.setProductoStock(p.getProductoStock());
+        dto.setProductoActivo(p.getProductoActivo());
+
+        dto.setCategoriaNombre(
+                p.getCategoria() != null ? p.getCategoria().getCategoriaNombre() : null);
+
+        dto.setCategoriaId(
+                p.getCategoria() != null ? p.getCategoria().getCategoriaId() : null);
+
+        dto.setDescuentoNombre(resolveDescuentoNombre(p));
+
+        dto.setDescuentoId(
+                p.getDescuento() != null ? p.getDescuento().getDescuentoId() : null);
+
+        dto.setProductoStockCritico(p.getProductoStockCritico());
+        dto.setProductoCriticoNumero(p.getProductoCriticoNumero());
+        dto.setProductoCantidadLote(p.getProductoCantidadLote());
+
+        return dto;
+    }
+
+    public List<ProductoListDTO> getAllProductosList() {
+        return repo.findAll()
+                .stream()
+                .map(this::toListDTO)
+                .toList();
+    }
+
+    public byte[] exportToExcelFiltrado(String nombre, Long categoriaId,
+            String activo, Boolean critico) throws Exception {
+        List<Producto> todos = repo.findAll();
+
+        // Aplicar filtros
+        List<Producto> filtrados = todos.stream()
+                .filter(p -> nombre == null || nombre.isBlank() ||
+                        p.getProductoNombre().toLowerCase().contains(nombre.toLowerCase()))
+                .filter(p -> categoriaId == null ||
+                        (p.getCategoria() != null &&
+                                categoriaId.equals(p.getCategoria().getCategoriaId())))
+                .filter(p -> activo == null || activo.isBlank() ||
+                        p.getProductoActivo().equals(Boolean.parseBoolean(activo)))
+                .filter(p -> critico == null || !critico ||
+                        Boolean.TRUE.equals(p.getProductoStockCritico()))
+                .toList();
+        System.out.println("Filtrados: " + filtrados.size());
+
+        List<ProductoExcelDTO> dtos = filtrados.stream().map(p -> {
+            ProductoExcelDTO dto = new ProductoExcelDTO();
+            dto.setCodigo(p.getProductoCodigo());
+            dto.setNombre(p.getProductoNombre());
+            dto.setPrecio(p.getProductoPrecio());
+            dto.setStock(p.getProductoStock());
+            dto.setCriticoNumero(p.getProductoCriticoNumero());
+            dto.setCantidadLote(p.getProductoCantidadLote());
+            dto.setCategoria(p.getCategoria() != null
+                    ? p.getCategoria().getCategoriaNombre()
+                    : null);
+            dto.setActivo(p.getProductoActivo());
+            return dto;
+        }).toList();
+
+        Workbook workbook = excelExporter.exportProductos(dtos);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        workbook.write(out);
+        workbook.close();
+        return out.toByteArray();
     }
 }

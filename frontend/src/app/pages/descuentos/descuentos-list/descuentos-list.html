@@ -1,70 +1,149 @@
-<h2>Descuentos</h2>
+<div class="productos-container">
+  <header class="header-section">
+    <div class="header-title-container">
+      <h2>🎟️ Gestión de Descuentos</h2>
+    </div>
 
-<button (click)="goHome()">Go home</button>
+    <div class="header-actions-container" *ngIf="esAdmin()">
+      <div class="actions-group">
+        <button class="btn-base btn-new" (click)="create()">
+          <mat-icon>add</mat-icon> Nuevo Descuento
+        </button>
+      </div>
+    </div>
+  </header>
 
-<button (click)="create()">Nuevo descuento</button>
+  <div *ngIf="loading" class="loading-state">
+    <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
+  </div>
 
-<div *ngIf="loading">Cargando...</div>
+  <div class="mobile-list" *ngIf="!loading">
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let d of descuentos">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="product-title">{{ d.descuentoNombre }}</mat-panel-title>
+          <mat-panel-description>
+            <span class="badge" [class.badge-activo]="d.descuentoActivo" [class.badge-inactivo]="!d.descuentoActivo">
+              {{ d.descuentoActivo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
 
-<table *ngIf="!loading">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nombre</th>
-      <th>Tipo</th>
-      <th>Valor</th>
-      <th>Activo</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
+        <div class="product-details-grid">
+          <div class="detail-item">
+            <span class="detail-label">Tipo</span>
+            <span class="detail-value">{{ d.descuentoTipo }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Valor</span>
+            <span class="product-price-tag">{{ getValorDisplay(d) }}</span>
+          </div>
+          
+          <div class="mobile-actions" *ngIf="esAdmin()">
+            <button (click)="edit(d.descuentoId!)" class="btn-edit-small">
+              <mat-icon>edit</mat-icon> Editar
+            </button>
+            <button (click)="delete(d.descuentoId!)" class="btn-delete">
+              <mat-icon>delete</mat-icon> Eliminar
+            </button>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
 
-  <tbody>
-    <tr *ngFor="let d of descuentos">
+  <div class="desktop-table" *ngIf="!loading">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Valor</th>
+          <th>Estado</th>
+          <th *ngIf="esAdmin()">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of descuentos">
+          <td class="font-bold">{{ d.descuentoNombre }}</td>
+          <td>{{ d.descuentoTipo }}</td>
+          <td><span class="product-price-tag">{{ getValorDisplay(d) }}</span></td>
+          <td>
+            <span class="badge" [class.badge-activo]="d.descuentoActivo" [class.badge-inactivo]="!d.descuentoActivo">
+              {{ d.descuentoActivo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="table-actions" *ngIf="esAdmin()">
+            <button (click)="edit(d.descuentoId!)" class="btn-icon edit" title="Editar">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button (click)="delete(d.descuentoId!)" class="btn-icon delete" title="Eliminar">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-      <td>{{ d.descuentoId }}</td>
+  <div *ngIf="mostrarFormulario" class="modal-overlay">
+    <div class="modal-card">
+      <header class="modal-header">
+        <h3>
+          <mat-icon>local_offer</mat-icon>
+          {{ descuentoActualId ? 'Editar' : 'Nuevo' }} Descuento
+        </h3>
+        <button class="btn-close-x" (click)="cancelar()">×</button>
+      </header>
 
-      <td>{{ d.descuentoNombre }}</td>
+      <div class="modal-body">
+        <form [formGroup]="form" class="form-grid">
+          <div class="form-group full-width">
+            <label>Nombre del Descuento</label>
+            <input formControlName="descuentoNombre" [readonly]="!esAdmin()" placeholder="Ej: Black Friday">
+          </div>
 
-      <td>
-        {{
-          d.descuentoTipo === 'FLAT' ? 'Monto fijo' :
-          d.descuentoTipo === 'PORCENTAJE' ? 'Porcentaje' :
-          d.descuentoTipo === 'MULTIPLICATIVO' ? 'Multiplicador' :
-          d.descuentoTipo
-        }}
-      </td>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select formControlName="descuentoTipo" [attr.disabled]="!esAdmin() ? '' : null">
+              <option value="FLAT">Monto fijo ($)</option>
+              <option value="PORCENTAJE">Porcentaje (%)</option>
+              <option value="MULTIPLICATIVO">Multiplicador (x)</option>
+            </select>
+          </div>
 
-      <td>
-        <ng-container [ngSwitch]="d.descuentoTipo">
+          <div class="form-group">
+            <label>Valor</label>
+            <input type="number" formControlName="descuentoValor" [readonly]="!esAdmin()">
+          </div>
 
-          <span *ngSwitchCase="'PORCENTAJE'">
-            {{ d.descuentoValor }}%
-          </span>
+          <div class="form-group full-width" *ngIf="form.get('descuentoTipo')?.value === 'MULTIPLICATIVO'">
+            <div class="critical-stock-box" style="background: #f0f9ff; border-color: #bae6fd;">
+              <div class="critical-header" style="color: #0369a1;">
+                <mat-icon>info</mat-icon> <label>Configuración Multiplicativa</label>
+              </div>
+              <p style="color: #0c4a6e;">Valor secundario (ej: 2x1 → ingrese 1)</p>
+              <input type="number" formControlName="descuentoValorSecundario" [readonly]="!esAdmin()">
+            </div>
+          </div>
 
-          <span *ngSwitchCase="'FLAT'">
-            ${{ d.descuentoValor }}
-          </span>
+          <div class="form-group">
+            <label class="checkbox-container">
+              <input type="checkbox" formControlName="descuentoActivo" [attr.disabled]="!esAdmin() ? '' : null">
+              <span>Descuento Activo</span>
+            </label>
+          </div>
+        </form>
+      </div>
 
-          <span *ngSwitchCase="'MULTIPLICATIVO'">
-            x{{ d.descuentoValor }}
-          </span>
-
-          <span *ngSwitchDefault>
-            {{ d.descuentoValor }}
-          </span>
-
-        </ng-container>
-      </td>
-
-      <td>
-        {{ d.descuentoActivo ? 'Sí' : 'No' }}
-      </td>
-
-      <td>
-        <button (click)="edit(d.descuentoId!)">Editar</button>
-        <button (click)="delete(d.descuentoId!)">Eliminar</button>
-      </td>
-
-    </tr>
-  </tbody>
-</table>
+      <footer class="modal-footer">
+        <button class="btn-modal btn-modal-cancel" (click)="cancelar()">
+          {{ esAdmin() ? 'Cancelar' : 'Cerrar' }}
+        </button>
+        <button *ngIf="esAdmin()" class="btn-modal btn-modal-save" (click)="save()" [disabled]="form.invalid">
+          <mat-icon>save</mat-icon> {{ descuentoActualId ? 'Actualizar' : 'Guardar' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+</div>
